@@ -1,0 +1,167 @@
+@import "tailwindcss";
+
+@theme {
+    --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+
+    --color-bg-primary: #0f1117;
+    --color-bg-secondary: #1a1d27;
+    --color-bg-card: rgba(26, 29, 39, 0.85);
+    --color-bg-glass: rgba(26, 29, 39, 0.65);
+
+    --color-accent: #6366f1;
+    --color-accent-hover: #818cf8;
+    --color-accent-glow: rgba(99, 102, 241, 0.25);
+
+    --color-success: #10b981;
+    --color-warning: #f59e0b;
+    --color-danger: #ef4444;
+}
+
+/* Base */
+body {
+    font-family: var(--font-sans);
+    background: var(--color-bg-primary);
+    color: #f1f5f9;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Leaflet popup overrides */
+.map-popup h4 {
+    @apply text-sm font-semibold mb-1 text-slate-800;
+}
+
+.map-popup .popup-address {
+    @apply text-xs text-slate-500 mb-2;
+}
+
+.map-popup .popup-price {
+    @apply font-bold text-indigo-500 text-sm;
+}
+
+.map-popup .popup-area {
+    @apply text-sm text-slate-600;
+}
+
+.map-popup .popup-rating {
+    @apply text-amber-400 text-sm mb-2;
+}
+
+/* Custom marker */
+.custom-marker {
+    background: transparent !important;
+    border: none !important;
+}
+
+/* Leaflet dark overrides */
+.leaflet-control-zoom a {
+    background: var(--color-bg-secondary) !important;
+    color: #f1f5f9 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+.leaflet-control-attribution {
+    background: var(--color-bg-glass) !important;
+    color: #64748b !important;
+    font-size: 0.65rem !important;
+}
+
+.leaflet-control-attribution a {
+    color: #94a3b8 !important;
+}
+
+/* Animations */
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes modal-in {
+    from {
+        transform: scale(0.95) translateY(10px);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes fab-pulse {
+
+    0%,
+    100% {
+        box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+    }
+
+    50% {
+        box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+    }
+}
+
+.animate-slide-left {
+    animation: slide-in-left 0.3s ease;
+}
+
+.animate-slide-right {
+    animation: slide-in-right 0.3s ease;
+}
+
+.animate-fade-in {
+    animation: fade-in 0.2s ease;
+}
+
+.animate-modal-in {
+    animation: modal-in 0.3s ease;
+}
+
+.animate-fab-pulse {
+    animation: fab-pulse 1.5s infinite;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.15);
+}
