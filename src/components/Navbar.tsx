@@ -1,5 +1,6 @@
 import { Home, Filter, Bookmark, LogIn } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from "react-router-dom"
 
 interface NavbarProps {
     onOpenSaved: () => void;
@@ -10,6 +11,7 @@ interface NavbarProps {
 export default function Navbar({ onOpenSaved, onToggleFilters, showFilters }: NavbarProps) {
     const { user, loading, login, logout } = useAuth();
 
+    const navigate = useNavigate()
     return (
         <nav className="h-14 bg-[var(--color-bg-glass)] backdrop-blur-xl border-b border-white/[0.08] flex items-center justify-between px-5 z-[1000]">
             {/* Brand */}
@@ -77,6 +79,11 @@ export default function Navbar({ onOpenSaved, onToggleFilters, showFilters }: Na
                         Đăng nhập
                     </button>
                 )}
+                <button 
+                className="text-xs px-6.5 py-3.5 rounded-md text-slate-400 hover:bg-white/[0.06] hover:text-white transition-all"
+                onClick={() => navigate("/profile")}>
+                    Profile
+                </button>
             </div>
         </nav>
     );
