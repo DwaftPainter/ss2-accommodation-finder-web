@@ -6,6 +6,7 @@ import FilterPanel from "./components/FilterPanel";
 import ListingDetail from "./components/ListingDetail";
 import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
+import AuthModal from "./components/AuthModal";
 import { listingsApi } from "./api";
 import { useAuth } from "./context/AuthContext";
 import { toast } from "sonner";
@@ -21,6 +22,7 @@ export default function App() {
     const [editListing, setEditListing] = useState<ListingDetailType | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [showSaved, setShowSaved] = useState(false);
+    const [showAuth, setShowAuth] = useState(false);
     const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
     const [addingMode, setAddingMode] = useState(false);
@@ -63,7 +65,7 @@ export default function App() {
 
     const handleStartAdding = () => {
         if (!user) {
-            toast.warning("Bạn cần đăng nhập để đăng tin.");
+            setShowAuth(true);
             return;
         }
         setAddingMode(true);
@@ -83,12 +85,19 @@ export default function App() {
         if (listing) setFlyTo([listing.lat, listing.lng]);
     };
 
+    const handleNavbarSearch = (query: string) => {
+        setFilters((prev) => ({ ...prev, search: query }));
+        fetchListings();
+    };
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Navbar
                 onOpenSaved={() => setShowSaved(true)}
                 onToggleFilters={() => setShowFilters((p) => !p)}
                 showFilters={showFilters}
+                onOpenAuth={() => setShowAuth(true)}
+                onSearch={handleNavbarSearch}
             />
 
             <div className="flex-1 flex overflow-hidden relative">
@@ -167,6 +176,10 @@ export default function App() {
                 onClose={() => setShowSaved(false)}
                 onSelectListing={handleSavedSelect}
             />
+
+            {showAuth && (
+                <AuthModal onClose={() => setShowAuth(false)} />
+            )}
         </div>
     );
 }
