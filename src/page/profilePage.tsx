@@ -2,6 +2,8 @@ import { ProfileHeader } from "../components/profile/profile-header"
 import { ProfileStats } from "../components/profile/profile-stats"
 import { ListingCard } from "../components/profile/listing-card"
 import { ReviewCard } from "../components/profile/review-card"
+import { ArrowLeft } from "lucide-react"
+import { useNavigate } from "react-router-dom"
 
 const user = {
   name: "Minh Anh Nguyen",
@@ -54,8 +56,18 @@ const reviews = [
 ]
 
 export default function ProfilePage() {
+  const navigate = useNavigate()
+
   return (
     <div className="min-h-screen bg-muted/30">
+      {/* ✅ thêm - Nút back về trang chủ */}
+      <button
+        onClick={() => navigate("/")}
+        className="fixed top-4 left-4 z-50 flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur-sm rounded-full shadow-lg hover:bg-white transition-all text-sm font-medium"
+      >
+        <ArrowLeft size={18} />
+        Back
+      </button>
       <main className="max-w-md mx-auto px-4 py-8 space-y-6">
         <ProfileHeader
           name={user.name}
