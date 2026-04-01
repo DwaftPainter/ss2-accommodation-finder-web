@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { listingsApi } from '../api';
+import { listingsApi } from '../services/api';
 import type { ListingDetail } from '../types';
 
 const UTILITY_OPTIONS = [
@@ -36,11 +36,26 @@ const listingSchema = z.object({
 type ListingFormValues = z.infer<typeof listingSchema>;
 type ListingFormInput = z.input<typeof listingSchema>;
 
+export interface ListingFormData {
+    title: string;
+    address: string;
+    lat: number;
+    lng: number;
+    price: number;
+    area: number;
+    electricityFee?: number;
+    waterFee?: number;
+    description?: string;
+    utilities: string[];
+    contactName?: string;
+    contactPhone?: string;
+}
+
 interface ListingFormProps {
     listing: ListingDetail | null;
     pinLocation: { lat: number; lng: number } | null;
     onClose: () => void;
-    onSaved: () => void;
+    onSaved: (data: ListingFormData) => Promise<void> | void;
 }
 
 export default function ListingForm({ listing, pinLocation, onClose, onSaved }: ListingFormProps) {
@@ -94,12 +109,21 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
     const onSubmit = async (rawData: ListingFormInput) => {
         const data = rawData as ListingFormValues;
+        const payload: ListingFormData = {
+            title: data.title,
+            address: data.address,
+            lat: data.lat,
+            lng: data.lng,
+            price: data.price,
+            area: data.area,
+            electricityFee: data.electricityFee || undefined,
+            waterFee: data.waterFee || undefined,
+            description: data.description || undefined,
+            utilities: data.utilities || [],
+            contactName: data.contactName || undefined,
+            contactPhone: data.contactPhone || undefined,
+        };
         try {
-            const payload = {
-                ...data,
-                electricityFee: data.electricityFee || undefined,
-                waterFee: data.waterFee || undefined,
-            };
             if (isEdit && listing) {
                 await listingsApi.update(listing.id, payload as any);
                 toast.success('Cập nhật tin thành công!');
@@ -107,7 +131,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                 await listingsApi.create(payload as any);
                 toast.success('Đăng tin thành công!');
             }
-            onSaved();
+            await onSaved(payload);
             onClose();
         } catch (err: unknown) {
             toast.error('Lỗi: ' + (err instanceof Error ? err.message : 'Không xác định'));

@@ -3,8 +3,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { reviewsApi } from '../api';
-import { useAuth } from '../context/AuthContext';
+import { reviewsApi } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import { StarRating, StarBreakdown } from './StarRating';
 import type { Review } from '../types';
 
