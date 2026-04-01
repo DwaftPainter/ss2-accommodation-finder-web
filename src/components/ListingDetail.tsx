@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { X, MapPin, User, Phone, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
-import { listingsApi, savedApi } from '../api';
-import { useAuth } from '../context/AuthContext';
+import { listingsApi, savedApi } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import ReviewSection from './ReviewSection';
 import type { ListingDetail as ListingDetailType } from '../types';
 

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Home, Filter, Bookmark, LogIn, Search, X } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../hooks/useAuth';
 
 interface NavbarProps {
     onOpenSaved: () => void;
@@ -11,7 +11,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onOpenSaved, onToggleFilters, showFilters, onOpenAuth, onSearch }: NavbarProps) {
-    const { user, loading, logout } = useAuth();
+    const { user, isLoading: loading, logout } = useAuth();
     const [query, setQuery] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {

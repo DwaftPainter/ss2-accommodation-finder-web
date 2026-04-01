@@ -4,18 +4,17 @@ import Navbar from "./components/Navbar";
 import MapView from "./components/MapView";
 import FilterPanel from "./components/FilterPanel";
 import ListingDetail from "./components/ListingDetail";
-import ListingForm from "./components/ListingForm";
+import ListingForm, { type ListingFormData } from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
 import AuthModal from "./components/AuthModal";
-import { listingsApi } from "./api";
-import { useAuth } from "./context/AuthContext";
+import { useAuth } from "./hooks/useAuth";
+import { useListingsStore } from "./stores";
 import { toast } from "sonner";
-import type { ListingSummary, ListingDetail as ListingDetailType, ListingFilters } from "./types";
+import type { ListingDetail as ListingDetailType, ListingFilters } from "./types";
 import type { LatLng } from "leaflet";
 
 export default function App() {
     const { user } = useAuth();
-    const [listings, setListings] = useState<ListingSummary[]>([]);
     const [filters, setFilters] = useState<ListingFilters>({});
     const [showFilters, setShowFilters] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
@@ -26,35 +25,19 @@ export default function App() {
     const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
     const [addingMode, setAddingMode] = useState(false);
-    const [loading, setLoading] = useState(true);
 
-    const fetchListings = useCallback(async () => {
-        setLoading(true);
-        try {
-            const params: Record<string, string | number | undefined> = {};
-            if (filters.search) params.search = filters.search;
-            if (filters.price_min) params.price_min = filters.price_min;
-            if (filters.price_max) params.price_max = filters.price_max;
-            if (filters.area_min) params.area_min = filters.area_min;
-            if (filters.area_max) params.area_max = filters.area_max;
-            if (filters.lat) params.lat = filters.lat;
-            if (filters.lng) params.lng = filters.lng;
-            if (filters.radius) params.radius = filters.radius;
-            if (filters.utilities && filters.utilities.length > 0) {
-                params.utilities = filters.utilities.join(",");
-            }
-            const data = await listingsApi.getAll(params);
-            setListings(data);
-        } catch (err) {
-            console.error("Failed to fetch listings:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [filters]);
+    const {
+        listings,
+        fetchListings,
+        createListing,
+        updateListing,
+        isLoading,
+    } = useListingsStore();
 
+    // Fetch listings on mount and when filters change
     useEffect(() => {
-        fetchListings();
-    }, []);
+        fetchListings(filters);
+    }, [fetchListings, filters]);
 
     const handleMapClick = (latlng: LatLng) => {
         if (!addingMode) return;
@@ -87,7 +70,28 @@ export default function App() {
 
     const handleNavbarSearch = (query: string) => {
         setFilters((prev) => ({ ...prev, search: query }));
-        fetchListings();
+    };
+
+    const handleFormSubmit = async (data: ListingFormData) => {
+        const apiData = {
+            ...data,
+            electricityFee: data.electricityFee?.toString(),
+            waterFee: data.waterFee?.toString(),
+        } as unknown as import("./types").ListingFormData;
+        try {
+            if (editListing) {
+                await updateListing(editListing.id, apiData);
+                toast.success("Listing updated successfully!");
+            } else {
+                await createListing(apiData);
+                toast.success("Listing created successfully!");
+            }
+            setShowForm(false);
+            setEditListing(null);
+            setPinLocation(null);
+        } catch (error) {
+            toast.error(error instanceof Error ? error.message : "Failed to save listing");
+        }
     };
 
     return (
@@ -104,7 +108,7 @@ export default function App() {
                 <FilterPanel
                     filters={filters}
                     onFilterChange={setFilters}
-                    onSearch={fetchListings}
+                    onSearch={() => fetchListings(filters)}
                     visible={showFilters}
                 />
 
@@ -135,7 +139,7 @@ export default function App() {
                         </button>
 
                         <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 px-5 py-2 bg-[var(--color-bg-glass)] backdrop-blur-xl border border-white/[0.08] rounded-full text-sm font-medium text-slate-400 shadow-lg">
-                            {loading ? "..." : `${listings.length} phòng trọ`}
+                            {isLoading ? "..." : `${listings.length} phòng trọ`}
                         </div>
                     </div>
 
@@ -167,7 +171,7 @@ export default function App() {
                         setEditListing(null);
                         setPinLocation(null);
                     }}
-                    onSaved={fetchListings}
+                    onSaved={handleFormSubmit}
                 />
             )}
 
