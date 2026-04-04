@@ -85,3 +85,60 @@ export function useSavedListingsManager() {
         refresh: fetchSavedListings,
     };
 }
+
+/**
+ * Hook for searching listings by address
+ */
+export function useAddressSearch() {
+    const listings = useListings();
+    const { searchByAddress, isLoading, error } = useListingsStore();
+
+    const search = async (address: string, radius?: number) => {
+        await searchByAddress(address, radius);
+    };
+
+    return {
+        listings,
+        isLoading,
+        error,
+        search,
+    };
+}
+
+/**
+ * Hook for searching listings near coordinates
+ */
+export function useNearbySearch() {
+    const listings = useListings();
+    const { searchNearby, isLoading, error } = useListingsStore();
+
+    const search = async (lat: number, lng: number, radius?: number) => {
+        await searchNearby(lat, lng, radius);
+    };
+
+    return {
+        listings,
+        isLoading,
+        error,
+        search,
+    };
+}
+
+/**
+ * Hook for fetching current user's listings
+ */
+export function useMyListings() {
+    const listings = useListings();
+    const { fetchMyListings, isLoading, error } = useListingsStore();
+
+    useEffect(() => {
+        fetchMyListings();
+    }, [fetchMyListings]);
+
+    return {
+        listings,
+        isLoading,
+        error,
+        refresh: fetchMyListings,
+    };
+}
