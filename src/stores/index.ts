@@ -1,4 +1,4 @@
-export { useAuthStore, useUser, useIsAuthenticated, useAuthLoading } from "./authStore";
+export { useAuthStore, useUser, useIsAuthenticated, useAuthLoading, useAuthError } from "./authStore";
 export {
     useListingsStore,
     useListings,

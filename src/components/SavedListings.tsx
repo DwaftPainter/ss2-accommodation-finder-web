@@ -41,7 +41,7 @@ export default function SavedListings({ visible, onClose, onSelectListing }: Sav
                 <div className="py-10 text-center text-slate-500 text-sm">Bạn chưa lưu tin nào</div>
             ) : (
                 <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
-                    {listings.map((l) => (
+                    {listings?.map((l) => (
                         <div key={l.id} onClick={() => onSelectListing(l.id)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg p-3 cursor-pointer hover:border-indigo-500 hover:bg-indigo-500/[0.05] hover:-translate-y-0.5 transition-all">
                             <h4 className="text-sm font-semibold mb-1">{l.title}</h4>
                             <p className="text-[11px] text-slate-500 mb-1.5">{l.address}</p>

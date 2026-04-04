@@ -21,7 +21,7 @@ const apiClient: AxiosInstance = axios.create({
  */
 apiClient.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem(STORAGE_KEYS.TOKEN);
+        const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
         if (token && config.headers) {
             config.headers.Authorization = `Bearer ${token}`;
         }
@@ -42,8 +42,9 @@ apiClient.interceptors.response.use(
             // Handle specific status codes
             switch (error.response.status) {
                 case 401:
-                    // Clear token on unauthorized
-                    localStorage.removeItem(STORAGE_KEYS.TOKEN);
+                    // Clear tokens on unauthorized
+                    localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
+                    localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
                     window.location.href = "/?error=session_expired";
                     break;
                 case 403:

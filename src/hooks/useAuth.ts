@@ -1,10 +1,6 @@
 import { useEffect } from "react";
-import {
-    useAuthStore,
-    useUser,
-    useIsAuthenticated,
-    useAuthLoading,
-} from "../stores";
+import { useAuthStore, useUser, useIsAuthenticated, useAuthLoading, useAuthError } from "../stores";
+import type { LoginPayload, RegisterPayload } from "../types";
 
 /**
  * Hook for auth operations with auto-fetch on mount
@@ -13,8 +9,8 @@ export function useAuth() {
     const user = useUser();
     const isAuthenticated = useIsAuthenticated();
     const isLoading = useAuthLoading();
-    const { login, logout, fetchUser, handleAuthCallback } =
-        useAuthStore();
+    const error = useAuthError();
+    const { login, loginWithGoogle, register, logout, logoutAll, fetchUser, verifyOtp, resendOtp, refreshAccessToken, clearError } = useAuthStore();
 
     // Auto-fetch user on mount if token exists
     useEffect(() => {
@@ -25,9 +21,16 @@ export function useAuth() {
         user,
         isAuthenticated,
         isLoading,
+        error,
         login,
+        loginWithGoogle,
+        register,
         logout,
-        handleAuthCallback,
+        logoutAll,
+        verifyOtp,
+        resendOtp,
+        refreshAccessToken,
+        clearError
     };
 }
 
@@ -42,14 +45,14 @@ export function useIsOwner(ownerId: string) {
 /**
  * Hook to require authentication for an action
  */
-export function useRequireAuth() {
-    const { isAuthenticated, login } = useAuth();
+export function useRequireAuth(onAuthRequired?: () => void) {
+    const { isAuthenticated, loginWithGoogle } = useAuth();
 
     const requireAuth = (callback: () => void) => {
         if (isAuthenticated) {
             callback();
         } else {
-            login();
+            onAuthRequired?.() ?? loginWithGoogle();
         }
     };
 

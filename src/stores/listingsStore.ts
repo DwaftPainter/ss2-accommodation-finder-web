@@ -1,10 +1,5 @@
 import { create } from "zustand";
-import type {
-    ListingSummary,
-    ListingDetail,
-    ListingFilters,
-    SavedListing,
-} from "../types";
+import type { ListingSummary, ListingDetail, ListingFilters, SavedListing } from "../types";
 import { listingsApi, savedApi } from "../services/api";
 
 interface ListingsState {
@@ -30,16 +25,16 @@ interface ListingsActions {
     fetchListings: (filters?: ListingFilters) => Promise<void>;
     fetchListingDetail: (id: string) => Promise<void>;
     fetchSavedListings: () => Promise<void>;
+    fetchMyListings: () => Promise<void>;
 
     // CRUD operations
-    createListing: (
-        data: Parameters<typeof listingsApi.create>[0]
-    ) => Promise<ListingDetail>;
-    updateListing: (
-        id: string,
-        data: Parameters<typeof listingsApi.update>[1]
-    ) => Promise<ListingDetail>;
+    createListing: (data: Parameters<typeof listingsApi.create>[0]) => Promise<ListingDetail>;
+    updateListing: (id: string, data: Parameters<typeof listingsApi.update>[1]) => Promise<ListingDetail>;
     deleteListing: (id: string) => Promise<void>;
+
+    // Search operations
+    searchByAddress: (address: string, radius?: number) => Promise<void>;
+    searchNearby: (lat: number, lng: number, radius?: number) => Promise<void>;
 
     // Saved operations
     toggleSaved: (listingId: string) => Promise<boolean>;
@@ -63,13 +58,10 @@ const initialFilters: ListingFilters = {
     utilities: undefined,
     lat: undefined,
     lng: undefined,
-    radius: undefined,
+    radius: undefined
 };
 
-const initialState: Omit<
-    ListingsState,
-    keyof ListingsActions
-> = {
+const initialState: Omit<ListingsState, keyof ListingsActions> = {
     listings: [],
     currentListing: null,
     savedListings: [],
@@ -77,7 +69,7 @@ const initialState: Omit<
     isLoading: false,
     isLoadingDetail: false,
     isLoadingSaved: false,
-    error: null,
+    error: null
 };
 
 export const useListingsStore = create<ListingsStore>()((set, get) => ({
@@ -91,10 +83,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoading: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to fetch listings",
+                error: error instanceof Error ? error.message : "Failed to fetch listings"
             });
         }
     },
@@ -107,10 +96,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoadingDetail: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to fetch listing details",
+                error: error instanceof Error ? error.message : "Failed to fetch listing details"
             });
         }
     },
@@ -123,10 +109,46 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoadingSaved: false,
-                error:
-                    error instanceof Error
-                        ? error.message
-                        : "Failed to fetch saved listings",
+                error: error instanceof Error ? error.message : "Failed to fetch saved listings"
+            });
+        }
+    },
+
+    fetchMyListings: async () => {
+        set({ isLoading: true, error: null });
+        try {
+            const listings = await listingsApi.getMyListings();
+            set({ listings, isLoading: false });
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to fetch my listings"
+            });
+        }
+    },
+
+    searchByAddress: async (address, radius = 5) => {
+        set({ isLoading: true, error: null });
+        try {
+            const listings = await listingsApi.searchByAddress(address, radius);
+            set({ listings, isLoading: false });
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to search listings"
+            });
+        }
+    },
+
+    searchNearby: async (lat, lng, radius = 5) => {
+        set({ isLoading: true, error: null });
+        try {
+            const listings = await listingsApi.searchNearby(lat, lng, radius);
+            set({ listings, isLoading: false });
+        } catch (error) {
+            set({
+                isLoading: false,
+                error: error instanceof Error ? error.message : "Failed to search nearby listings"
             });
         }
     },
@@ -134,7 +156,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
     createListing: async (data) => {
         const listing = await listingsApi.create(data);
         set((state) => ({
-            listings: [listing, ...state.listings],
+            listings: [listing, ...state.listings]
         }));
         return listing;
     },
@@ -158,10 +180,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         set((state) => ({
             listings: state.listings.filter((l) => l.id !== id),
             savedListings: state.savedListings.filter((l) => l.id !== id),
-            currentListing:
-                state.currentListing?.id === id
-                    ? null
-                    : state.currentListing,
+            currentListing: state.currentListing?.id === id ? null : state.currentListing
         }));
     },
 
@@ -182,7 +201,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
 
     setFilters: (filters) => {
         set((state) => ({
-            filters: { ...state.filters, ...filters },
+            filters: { ...state.filters, ...filters }
         }));
     },
 
@@ -194,15 +213,11 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         set({ currentListing: null });
     },
 
-    clearError: () => set({ error: null }),
+    clearError: () => set({ error: null })
 }));
 
 // Selector hooks
-export const useListings = () =>
-    useListingsStore((state) => state.listings);
-export const useCurrentListing = () =>
-    useListingsStore((state) => state.currentListing);
-export const useSavedListings = () =>
-    useListingsStore((state) => state.savedListings);
-export const useListingsFilters = () =>
-    useListingsStore((state) => state.filters);
+export const useListings = () => useListingsStore((state) => state.listings);
+export const useCurrentListing = () => useListingsStore((state) => state.currentListing);
+export const useSavedListings = () => useListingsStore((state) => state.savedListings);
+export const useListingsFilters = () => useListingsStore((state) => state.filters);
