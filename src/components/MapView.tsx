@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import L from 'leaflet';
 import type { ListingSummary } from '../types';
+import LocationTracker from './LocationTracker';
 
 // Fix Leaflet marker icon
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
@@ -55,6 +56,9 @@ export default function MapView({ listings, onSelectListing, onMapClick, pinLoca
                     attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
                     url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                 />
+
+                {/* Real-time location tracking */}
+                <LocationTracker />
 
                 {flyTo && <FlyTo center={flyTo} />}
                 {onMapClick && <MapClickHandler onMapClick={onMapClick} />}

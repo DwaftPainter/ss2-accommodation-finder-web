@@ -7,6 +7,7 @@ import ListingDetail from "./components/ListingDetail";
 import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
 import AuthModal from "./components/AuthModal";
+import ChatBox from "./components/ChatBox";
 import { listingsApi } from "./api";
 import { useAuth } from "./context/AuthContext";
 import { toast } from "sonner";
@@ -180,6 +181,8 @@ export default function App() {
             {showAuth && (
                 <AuthModal onClose={() => setShowAuth(false)} />
             )}
+
+            <ChatBox />
         </div>
     );
 }

@@ -94,7 +94,8 @@ export default function AuthModal({ onClose }: AuthModalProps) {
         if (view === 'otp') {
             setTimeout(() => otpRefs.current[0]?.focus(), 100);
         }
-    }, [view]);
+    }, [view]); 
+
 
     const handleOtpChange = useCallback((index: number, value: string) => {
         if (value && !/^\d$/.test(value)) return; // only single digit
@@ -272,7 +273,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
                 <button
                     onClick={switchToRegister}
                     id="switch-to-register"
-                    className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors"
+                    className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors cursor-pointer"
                 >
                     Đăng ký ngay
                 </button>
@@ -424,7 +425,7 @@ export default function AuthModal({ onClose }: AuthModalProps) {
                 <button
                     onClick={switchToLogin}
                     id="switch-to-login"
-                    className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors"
+                    className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors cursor-pointer"
                 >
                     Đăng nhập
                 </button>
