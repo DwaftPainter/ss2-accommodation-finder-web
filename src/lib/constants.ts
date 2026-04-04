@@ -7,8 +7,8 @@ export const APP_NAME = "Accommodation Finder";
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
 export const STORAGE_KEYS = {
-    TOKEN: "token",
-    USER: "user",
+    ACCESS_TOKEN: "access_token",
+    REFRESH_TOKEN: "refresh_token",
     THEME: "theme",
 } as const;
 

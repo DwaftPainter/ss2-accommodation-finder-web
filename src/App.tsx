@@ -4,13 +4,13 @@ import Navbar from "./components/Navbar";
 import MapView from "./components/MapView";
 import FilterPanel from "./components/FilterPanel";
 import ListingDetail from "./components/ListingDetail";
-import ListingForm, { type ListingFormData } from "./components/ListingForm";
+import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
-import AuthModal from "./components/AuthModal";
+import { AuthModal } from "./components/auth";
 import { useAuth } from "./hooks/useAuth";
 import { useListingsStore } from "./stores";
 import { toast } from "sonner";
-import type { ListingDetail as ListingDetailType, ListingFilters } from "./types";
+import type { ListingDetail as ListingDetailType, ListingFilters, ListingPayload } from "./types";
 import type { LatLng } from "leaflet";
 
 export default function App() {
@@ -72,25 +72,21 @@ export default function App() {
         setFilters((prev) => ({ ...prev, search: query }));
     };
 
-    const handleFormSubmit = async (data: ListingFormData) => {
-        const apiData = {
-            ...data,
-            electricityFee: data.electricityFee?.toString(),
-            waterFee: data.waterFee?.toString(),
-        } as unknown as import("./types").ListingFormData;
+    const handleFormSubmit = async (data: ListingPayload) => {
         try {
             if (editListing) {
-                await updateListing(editListing.id, apiData);
-                toast.success("Listing updated successfully!");
+                await updateListing(editListing.id, data);
+                toast.success("Cập nhật tin thành công!");
             } else {
-                await createListing(apiData);
-                toast.success("Listing created successfully!");
+                await createListing(data);
+                toast.success("Đăng tin thành công!");
             }
             setShowForm(false);
             setEditListing(null);
             setPinLocation(null);
         } catch (error) {
-            toast.error(error instanceof Error ? error.message : "Failed to save listing");
+            const errorMessage = error instanceof Error ? error.message : "Đăng tin thất bại";
+            toast.error(errorMessage);
         }
     };
 

@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { reviewsApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { StarRating, StarBreakdown } from './StarRating';
+import { REVIEW_MESSAGES, getErrorMessage } from '../config/messages';
 import type { Review } from '../types';
 
 const reviewSchema = z.object({
@@ -50,7 +51,10 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                 setStarBreakdown(data.starBreakdown);
                 setTotalReviews(data.totalReviews);
             })
-            .catch(console.error)
+            .catch((err) => {
+                const errorMessage = getErrorMessage(err, REVIEW_MESSAGES.FETCH_ERROR);
+                toast.error(errorMessage);
+            })
             .finally(() => setLoading(false));
     };
 
@@ -59,11 +63,23 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
     const onSubmit = async (data: ReviewFormValues) => {
         try {
             await reviewsApi.create(listingId, { rating: data.rating, comment: data.comment || '' });
-            toast.success('Đánh giá đã được gửi!');
+            toast.success(REVIEW_MESSAGES.SUBMIT_SUCCESS);
             reset();
             fetchReviews();
         } catch (err: unknown) {
-            toast.error('Lỗi khi gửi đánh giá: ' + (err instanceof Error ? err.message : 'Không xác định'));
+            const errorMessage = getErrorMessage(err, REVIEW_MESSAGES.SUBMIT_ERROR);
+            toast.error(errorMessage);
+        }
+    };
+
+    const handleDeleteReview = async (reviewId: string) => {
+        try {
+            await reviewsApi.delete(reviewId);
+            toast.success(REVIEW_MESSAGES.DELETE_SUCCESS);
+            fetchReviews();
+        } catch (err: unknown) {
+            const errorMessage = getErrorMessage(err, REVIEW_MESSAGES.DELETE_ERROR);
+            toast.error(errorMessage);
         }
     };
 
@@ -122,25 +138,39 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                         {reviews.length === 0 ? (
                             <p className="text-center text-slate-500 py-5">Chưa có đánh giá nào.</p>
                         ) : (
-                            reviews.map((r) => (
-                                <div key={r.id} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 hover:border-white/[0.15] transition-all">
-                                    <div className="flex justify-between items-center mb-1.5">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[11px] font-semibold text-white overflow-hidden">
-                                                {r.user.avatarUrl ? (
-                                                    <img src={r.user.avatarUrl} alt={r.user.name} className="w-full h-full object-cover" />
-                                                ) : r.user.name?.[0]?.toUpperCase()}
+                            reviews.map((r) => {
+                                const isOwnReview = user?.id === r.userId;
+                                return (
+                                    <div key={r.id} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 hover:border-white/[0.15] transition-all">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[11px] font-semibold text-white overflow-hidden">
+                                                    {r.user.avatarUrl ? (
+                                                        <img src={r.user.avatarUrl} alt={r.user.name} className="w-full h-full object-cover" />
+                                                    ) : r.user.name?.[0]?.toUpperCase()}
+                                                </div>
+                                                <div>
+                                                    <span className="text-sm font-medium block">{r.user.name}</span>
+                                                    <span className="text-[11px] text-slate-500 block">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <span className="text-sm font-medium block">{r.user.name}</span>
-                                                <span className="text-[11px] text-slate-500 block">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
+                                            <div className="flex items-center gap-2">
+                                                <StarRating rating={r.rating} />
+                                                {isOwnReview && (
+                                                    <button
+                                                        onClick={() => handleDeleteReview(r.id)}
+                                                        className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                                                        title="Xóa đánh giá"
+                                                    >
+                                                        🗑️
+                                                    </button>
+                                                )}
                                             </div>
                                         </div>
-                                        <StarRating rating={r.rating} />
+                                        {r.comment && <p className="text-sm text-slate-300 leading-relaxed">{r.comment}</p>}
                                     </div>
-                                    {r.comment && <p className="text-sm text-slate-300 leading-relaxed">{r.comment}</p>}
-                                </div>
-                            ))
+                                );
+                            })
                         )}
                     </div>
                 </>

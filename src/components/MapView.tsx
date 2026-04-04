@@ -59,27 +59,32 @@ export default function MapView({ listings, onSelectListing, onMapClick, pinLoca
                 {flyTo && <FlyTo center={flyTo} />}
                 {onMapClick && <MapClickHandler onMapClick={onMapClick} />}
 
-                {listings.map((l) => (
-                    <Marker key={l.id} position={[l.lat, l.lng]} icon={createIcon(l.avgRating)} eventHandlers={{ click: () => onSelectListing(l.id) }}>
-                        <Popup>
-                            <div className="map-popup min-w-[200px]">
-                                <h4>{l.title}</h4>
-                                <p className="popup-address">{l.address}</p>
-                                <div className="flex gap-3 mb-1.5">
-                                    <span className="popup-price">{formatPrice(l.price)}/tháng</span>
-                                    <span className="popup-area">{l.area} m²</span>
+                {Array.isArray(listings) && listings.map((l) => {
+                    // Skip listings without valid coordinates
+                    if (typeof l.lat !== 'number' || typeof l.lng !== 'number') return null;
+                    const rating = l.avgRating ?? 0;
+                    return (
+                        <Marker key={l.id} position={[l.lat, l.lng]} icon={createIcon(rating)} eventHandlers={{ click: () => onSelectListing(l.id) }}>
+                            <Popup>
+                                <div className="map-popup min-w-[200px]">
+                                    <h4>{l.title ?? 'Untitled'}</h4>
+                                    <p className="popup-address">{l.address ?? 'No address'}</p>
+                                    <div className="flex gap-3 mb-1.5">
+                                        <span className="popup-price">{formatPrice(l.price ?? 0)}/tháng</span>
+                                        <span className="popup-area">{l.area ?? 0} m²</span>
+                                    </div>
+                                    <div className="popup-rating">
+                                        {'★'.repeat(Math.round(rating))}{'☆'.repeat(5 - Math.round(rating))}
+                                        <span className="text-slate-400"> ({l.reviewCount ?? 0})</span>
+                                    </div>
+                                    <button onClick={() => onSelectListing(l.id)} className="w-full mt-1 px-3 py-1.5 rounded-md text-xs font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition-colors">
+                                        Xem chi tiết
+                                    </button>
                                 </div>
-                                <div className="popup-rating">
-                                    {'★'.repeat(Math.round(l.avgRating))}{'☆'.repeat(5 - Math.round(l.avgRating))}
-                                    <span className="text-slate-400"> ({l.reviewCount})</span>
-                                </div>
-                                <button onClick={() => onSelectListing(l.id)} className="w-full mt-1 px-3 py-1.5 rounded-md text-xs font-medium bg-indigo-500 text-white hover:bg-indigo-600 transition-colors">
-                                    Xem chi tiết
-                                </button>
-                            </div>
-                        </Popup>
-                    </Marker>
-                ))}
+                            </Popup>
+                        </Marker>
+                    );
+                })}
 
                 {pinLocation && (
                     <Marker position={[pinLocation.lat, pinLocation.lng]}>
