@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
-import { savedApi } from '../api';
+import { savedApi } from '../services/api';
 import type { SavedListing } from '../types';
 
 const formatPrice = (p: number) => new Intl.NumberFormat('vi-VN').format(p) + ' đ';
