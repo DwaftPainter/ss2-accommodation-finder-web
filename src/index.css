@@ -148,6 +148,134 @@ body {
     animation: fab-pulse 1.5s infinite;
 }
 
+@keyframes chat-open {
+    from {
+        transform: translateY(20px) scale(0.95);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.animate-chat-open {
+    animation: chat-open 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes typing-bounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+
+    30% {
+        transform: translateY(-4px);
+        opacity: 1;
+    }
+}
+
+.typing-dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #6366f1;
+    animation: typing-bounce 1.2s ease-in-out infinite;
+}
+
+/* Location Tracker */
+.location-marker-wrapper {
+    background: transparent !important;
+    border: none !important;
+}
+
+.location-dot {
+    position: relative;
+    width: 40px;
+    height: 40px;
+}
+
+.location-dot-inner {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 16px;
+    height: 16px;
+    background: #6366f1;
+    border: 3px solid white;
+    border-radius: 50%;
+    box-shadow: 0 0 12px rgba(99, 102, 241, 0.5),
+        0 2px 8px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+}
+
+.location-dot-pulse {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    z-index: 1;
+}
+
+.location-dot-pulse::before,
+.location-dot-pulse::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(99, 102, 241, 0.25);
+    animation: location-pulse 2.5s ease-out infinite;
+}
+
+.location-dot-pulse::after {
+    animation-delay: 1.25s;
+}
+
+@keyframes location-pulse {
+    0% {
+        transform: scale(0.4);
+        opacity: 1;
+    }
+
+    100% {
+        transform: scale(1.8);
+        opacity: 0;
+    }
+}
+
+/* My Location button */
+.my-location-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    background: var(--color-bg-secondary) !important;
+    color: #94a3b8 !important;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.my-location-btn:hover {
+    background: var(--color-bg-card) !important;
+    color: #c7d2fe !important;
+}
+
+.my-location-btn.tracking-active {
+    color: #6366f1 !important;
+}
+
+.my-location-btn.tracking-active:hover {
+    color: #818cf8 !important;
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
     width: 6px;

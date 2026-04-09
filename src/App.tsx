@@ -7,6 +7,7 @@ import ListingDetail from "./components/ListingDetail";
 import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
 import { AuthModal } from "./components/auth";
+import ChatBox from "./components/ChatBox";
 import { useAuth } from "./hooks/useAuth";
 import { useListingsStore } from "./stores";
 import { toast } from "sonner";
@@ -26,13 +27,7 @@ export default function App() {
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
     const [addingMode, setAddingMode] = useState(false);
 
-    const {
-        listings,
-        fetchListings,
-        createListing,
-        updateListing,
-        isLoading,
-    } = useListingsStore();
+    const { listings, fetchListings, createListing, updateListing, isLoading } = useListingsStore();
 
     // Fetch listings on mount and when filters change
     useEffect(() => {
@@ -177,9 +172,9 @@ export default function App() {
                 onSelectListing={handleSavedSelect}
             />
 
-            {showAuth && (
-                <AuthModal onClose={() => setShowAuth(false)} />
-            )}
+            {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+            <ChatBox />
         </div>
     );
 }

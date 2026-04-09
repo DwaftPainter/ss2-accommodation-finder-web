@@ -33,6 +33,7 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
         setValue,
         watch,
         reset,
+        register,
         formState: { errors, isSubmitting },
     } = useForm<ReviewFormValues>({
         resolver: zodResolver(reviewSchema),
@@ -40,6 +41,7 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
     });
 
     const currentRating = watch('rating');
+    const commentRegister = register('comment');
 
     const fetchReviews = () => {
         setLoading(true);
@@ -118,10 +120,9 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                             <textarea
                                 className="w-full px-3 py-2.5 bg-[var(--color-bg-primary)] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all resize-y min-h-[80px]"
                                 placeholder="Chia sẻ trải nghiệm của bạn..."
-                                value={watch('comment') || ''}
-                                onChange={(e) => setValue('comment', e.target.value)}
                                 rows={3}
                                 id="review-comment-input"
+                                {...commentRegister}
                             />
                             <button type="submit" disabled={isSubmitting || currentRating === 0} className="self-start px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-all" id="submit-review-btn">
                                 {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
