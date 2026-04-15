@@ -1,17 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { X, MapPin, User, Phone, Bookmark } from 'lucide-react';
 import { toast } from 'sonner';
-import { listingsApi, savedApi } from '../api';
-import { useAuth } from '../context/AuthContext';
+import { listingsApi, savedApi } from '../services/api';
+import { useAuth } from '../hooks/useAuth';
 import ReviewSection from './ReviewSection';
 import type { ListingDetail as ListingDetailType } from '../types';
 
+// Constants defined outside component to prevent recreation
 const UTILITY_LABELS: Record<string, string> = {
     wifi: 'WiFi', air_conditioning: 'Điều hòa', balcony: 'Ban công',
     washing_machine: 'Máy giặt', parking: 'Chỗ để xe', elevator: 'Thang máy',
     security: 'Bảo vệ 24/7', flexible_hours: 'Giờ giấc tự do',
 };
 
+// Utility function defined outside component
 const formatPrice = (p: number) => new Intl.NumberFormat('vi-VN').format(p) + ' đ';
 
 interface ListingDetailProps {
@@ -36,7 +38,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
             .finally(() => setLoading(false));
     }, [listingId]);
 
-    const handleSave = async () => {
+    const handleSave = useCallback(async () => {
         try {
             const r = await savedApi.toggle(listingId);
             setIsSaved(r.saved);
@@ -44,9 +46,9 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
         } catch {
             toast.error('Bạn cần đăng nhập để lưu tin.');
         }
-    };
+    }, [listingId]);
 
-    const handleDelete = async () => {
+    const handleDelete = useCallback(() => {
         toast('Bạn có chắc muốn xóa tin này?', {
             action: {
                 label: 'Xóa',
@@ -63,7 +65,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
             },
             cancel: { label: 'Hủy', onClick: () => { } },
         });
-    };
+    }, [listingId, onDeleted, onClose]);
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-5 animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>

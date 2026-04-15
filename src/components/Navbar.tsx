@@ -1,14 +1,28 @@
-import { Home, Filter, Bookmark, LogIn } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { useState } from 'react';
+import { Home, Filter, Bookmark, LogIn, Search, X } from 'lucide-react';
+import { useAuth } from '../hooks/useAuth';
 
 interface NavbarProps {
     onOpenSaved: () => void;
     onToggleFilters: () => void;
     showFilters: boolean;
+    onOpenAuth: () => void;
+    onSearch: (query: string) => void;
 }
 
-export default function Navbar({ onOpenSaved, onToggleFilters, showFilters }: NavbarProps) {
-    const { user, loading, login, logout } = useAuth();
+export default function Navbar({ onOpenSaved, onToggleFilters, showFilters, onOpenAuth, onSearch }: NavbarProps) {
+    const { user, isLoading: loading, logout } = useAuth();
+    const [query, setQuery] = useState('');
+
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        onSearch(query);
+    };
+
+    const handleClear = () => {
+        setQuery('');
+        onSearch('');
+    };
 
     return (
         <nav className="h-14 bg-[var(--color-bg-glass)] backdrop-blur-xl border-b border-white/[0.08] flex items-center justify-between px-5 z-[1000]">
@@ -21,6 +35,48 @@ export default function Navbar({ onOpenSaved, onToggleFilters, showFilters }: Na
                     AccomFinder
                 </span>
             </div>
+
+            {/* Search Bar */}
+            <form
+                onSubmit={handleSubmit}
+                className="flex-1 mx-4 max-w-md hidden sm:flex items-center relative"
+            >
+                <Search
+                    size={15}
+                    className="absolute left-3 text-slate-500 pointer-events-none"
+                />
+                <input
+                    type="text"
+                    id="navbar-search-input"
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    placeholder="Tìm kiếm địa chỉ, quận, phường..."
+                    className="w-full pl-9 pr-8 py-2 rounded-lg text-sm text-white placeholder-slate-500 transition-all focus:outline-none"
+                    style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                    }}
+                    onFocus={e => {
+                        e.currentTarget.style.border = '1px solid rgba(99,102,241,0.6)';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.07)';
+                        e.currentTarget.style.boxShadow = '0 0 0 3px rgba(99,102,241,0.12)';
+                    }}
+                    onBlur={e => {
+                        e.currentTarget.style.border = '1px solid rgba(255,255,255,0.08)';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                        e.currentTarget.style.boxShadow = 'none';
+                    }}
+                />
+                {query && (
+                    <button
+                        type="button"
+                        onClick={handleClear}
+                        className="absolute right-2.5 text-slate-500 hover:text-white transition-colors"
+                    >
+                        <X size={14} />
+                    </button>
+                )}
+            </form>
 
             {/* Actions */}
             <div className="flex items-center gap-2">
@@ -69,7 +125,7 @@ export default function Navbar({ onOpenSaved, onToggleFilters, showFilters }: Na
                     </div>
                 ) : (
                     <button
-                        onClick={login}
+                        onClick={onOpenAuth}
                         className="flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] hover:-translate-y-0.5 transition-all"
                         id="login-btn"
                     >

@@ -1,9 +1,4 @@
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    avatarUrl: string | null;
-}
+import { Review } from "./review.type";
 
 export interface ListingSummary {
     id: string;
@@ -34,23 +29,6 @@ export interface ListingDetail extends ListingSummary {
     isSaved: boolean;
 }
 
-export interface Review {
-    id: string;
-    rating: number;
-    comment: string | null;
-    listingId: string;
-    userId: string;
-    createdAt: string;
-    user: { id: string; name: string; avatarUrl: string | null };
-}
-
-export interface ReviewsResponse {
-    reviews: Review[];
-    avgRating: number;
-    totalReviews: number;
-    starBreakdown: Record<number, number>;
-}
-
 export interface SavedListing extends ListingSummary {
     savedAt: string;
 }
@@ -67,17 +45,18 @@ export interface ListingFilters {
     radius?: number;
 }
 
-export interface ListingFormData {
+export interface ListingPayload {
     title: string;
     address: string;
-    lat: string | number;
-    lng: string | number;
-    price: string | number;
-    area: string | number;
-    electricityFee: string | number;
-    waterFee: string | number;
-    description: string;
+    lat: number;
+    lng: number;
+    price: number;
+    area: number;
+    electricityFee?: number;
+    waterFee?: number;
+    description?: string;
     utilities: string[];
-    contactName: string;
-    contactPhone: string;
+    images?: string[]; // Required by backend but optional for now
+    contactName?: string;
+    contactPhone?: string;
 }

@@ -6,53 +6,33 @@ import FilterPanel from "./components/FilterPanel";
 import ListingDetail from "./components/ListingDetail";
 import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
-import { listingsApi } from "./api";
-import { useAuth } from "./context/AuthContext";
+import { AuthModal } from "./components/auth";
+import ChatBox from "./components/ChatBox";
+import { useAuth } from "./hooks/useAuth";
+import { useListingsStore } from "./stores";
 import { toast } from "sonner";
-import type { ListingSummary, ListingDetail as ListingDetailType, ListingFilters } from "./types";
+import type { ListingDetail as ListingDetailType, ListingFilters, ListingPayload } from "./types";
 import type { LatLng } from "leaflet";
 
 export default function App() {
     const { user } = useAuth();
-    const [listings, setListings] = useState<ListingSummary[]>([]);
     const [filters, setFilters] = useState<ListingFilters>({});
     const [showFilters, setShowFilters] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [editListing, setEditListing] = useState<ListingDetailType | null>(null);
     const [showForm, setShowForm] = useState(false);
     const [showSaved, setShowSaved] = useState(false);
+    const [showAuth, setShowAuth] = useState(false);
     const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
     const [addingMode, setAddingMode] = useState(false);
-    const [loading, setLoading] = useState(true);
 
-    const fetchListings = useCallback(async () => {
-        setLoading(true);
-        try {
-            const params: Record<string, string | number | undefined> = {};
-            if (filters.search) params.search = filters.search;
-            if (filters.price_min) params.price_min = filters.price_min;
-            if (filters.price_max) params.price_max = filters.price_max;
-            if (filters.area_min) params.area_min = filters.area_min;
-            if (filters.area_max) params.area_max = filters.area_max;
-            if (filters.lat) params.lat = filters.lat;
-            if (filters.lng) params.lng = filters.lng;
-            if (filters.radius) params.radius = filters.radius;
-            if (filters.utilities && filters.utilities.length > 0) {
-                params.utilities = filters.utilities.join(",");
-            }
-            const data = await listingsApi.getAll(params);
-            setListings(data);
-        } catch (err) {
-            console.error("Failed to fetch listings:", err);
-        } finally {
-            setLoading(false);
-        }
-    }, [filters]);
+    const { listings, fetchListings, createListing, updateListing, isLoading } = useListingsStore();
 
+    // Fetch listings on mount and when filters change
     useEffect(() => {
-        fetchListings();
-    }, []);
+        fetchListings(filters);
+    }, [fetchListings, filters]);
 
     const handleMapClick = (latlng: LatLng) => {
         if (!addingMode) return;
@@ -63,7 +43,7 @@ export default function App() {
 
     const handleStartAdding = () => {
         if (!user) {
-            toast.warning("Bạn cần đăng nhập để đăng tin.");
+            setShowAuth(true);
             return;
         }
         setAddingMode(true);
@@ -83,19 +63,43 @@ export default function App() {
         if (listing) setFlyTo([listing.lat, listing.lng]);
     };
 
+    const handleNavbarSearch = (query: string) => {
+        setFilters((prev) => ({ ...prev, search: query }));
+    };
+
+    const handleFormSubmit = async (data: ListingPayload) => {
+        try {
+            if (editListing) {
+                await updateListing(editListing.id, data);
+                toast.success("Cập nhật tin thành công!");
+            } else {
+                await createListing(data);
+                toast.success("Đăng tin thành công!");
+            }
+            setShowForm(false);
+            setEditListing(null);
+            setPinLocation(null);
+        } catch (error) {
+            const errorMessage = error instanceof Error ? error.message : "Đăng tin thất bại";
+            toast.error(errorMessage);
+        }
+    };
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
             <Navbar
                 onOpenSaved={() => setShowSaved(true)}
                 onToggleFilters={() => setShowFilters((p) => !p)}
                 showFilters={showFilters}
+                onOpenAuth={() => setShowAuth(true)}
+                onSearch={handleNavbarSearch}
             />
 
             <div className="flex-1 flex overflow-hidden relative">
                 <FilterPanel
                     filters={filters}
                     onFilterChange={setFilters}
-                    onSearch={fetchListings}
+                    onSearch={() => fetchListings(filters)}
                     visible={showFilters}
                 />
 
@@ -126,7 +130,7 @@ export default function App() {
                         </button>
 
                         <div className="pointer-events-auto absolute bottom-6 left-1/2 -translate-x-1/2 px-5 py-2 bg-[var(--color-bg-glass)] backdrop-blur-xl border border-white/[0.08] rounded-full text-sm font-medium text-slate-400 shadow-lg">
-                            {loading ? "..." : `${listings.length} phòng trọ`}
+                            {isLoading ? "..." : `${listings.length} phòng trọ`}
                         </div>
                     </div>
 
@@ -158,7 +162,7 @@ export default function App() {
                         setEditListing(null);
                         setPinLocation(null);
                     }}
-                    onSaved={fetchListings}
+                    onSaved={handleFormSubmit}
                 />
             )}
 
@@ -167,6 +171,10 @@ export default function App() {
                 onClose={() => setShowSaved(false)}
                 onSelectListing={handleSavedSelect}
             />
+
+            {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+
+            <ChatBox />
         </div>
     );
 }

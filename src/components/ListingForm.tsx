@@ -4,7 +4,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
-import { listingsApi } from '../api';
+import { listingsApi } from '../services/api';
+import { LISTING_MESSAGES, getErrorMessage } from '../config/messages';
 import type { ListingDetail } from '../types';
 
 const UTILITY_OPTIONS = [
@@ -36,11 +37,27 @@ const listingSchema = z.object({
 type ListingFormValues = z.infer<typeof listingSchema>;
 type ListingFormInput = z.input<typeof listingSchema>;
 
+export interface ListingFormData {
+    title: string;
+    address: string;
+    lat: number;
+    lng: number;
+    price: number;
+    area: number;
+    electricityFee?: number;
+    waterFee?: number;
+    description?: string;
+    utilities: string[];
+    images: string[]; // Required by backend
+    contactName?: string;
+    contactPhone?: string;
+}
+
 interface ListingFormProps {
     listing: ListingDetail | null;
     pinLocation: { lat: number; lng: number } | null;
     onClose: () => void;
-    onSaved: () => void;
+    onSaved: (data: ListingFormData) => Promise<void> | void;
 }
 
 export default function ListingForm({ listing, pinLocation, onClose, onSaved }: ListingFormProps) {
@@ -94,23 +111,38 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
     const onSubmit = async (rawData: ListingFormInput) => {
         const data = rawData as ListingFormValues;
+        // Convert all numeric fields to numbers for API
+        const payload: ListingFormData = {
+            title: data.title,
+            address: data.address,
+            lat: Number(data.lat),
+            lng: Number(data.lng),
+            price: Number(data.price),
+            area: Number(data.area),
+            electricityFee: data.electricityFee ? Number(data.electricityFee) : undefined,
+            waterFee: data.waterFee ? Number(data.waterFee) : undefined,
+            description: data.description || undefined,
+            utilities: data.utilities || [],
+            images: [], // Required by backend, empty for now until image upload is implemented
+            contactName: data.contactName || undefined,
+            contactPhone: data.contactPhone || undefined,
+        };
         try {
-            const payload = {
-                ...data,
-                electricityFee: data.electricityFee || undefined,
-                waterFee: data.waterFee || undefined,
-            };
             if (isEdit && listing) {
-                await listingsApi.update(listing.id, payload as any);
-                toast.success('Cập nhật tin thành công!');
+                await listingsApi.update(listing.id, payload);
+                toast.success(LISTING_MESSAGES.UPDATE_SUCCESS);
             } else {
-                await listingsApi.create(payload as any);
-                toast.success('Đăng tin thành công!');
+                await listingsApi.create(payload);
+                toast.success(LISTING_MESSAGES.CREATE_SUCCESS);
             }
-            onSaved();
+            await onSaved(payload);
             onClose();
         } catch (err: unknown) {
-            toast.error('Lỗi: ' + (err instanceof Error ? err.message : 'Không xác định'));
+            const errorMessage = getErrorMessage(
+                err,
+                isEdit ? LISTING_MESSAGES.UPDATE_ERROR : LISTING_MESSAGES.CREATE_ERROR
+            );
+            toast.error(errorMessage);
         }
     };
 
