@@ -54,7 +54,10 @@ export const authApi = {
      * Refresh access token
      */
     refreshToken: async (refreshToken: string): Promise<{ accessToken: string; refreshToken: string }> => {
-        const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>("/api/auth/refresh", { refreshToken });
+        const { data } = await apiClient.post<{ accessToken: string; refreshToken: string }>(
+            "/api/auth/refresh",
+            { refreshToken }
+        );
         return data;
     },
 
@@ -73,16 +76,14 @@ export const authApi = {
     },
 
     /**
-     * Get Google OAuth login URL
+     * Exchange Auth0 token for backend session
+     * Sends the Auth0 access token to your backend for verification
      */
-    getLoginUrl: (): string => {
-        return `${import.meta.env.VITE_API_URL || ""}/auth/google`;
-    },
-
-    /**
-     * Login with Google OAuth
-     */
-    loginWithGoogle: (): void => {
-        window.location.href = authApi.getLoginUrl();
+    loginWithGoogle: async (auth0Token: string): Promise<AuthResponse> => {
+        console.log('🚀 ~ auth0Token:', auth0Token)
+        const { data } = await apiClient.post<AuthResponse>("/api/auth/google", {
+            token: auth0Token
+        });
+        return data;
     }
 };

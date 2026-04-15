@@ -1,12 +1,9 @@
 {
     "compilerOptions": {
+        "ignoreDeprecations": "6.0",
         "target": "ES2020",
         "useDefineForClassFields": true,
-        "lib": [
-            "ES2020",
-            "DOM",
-            "DOM.Iterable"
-        ],
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
         "module": "ESNext",
         "skipLibCheck": true,
         "moduleResolution": "bundler",
@@ -33,7 +30,5 @@
             "@/types": ["src/types"]
         }
     },
-    "include": [
-        "src"
-    ]
+    "include": ["src"]
 }

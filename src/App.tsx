@@ -1,12 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { MapPin, Plus } from "lucide-react";
+import { useAuth0 } from "@auth0/auth0-react";
 import Navbar from "./components/Navbar";
 import MapView from "./components/MapView";
 import FilterPanel from "./components/FilterPanel";
 import ListingDetail from "./components/ListingDetail";
 import ListingForm from "./components/ListingForm";
 import SavedListings from "./components/SavedListings";
-import { AuthModal } from "./components/auth";
+import { AuthModal, Auth0CallbackHandler } from "./components/auth";
 import ChatBox from "./components/ChatBox";
 import { useAuth } from "./hooks/useAuth";
 import { useListingsStore } from "./stores";
@@ -16,6 +17,7 @@ import type { LatLng } from "leaflet";
 
 export default function App() {
     const { user } = useAuth();
+    const { isLoading: auth0Loading } = useAuth0();
     const [filters, setFilters] = useState<ListingFilters>({});
     const [showFilters, setShowFilters] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
@@ -85,8 +87,22 @@ export default function App() {
         }
     };
 
+    // Show loading state while Auth0 is initializing
+    if (auth0Loading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-[#13161f]">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
+                    <p className="text-slate-400 text-sm">Đang tải...</p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="h-screen flex flex-col overflow-hidden">
+            {/* Auth0 handler to sync authentication state with backend */}
+            <Auth0CallbackHandler />
             <Navbar
                 onOpenSaved={() => setShowSaved(true)}
                 onToggleFilters={() => setShowFilters((p) => !p)}
