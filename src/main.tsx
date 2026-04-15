@@ -1,26 +1,27 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
+import { Auth0Provider } from '@auth0/auth0-react';
 import App from './App';
 import { Toaster } from 'sonner';
 import './index.css';
 
-// Initialize auth store on app start
-import { useAuthStore } from './stores';
-
-// Check for auth token in URL (OAuth callback)
-const params = new URLSearchParams(window.location.search);
-const tokenFromUrl = params.get('token');
-if (tokenFromUrl) {
-    localStorage.setItem('token', tokenFromUrl);
-    window.history.replaceState({}, '', window.location.pathname);
-}
-
-// Initialize auth state
-useAuthStore.getState().fetchUser();
+// Auth0 configuration - replace with your actual credentials
+const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || '';
+const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
+const AUTH0_REDIRECT_URI = window.location.origin;
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
-        <App />
+        <Auth0Provider
+            domain={AUTH0_DOMAIN}
+            clientId={AUTH0_CLIENT_ID}
+            authorizationParams={{
+                redirect_uri: AUTH0_REDIRECT_URI,
+                connection: 'google-oauth2',
+            }}
+        >
+            <App />
+        </Auth0Provider>
         <Toaster
             position="top-right"
             richColors

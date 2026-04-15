@@ -1,5 +1,6 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth0 } from "@auth0/auth0-react";
 import { Mail, Lock, Eye, EyeOff, Home, Chrome, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
@@ -16,7 +17,8 @@ import {
 import type { LoginViewProps, FocusHandlers } from "./types";
 
 export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProps) {
-    const { login, loginWithGoogle } = useAuth();
+    const { login } = useAuth();
+    const { loginWithRedirect } = useAuth0();
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -37,7 +39,11 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
     };
 
     const handleGoogleLogin = () => {
-        loginWithGoogle();
+        loginWithRedirect({
+            authorizationParams: {
+                connection: 'google-oauth2',
+            },
+        });
     };
 
     const onSubmit = async (data: LoginFormData) => {

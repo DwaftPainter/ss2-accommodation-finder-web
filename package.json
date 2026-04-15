@@ -9,6 +9,7 @@
         "preview": "vite preview"
     },
     "dependencies": {
+        "@auth0/auth0-react": "^2.16.1",
         "@hookform/resolvers": "^5.2.2",
         "axios": "^1.14.0",
         "clsx": "^2.1.1",
