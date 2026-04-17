@@ -8,7 +8,9 @@ export {
 } from "./listingsStore";
 export {
     useUIStore,
+    useUserMode,
     useAuthModalOpen,
     useCreateListingModalOpen,
     useToast,
 } from "./uiStore";
+export type { UserMode } from "./uiStore";

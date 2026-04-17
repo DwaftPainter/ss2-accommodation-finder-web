@@ -64,18 +64,18 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                 <div
                     className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
                     style={{
-                        background: "linear-gradient(135deg, #6366f1 0%, #a855f7 100%)",
-                        boxShadow: "0 12px 30px rgba(99,102,241,0.4)",
+                        background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+                        boxShadow: "0 12px 30px rgba(16,185,129,0.4)",
                     }}
                 >
                     <Home size={30} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-white mb-2">
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">
                     Chào mừng trở lại!
                 </h2>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+                <p className="text-slate-600 text-sm leading-relaxed max-w-xs">
                     Đăng nhập để trải nghiệm đầy đủ tính năng của{" "}
-                    <span className="text-indigo-400 font-semibold">AccomFinder</span>
+                    <span className="text-emerald-600 font-semibold">AccomFinder</span>
                 </p>
             </div>
 
@@ -124,7 +124,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     <button
                         type="button"
                         onClick={() => setShowPassword((p) => !p)}
-                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                        className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900 transition-colors"
                     >
                         {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                     </button>
@@ -147,7 +147,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                 <div className="flex justify-end">
                     <button
                         type="button"
-                        className="text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                        className="text-xs text-emerald-600 hover:text-emerald-700 transition-colors"
                     >
                         Quên mật khẩu?
                     </button>
@@ -176,7 +176,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
             <button
                 onClick={handleGoogleLogin}
                 id="google-login-btn"
-                className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl text-sm font-medium text-slate-300 transition-all hover:text-white hover:bg-white/[0.04]"
+                className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl text-sm font-medium text-slate-700 transition-all hover:bg-slate-50"
                 style={outlinedButtonStyle}
             >
                 <Chrome size={16} />
@@ -189,7 +189,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                 <button
                     onClick={onSwitchToRegister}
                     id="switch-to-register"
-                    className="text-indigo-400 font-semibold hover:text-indigo-300 transition-colors"
+                    className="text-emerald-600 font-semibold hover:text-emerald-700 transition-colors"
                 >
                     Đăng ký ngay
                 </button>

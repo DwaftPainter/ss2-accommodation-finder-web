@@ -1,6 +1,11 @@
 import { create } from "zustand";
 
+export type UserMode = "finder" | "landlord";
+
 interface UIState {
+    // Mode state - finder or landlord
+    userMode: UserMode;
+
     // Modal states
     isAuthModalOpen: boolean;
     isCreateListingModalOpen: boolean;
@@ -18,6 +23,10 @@ interface UIState {
 }
 
 interface UIActions {
+    // Mode actions
+    setUserMode: (mode: UserMode) => void;
+    toggleUserMode: () => void;
+
     // Modal actions
     openAuthModal: () => void;
     closeAuthModal: () => void;
@@ -45,6 +54,7 @@ interface UIActions {
 type UIStore = UIState & UIActions;
 
 const initialState: UIState = {
+    userMode: "finder",
     isAuthModalOpen: false,
     isCreateListingModalOpen: false,
     activeModalId: null,
@@ -55,6 +65,11 @@ const initialState: UIState = {
 
 export const useUIStore = create<UIStore>()((set) => ({
     ...initialState,
+
+    setUserMode: (mode) => set({ userMode: mode }),
+    toggleUserMode: () => set((state) => ({
+        userMode: state.userMode === "finder" ? "landlord" : "finder",
+    })),
 
     openAuthModal: () => set({ isAuthModalOpen: true }),
     closeAuthModal: () => set({ isAuthModalOpen: false }),
@@ -86,6 +101,7 @@ export const useUIStore = create<UIStore>()((set) => ({
 }));
 
 // Selector hooks
+export const useUserMode = () => useUIStore((state) => state.userMode);
 export const useAuthModalOpen = () =>
     useUIStore((state) => state.isAuthModalOpen);
 export const useCreateListingModalOpen = () =>

@@ -62,11 +62,17 @@ export const useAuthStore = create<AuthStore>()(
                     storeTokens(accessToken, refreshToken);
                     set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
+                    // Extract error message from Axios error with response data
+                    let errorMessage = "Login failed";
+                    if (error instanceof Error) {
+                        errorMessage = error.message;
+                    }
+
                     set({
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Login failed"
+                        error: errorMessage
                     });
                     throw error;
                 }

@@ -1,6 +1,8 @@
 import { useRef, useEffect } from "react";
 import { X, Send, MessageSquare, AlertCircle } from "lucide-react";
 import { useChatStore } from "@/stores/AIStore";
+import { formatAddress } from "@/lib/utils";
+import MarkdownMessage from "./MarkdownMessage";
 
 export default function ChatBox() {
     const {
@@ -26,7 +28,7 @@ export default function ChatBox() {
             .typing-dot {
                 width: 8px;
                 height: 8px;
-                background-color: #6366f1;
+                background-color: #10b981;
                 border-radius: 50%;
                 display: inline-block;
                 margin: 0 2px;
@@ -81,7 +83,7 @@ export default function ChatBox() {
                     {/* Header */}
                     <div
                         className="flex items-center justify-between px-5 py-3.5"
-                        style={{ background: "linear-gradient(135deg, #6366f1, #7c3aed)" }}
+                        style={{ background: "linear-gradient(135deg, #10b981, #14b8a6)" }}
                     >
                         <h3 className="text-white font-semibold text-[15px] tracking-wide">
                             Hỗ trợ trực tuyến
@@ -136,18 +138,22 @@ export default function ChatBox() {
                                         style={
                                             msg.sender === "user"
                                                 ? {
-                                                      background: "linear-gradient(135deg, #6366f1, #7c3aed)",
+                                                      background: "linear-gradient(135deg, #10b981, #14b8a6)",
                                                       color: "#fff"
                                                   }
-                                                : { background: "#f0eeff", color: "#1e1b4b" }
+                                                : { background: "#ecfdf5", color: "#064e3b" }
                                         }
                                     >
-                                        <p className="m-0">{msg.text}</p>
+                                        {msg.sender === "user" ? (
+                                            <p className="m-0 whitespace-pre-wrap">{msg.text}</p>
+                                        ) : (
+                                            <MarkdownMessage content={msg.text} />
+                                        )}
                                         <p
                                             className="text-[10px] mt-1 text-right"
                                             style={{
                                                 opacity: 0.6,
-                                                color: msg.sender === "user" ? "#e0e7ff" : "#6b7280"
+                                                color: msg.sender === "user" ? "#d1fae5" : "#6b7280"
                                             }}
                                         >
                                             {msg.time}
@@ -158,7 +164,7 @@ export default function ChatBox() {
                                 {/* Related Listings */}
                                 {msg.relatedListings && msg.relatedListings.length > 0 && (
                                     <div className="mt-2 ml-2">
-                                        <p className="text-xs font-medium text-indigo-600 mb-1">
+                                        <p className="text-xs font-medium text-emerald-600 mb-1">
                                             Phòng gợi ý:
                                         </p>
                                         <div className="space-y-2">
@@ -171,10 +177,10 @@ export default function ChatBox() {
                                                         {listing.title}
                                                     </div>
                                                     <div className="text-gray-600 truncate">
-                                                        {listing.address}
+                                                        {listing.address ? formatAddress(listing.address) : "Chưa có địa chỉ"}
                                                     </div>
                                                     <div className="flex justify-between items-center mt-1">
-                                                        <span className="font-semibold text-indigo-600">
+                                                        <span className="font-semibold text-emerald-600">
                                                             {listing.price?.toLocaleString("vi-VN")}₫
                                                         </span>
                                                         <span className="text-gray-500">
@@ -188,7 +194,7 @@ export default function ChatBox() {
                                                                 .map((util, idx) => (
                                                                     <span
                                                                         key={idx}
-                                                                        className="bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded text-xs"
+                                                                        className="bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded text-xs"
                                                                     >
                                                                         {util}
                                                                     </span>
@@ -208,7 +214,7 @@ export default function ChatBox() {
                             <div className="flex justify-start">
                                 <div
                                     className="rounded-2xl rounded-bl-md px-4 py-3 flex gap-1 items-center"
-                                    style={{ background: "#f0eeff" }}
+                                    style={{ background: "#ecfdf5" }}
                                 >
                                     <span className="typing-dot" style={{ animationDelay: "0ms" }} />
                                     <span className="typing-dot" style={{ animationDelay: "150ms" }} />
@@ -243,7 +249,7 @@ export default function ChatBox() {
                             style={{
                                 background:
                                     input.trim() && !isTyping
-                                        ? "linear-gradient(135deg, #6366f1, #7c3aed)"
+                                        ? "linear-gradient(135deg, #10b981, #14b8a6)"
                                         : "#e0e0e0",
                                 cursor: input.trim() && !isTyping ? "pointer" : "default"
                             }}
@@ -260,8 +266,8 @@ export default function ChatBox() {
                 onClick={toggleOpen}
                 className="fixed bottom-5 left-5 z-[9999] flex items-center justify-center w-12 h-12 rounded-full transition-all duration-300 hover:scale-110 hover:-translate-y-0.5"
                 style={{
-                    background: "linear-gradient(135deg, #6366f1, #7c3aed)",
-                    boxShadow: "0 4px 20px rgba(99, 102, 241, 0.45)"
+                    background: "linear-gradient(135deg, #10b981, #14b8a6)",
+                    boxShadow: "0 4px 20px rgba(16, 185, 129, 0.45)"
                 }}
                 id="chatbox-toggle-btn"
             >

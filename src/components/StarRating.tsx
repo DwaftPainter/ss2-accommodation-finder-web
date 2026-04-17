@@ -14,7 +14,7 @@ export function StarRating({ rating, onRate, interactive = false }: StarRatingPr
             {[1, 2, 3, 4, 5].map((star) => (
                 <span
                     key={star}
-                    className={`text-lg transition-all ${star <= (hover || rating) ? 'text-amber-400' : 'text-slate-600'} ${interactive ? 'cursor-pointer hover:scale-110' : ''}`}
+                    className={`text-lg transition-all ${star <= (hover || rating) ? 'text-amber-400' : 'text-slate-300'} ${interactive ? 'cursor-pointer hover:scale-110' : ''}`}
                     onClick={() => interactive && onRate?.(star)}
                     onMouseEnter={() => interactive && setHover(star)}
                     onMouseLeave={() => interactive && setHover(0)}
@@ -39,8 +39,8 @@ export function StarBreakdown({ starBreakdown, totalReviews }: StarBreakdownProp
                 const pct = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
                 return (
                     <div key={star} className="flex items-center gap-2">
-                        <span className="text-xs w-8 text-slate-400">{star} ★</span>
-                        <div className="flex-1 h-1.5 bg-[var(--color-bg-primary)] rounded-full overflow-hidden">
+                        <span className="text-xs w-8 text-slate-500">{star} ★</span>
+                        <div className="flex-1 h-1.5 bg-slate-200 rounded-full overflow-hidden">
                             <div className="h-full bg-gradient-to-r from-amber-400 to-amber-300 rounded-full transition-all duration-500" style={{ width: `${pct}%` }} />
                         </div>
                         <span className="text-xs text-slate-500 w-5 text-right">{count}</span>

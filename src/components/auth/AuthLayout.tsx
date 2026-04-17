@@ -19,14 +19,11 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
             }}
         >
             <div
-                className="relative w-full max-w-md animate-modal-in"
+                className="relative w-full max-w-md animate-modal-in bg-white"
                 style={{
-                    background:
-                        "linear-gradient(145deg, rgba(26,29,39,0.98) 0%, rgba(18,20,30,0.98) 100%)",
-                    border: "1px solid rgba(255,255,255,0.08)",
+                    border: "1px solid rgba(0,0,0,0.08)",
                     borderRadius: "20px",
-                    boxShadow:
-                        "0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(99,102,241,0.15), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
                     overflow: "hidden",
                 }}
             >
@@ -34,14 +31,14 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
                 <div
                     className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-20 pointer-events-none"
                     style={{
-                        background: "radial-gradient(circle, #6366f1 0%, transparent 70%)",
+                        background: "radial-gradient(circle, #10b981 0%, transparent 70%)",
                         filter: "blur(30px)",
                     }}
                 />
                 <div
                     className="absolute -bottom-20 -left-20 w-56 h-56 rounded-full opacity-15 pointer-events-none"
                     style={{
-                        background: "radial-gradient(circle, #a855f7 0%, transparent 70%)",
+                        background: "radial-gradient(circle, #059669 0%, transparent 70%)",
                         filter: "blur(30px)",
                     }}
                 />
@@ -49,7 +46,7 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
                 {/* Close Button */}
                 <button
                     onClick={onClose}
-                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-white hover:bg-white/[0.06] transition-all z-10"
+                    className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-all z-10"
                     id="auth-modal-close"
                 >
                     <X size={18} />
@@ -64,11 +61,11 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
                         <p className="text-center text-xs text-slate-600 mt-4 leading-relaxed">
                             Bằng cách{" "}
                             {view === "login" ? "đăng nhập" : "đăng ký"}, bạn đồng ý với{" "}
-                            <span className="text-slate-500 cursor-pointer hover:text-indigo-400 transition-colors">
+                            <span className="text-slate-500 cursor-pointer hover:text-emerald-400 transition-colors">
                                 Điều khoản dịch vụ
                             </span>{" "}
                             và{" "}
-                            <span className="text-slate-500 cursor-pointer hover:text-indigo-400 transition-colors">
+                            <span className="text-slate-500 cursor-pointer hover:text-emerald-400 transition-colors">
                                 Chính sách bảo mật
                             </span>
                             .

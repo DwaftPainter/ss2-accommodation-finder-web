@@ -6,6 +6,7 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { listingsApi } from '../services/api';
 import { LISTING_MESSAGES, getErrorMessage } from '../config/messages';
+import { formatAddress } from '../lib/utils';
 import type { ListingDetail } from '../types';
 
 const UTILITY_OPTIONS = [
@@ -83,9 +84,16 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
     useEffect(() => {
         if (listing) {
+            // Format address object to string for the form
+            const addressString = typeof listing.address === 'string'
+                ? listing.address
+                : formatAddress(listing.address, { style: 'full' });
+
             reset({
-                title: listing.title, address: listing.address,
-                lat: listing.lat, lng: listing.lng,
+                title: listing.title,
+                address: addressString,
+                lat: listing.address.lat ?? 0,
+                lng: listing.address.lng ?? 0,
                 price: listing.price, area: listing.area,
                 electricityFee: listing.electricityFee || '',
                 waterFee: listing.waterFee || '',

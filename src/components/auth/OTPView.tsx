@@ -92,13 +92,13 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
             <div className="flex items-center gap-3 mb-2">
                 <button
                     onClick={onBack}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
                     id="back-to-register"
                 >
                     <ArrowLeft size={18} />
                 </button>
                 <div>
-                    <h2 className="text-xl font-bold text-white">Xác thực OTP</h2>
+                    <h2 className="text-xl font-bold text-slate-900">Xác thực OTP</h2>
                     <p className="text-xs text-slate-500">Điền mã xác thực đã gửi đến email</p>
                 </div>
             </div>
@@ -114,9 +114,9 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                 >
                     <ShieldCheck size={30} className="text-white" />
                 </div>
-                <p className="text-slate-400 text-sm leading-relaxed max-w-xs">
+                <p className="text-slate-600 text-sm leading-relaxed max-w-xs">
                     Chúng tôi đã gửi mã xác thực 6 số đến{" "}
-                    <span className="text-indigo-400 font-semibold">{maskedEmail}</span>
+                    <span className="text-emerald-600 font-semibold">{maskedEmail}</span>
                 </p>
             </div>
 
@@ -138,30 +138,30 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                             onChange={(e) => handleOtpChange(idx, e.target.value)}
                             onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                             onPaste={idx === 0 ? handleOtpPaste : undefined}
-                            className="w-12 h-14 text-center text-xl font-bold text-white rounded-xl transition-all duration-200 focus:outline-none"
+                            className="w-12 h-14 text-center text-xl font-bold text-slate-900 rounded-xl transition-all duration-200 focus:outline-none"
                             style={{
-                                background: digit ? "rgba(99,102,241,0.12)" : "rgba(255,255,255,0.04)",
+                                background: digit ? "rgba(16,185,129,0.05)" : "rgba(0,0,0,0.03)",
                                 border: digit
-                                    ? "1.5px solid rgba(99,102,241,0.5)"
-                                    : "1px solid rgba(255,255,255,0.08)",
-                                boxShadow: digit ? "0 0 0 2px rgba(99,102,241,0.1)" : "none"
+                                    ? "1.5px solid rgba(16,185,129,0.5)"
+                                    : "1px solid rgba(0,0,0,0.08)",
+                                boxShadow: digit ? "0 0 0 2px rgba(16,185,129,0.1)" : "none"
                             }}
                             onFocus={(e) => {
-                                e.currentTarget.style.border = "1.5px solid rgba(99,102,241,0.6)";
-                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(99,102,241,0.12)";
-                                e.currentTarget.style.background = "rgba(99,102,241,0.08)";
+                                e.currentTarget.style.border = "1.5px solid rgba(16,185,129,0.6)";
+                                e.currentTarget.style.boxShadow = "0 0 0 3px rgba(16,185,129,0.15)";
+                                e.currentTarget.style.background = "#fff";
                             }}
                             onBlur={(e) => {
                                 const v = e.currentTarget.value;
                                 e.currentTarget.style.border = v
-                                    ? "1.5px solid rgba(99,102,241,0.5)"
-                                    : "1px solid rgba(255,255,255,0.08)";
+                                    ? "1.5px solid rgba(16,185,129,0.5)"
+                                    : "1px solid rgba(0,0,0,0.08)";
                                 e.currentTarget.style.boxShadow = v
-                                    ? "0 0 0 2px rgba(99,102,241,0.1)"
+                                    ? "0 0 0 2px rgba(16,185,129,0.1)"
                                     : "none";
                                 e.currentTarget.style.background = v
-                                    ? "rgba(99,102,241,0.12)"
-                                    : "rgba(255,255,255,0.04)";
+                                    ? "rgba(16,185,129,0.05)"
+                                    : "rgba(0,0,0,0.03)";
                             }}
                         />
                     ))}
@@ -193,7 +193,7 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                         onClick={handleResend}
                         id="resend-otp-btn"
                         disabled={isResending}
-                        className="flex items-center gap-1.5 text-sm text-indigo-400 font-semibold hover:text-indigo-300 transition-colors disabled:opacity-50"
+                        className="flex items-center gap-1.5 text-sm text-emerald-600 font-semibold hover:text-emerald-700 transition-colors disabled:opacity-50"
                     >
                         <RotateCcw size={14} className={isResending ? "animate-spin" : ""} />
                         {isResending ? "Đang gửi..." : "Gửi lại mã"}
@@ -201,7 +201,7 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                 ) : (
                     <p className="text-sm text-slate-500">
                         Gửi lại mã sau{" "}
-                        <span className="text-indigo-400 font-semibold notranslate">
+                        <span className="text-emerald-600 font-semibold notranslate">
                             {formatTime(countdown)}
                         </span>
                     </p>

@@ -86,19 +86,19 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
     };
 
     return (
-        <div className="border-t border-white/[0.08] pt-5" id="review-section">
-            <h3 className="text-base font-bold mb-4">Đánh giá & Nhận xét</h3>
+        <div className="border-t border-slate-200 pt-5" id="review-section">
+            <h3 className="text-base font-bold mb-4 text-slate-800">Đánh giá & Nhận xét</h3>
 
             {loading ? (
                 <div className="flex justify-center py-8">
-                    <div className="w-7 h-7 border-[3px] border-white/[0.08] border-t-indigo-500 rounded-full animate-spin" />
+                    <div className="w-7 h-7 border-[3px] border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
                 </div>
             ) : (
                 <>
                     {/* Summary */}
-                    <div className="flex gap-6 mb-5 p-4 bg-white/[0.04] rounded-lg max-sm:flex-col">
+                    <div className="flex gap-6 mb-5 p-4 bg-slate-50 rounded-lg border border-slate-100 max-sm:flex-col">
                         <div className="flex flex-col items-center gap-1 min-w-[80px]">
-                            <span className="text-3xl font-extrabold text-amber-400">{avgRating}</span>
+                            <span className="text-3xl font-extrabold text-amber-500">{avgRating}</span>
                             <StarRating rating={Math.round(avgRating)} />
                             <span className="text-xs text-slate-500">{totalReviews} đánh giá</span>
                         </div>
@@ -107,29 +107,29 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
 
                     {/* Review Form */}
                     {user ? (
-                        <form onSubmit={handleSubmit(onSubmit)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg p-4 mb-4 flex flex-col gap-2.5" id="review-form">
-                            <h4 className="text-sm font-semibold">Viết đánh giá</h4>
+                        <form onSubmit={handleSubmit(onSubmit)} className="bg-slate-50 border border-slate-200 rounded-lg p-4 mb-4 flex flex-col gap-2.5" id="review-form">
+                            <h4 className="text-sm font-semibold text-slate-800">Viết đánh giá</h4>
                             <div>
                                 <StarRating
                                     rating={currentRating}
                                     onRate={(star) => setValue('rating', star, { shouldValidate: true })}
                                     interactive
                                 />
-                                {errors.rating && <span className="text-[11px] text-red-400 mt-0.5 block">{errors.rating.message}</span>}
+                                {errors.rating && <span className="text-[11px] text-red-500 mt-0.5 block">{errors.rating.message}</span>}
                             </div>
                             <textarea
-                                className="w-full px-3 py-2.5 bg-[var(--color-bg-primary)] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 transition-all resize-y min-h-[80px]"
+                                className="w-full px-3 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all resize-y min-h-[80px]"
                                 placeholder="Chia sẻ trải nghiệm của bạn..."
                                 rows={3}
                                 id="review-comment-input"
                                 {...commentRegister}
                             />
-                            <button type="submit" disabled={isSubmitting || currentRating === 0} className="self-start px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] disabled:opacity-50 disabled:cursor-not-allowed transition-all" id="submit-review-btn">
+                            <button type="submit" disabled={isSubmitting || currentRating === 0} className="self-start px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all" id="submit-review-btn">
                                 {isSubmitting ? 'Đang gửi...' : 'Gửi đánh giá'}
                             </button>
                         </form>
                     ) : (
-                        <p className="text-center py-4 text-slate-500 text-sm border border-dashed border-white/[0.08] rounded-lg mb-4">
+                        <p className="text-center py-4 text-slate-500 text-sm border border-dashed border-slate-200 rounded-lg mb-4">
                             Đăng nhập để viết đánh giá
                         </p>
                     )}
@@ -142,16 +142,16 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                             reviews.map((r) => {
                                 const isOwnReview = user?.id === r.userId;
                                 return (
-                                    <div key={r.id} className="bg-white/[0.04] border border-white/[0.08] rounded-lg px-4 py-3 hover:border-white/[0.15] transition-all">
+                                    <div key={r.id} className="bg-slate-50 border border-slate-200 rounded-lg px-4 py-3 hover:border-slate-300 transition-all">
                                         <div className="flex justify-between items-center mb-1.5">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 flex items-center justify-center text-[11px] font-semibold text-white overflow-hidden">
+                                                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-[11px] font-semibold text-white overflow-hidden">
                                                     {r.user.avatarUrl ? (
                                                         <img src={r.user.avatarUrl} alt={r.user.name} className="w-full h-full object-cover" />
                                                     ) : r.user.name?.[0]?.toUpperCase()}
                                                 </div>
                                                 <div>
-                                                    <span className="text-sm font-medium block">{r.user.name}</span>
+                                                    <span className="text-sm font-medium block text-slate-800">{r.user.name}</span>
                                                     <span className="text-[11px] text-slate-500 block">{new Date(r.createdAt).toLocaleDateString('vi-VN')}</span>
                                                 </div>
                                             </div>
@@ -160,7 +160,7 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                                                 {isOwnReview && (
                                                     <button
                                                         onClick={() => handleDeleteReview(r.id)}
-                                                        className="text-xs text-red-400 hover:text-red-300 transition-colors"
+                                                        className="text-xs text-red-500 hover:text-red-600 transition-colors"
                                                         title="Xóa đánh giá"
                                                     >
                                                         🗑️
@@ -168,7 +168,7 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                                                 )}
                                             </div>
                                         </div>
-                                        {r.comment && <p className="text-sm text-slate-300 leading-relaxed">{r.comment}</p>}
+                                        {r.comment && <p className="text-sm text-slate-600 leading-relaxed">{r.comment}</p>}
                                     </div>
                                 );
                             })
