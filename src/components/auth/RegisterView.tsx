@@ -49,12 +49,12 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
             <div className="flex items-center gap-3 mb-6">
                 <button
                     onClick={onSwitchToLogin}
-                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-white hover:bg-white/[0.06] transition-all"
+                    className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-100 transition-all"
                 >
                     <ArrowLeft size={18} />
                 </button>
                 <div>
-                    <h2 className="text-xl font-bold text-white">Tạo tài khoản</h2>
+                    <h2 className="text-xl font-bold text-slate-900">Tạo tài khoản</h2>
                     <p className="text-xs text-slate-500">Điền thông tin để đăng ký tài khoản mới</p>
                 </div>
             </div>
@@ -120,7 +120,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                         <button
                             type="button"
                             onClick={() => setShowPassword((p) => !p)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
                         >
                             {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
@@ -149,7 +149,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                         <button
                             type="button"
                             onClick={() => setShowConfirm((p) => !p)}
-                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white"
+                            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-900"
                         >
                             {showConfirm ? <EyeOff size={15} /> : <Eye size={15} />}
                         </button>
@@ -190,7 +190,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
             {/* Google */}
             <button
                 onClick={handleGoogleLogin}
-                className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl text-sm font-medium text-slate-300 transition-all hover:text-white hover:bg-white/[0.04]"
+                className="w-full flex items-center justify-center gap-3 py-3 px-5 rounded-xl text-sm font-medium text-slate-700 transition-all hover:bg-slate-50"
                 style={outlinedButtonStyle}
             >
                 <Chrome size={16} />
@@ -202,7 +202,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                 Đã có tài khoản?{" "}
                 <button
                     onClick={onSwitchToLogin}
-                    className="text-indigo-400 font-semibold hover:text-indigo-300"
+                    className="text-emerald-600 font-semibold hover:text-emerald-700"
                 >
                     Đăng nhập
                 </button>
