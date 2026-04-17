@@ -35,6 +35,9 @@ export interface SavedListing extends ListingSummary {
 
 export interface ListingFilters {
     search?: string;
+    district?: string;
+    ward?: string;
+    furniture?: string;
     price_min?: string | number;
     price_max?: string | number;
     area_min?: string | number;
