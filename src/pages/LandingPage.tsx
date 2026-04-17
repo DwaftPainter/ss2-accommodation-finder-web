@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Search, MapPin, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
 import { listingsApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import { formatAddress } from '../lib/utils';
 import type { ListingSummary } from '../types';
 
 interface LandingPageProps {
@@ -307,7 +308,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                 </div>
                                 <p className="landing-listing-address">
                                     <MapPin size={13} />
-                                    {(displayListings[0] as any)?.address || 'Quận Hai Bà Trưng, Hà Nội'}
+                                    {formatAddress((displayListings[0] as any)?.address) || 'Quận Hai Bà Trưng, Hà Nội'}
                                 </p>
                             </div>
                         </div>
@@ -330,7 +331,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                         <h3 className="landing-listing-name">{listing.title}</h3>
                                         <p className="landing-listing-address">
                                             <MapPin size={12} />
-                                            {listing.address}
+                                            {formatAddress(listing.address)}
                                         </p>
                                         <div className="landing-listing-price">
                                             {formatPrice(listing.price)}

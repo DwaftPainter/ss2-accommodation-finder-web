@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 import { savedApi } from '../services/api';
+import { formatAddress } from '../lib/utils';
 import type { SavedListing } from '../types';
 
 const formatPrice = (p: number) => new Intl.NumberFormat('vi-VN').format(p) + ' đ';
@@ -44,7 +45,7 @@ export default function SavedListings({ visible, onClose, onSelectListing }: Sav
                     {listings?.map((l) => (
                         <div key={l.id} onClick={() => onSelectListing(l.id)} className="bg-white/[0.04] border border-white/[0.08] rounded-lg p-3 cursor-pointer hover:border-indigo-500 hover:bg-indigo-500/[0.05] hover:-translate-y-0.5 transition-all">
                             <h4 className="text-sm font-semibold mb-1">{l.title}</h4>
-                            <p className="text-[11px] text-slate-500 mb-1.5">{l.address}</p>
+                            <p className="text-[11px] text-slate-500 mb-1.5">{formatAddress(l.address)}</p>
                             <div className="flex gap-2.5 text-xs">
                                 <span className="font-semibold text-indigo-400">{formatPrice(l.price)}/tháng</span>
                                 <span className="text-slate-400">{l.area} m²</span>

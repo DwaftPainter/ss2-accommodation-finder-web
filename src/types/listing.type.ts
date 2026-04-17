@@ -3,9 +3,15 @@ import { Review } from "./review.type";
 export interface ListingSummary {
     id: string;
     title: string;
-    address: string;
-    lat: number;
-    lng: number;
+    address: {
+        street: string;
+        ward: string;
+        district: string;
+        city: string;
+        province: string;
+        lat: number;
+        lng: number;
+    };
     price: number;
     area: number;
     utilities: string[];

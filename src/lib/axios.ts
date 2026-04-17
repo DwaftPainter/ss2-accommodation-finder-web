@@ -39,13 +39,21 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response) {
+            // Extract error message from response if available
+            const errorMessage = (error.response.data as { message?: string })?.message
+                || error.message
+                || "An error occurred";
+
+            // Enhance error with response message
+            error.message = errorMessage;
+
             // Handle specific status codes
             switch (error.response.status) {
                 case 401:
-                    // Clear tokens on unauthorized
+                    // Clear tokens on unauthorized but don't redirect here
+                    // Let the auth store handle the redirect after setting error
                     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
                     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-                    window.location.href = "/?error=session_expired";
                     break;
                 case 403:
                     console.error("Access forbidden");

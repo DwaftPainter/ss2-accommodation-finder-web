@@ -67,3 +67,68 @@ export function getInitials(name: string): string {
         .toUpperCase()
         .slice(0, 2);
 }
+
+/**
+ * Address interface from ListingSummary
+ */
+export interface Address {
+    street: string;
+    ward: string;
+    district: string;
+    city: string;
+    province: string;
+    lat: number;
+    lng: number;
+}
+
+/**
+ * Format address object to readable string
+ * Options:
+ * - full: street, ward, district, city, province
+ * - short: district, city
+ * - minimal: city only
+ */
+export function formatAddress(
+    address: Address | string,
+    options: { style?: "full" | "short" | "minimal" } = {}
+): string {
+    const { style = "short" } = options;
+
+    // If address is already a string, return it
+    if (typeof address === "string") {
+        return address;
+    }
+
+    if (style === "full") {
+        const parts = [address.street, address.ward, address.district, address.city, address.province].filter(
+            Boolean
+        );
+        return parts.join(", ");
+    }
+
+    if (style === "minimal") {
+        return address.city || address.province;
+    }
+
+    // short - default
+    const parts = [address.district, address.city].filter(Boolean);
+    return parts.join(", ");
+}
+
+/**
+ * Get short location name (for display in cards)
+ * Returns: "District, City" format
+ */
+export function getShortLocation(address: Address | string): string {
+    return formatAddress(address, { style: "short" });
+}
+
+/**
+ * Get coordinates from address object
+ */
+export function getCoordinates(address: Address | string): { lat: number; lng: number } | null {
+    if (typeof address === "string") {
+        return null;
+    }
+    return { lat: address.lat, lng: address.lng };
+}

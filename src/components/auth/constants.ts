@@ -15,7 +15,7 @@ export const inputFocusStyle = {
 };
 
 export const gradientButtonStyle = {
-    background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+    background: "linear-gradient(135deg, #10b981 0%, #14b8a6 100%)",
     boxShadow: "0 8px 24px rgba(16,185,129,0.35)",
     color: "#fff"
 };
