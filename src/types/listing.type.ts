@@ -56,7 +56,11 @@ export interface ListingFilters {
 
 export interface ListingPayload {
     title: string;
-    address: string;
+    street: string;
+    ward?: string;
+    district: string;
+    city: string;
+    province: string;
     lat: number;
     lng: number;
     price: number;

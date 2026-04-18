@@ -18,6 +18,10 @@ export default function HomeRoute() {
         navigate("/explore");
     }, [navigate]);
 
+    const handleNavigate = useCallback((page: string) => {
+        navigate(`/${page}`);
+    }, [navigate]);
+
     const handleSelectListing = useCallback((id: string) => {
         setSelectedListingId(id);
     }, []);
@@ -39,6 +43,7 @@ export default function HomeRoute() {
         <>
             <HomePage
                 onSelectListing={handleSelectListing}
+                onNavigate={handleNavigate}
             />
             {selectedListingId && (
                 <ListingDetail

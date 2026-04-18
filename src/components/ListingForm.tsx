@@ -6,7 +6,6 @@ import { z } from 'zod';
 import { toast } from 'sonner';
 import { listingsApi } from '../services/api';
 import { LISTING_MESSAGES, getErrorMessage } from '../config/messages';
-import { formatAddress } from '../lib/utils';
 import type { ListingDetail } from '../types';
 
 const UTILITY_OPTIONS = [
@@ -22,7 +21,11 @@ const UTILITY_OPTIONS = [
 
 const listingSchema = z.object({
     title: z.string().min(1, 'Tiêu đề không được để trống').max(200, 'Tiêu đề quá dài'),
-    address: z.string().min(1, 'Địa chỉ không được để trống'),
+    street: z.string().min(1, 'Đường phố không được để trống'),
+    ward: z.string().optional(),
+    district: z.string().min(1, 'Quận/Huyện không được để trống'),
+    city: z.string().min(1, 'Thành phố không được để trống'),
+    province: z.string().min(1, 'Tỉnh/Thành phố không được để trống'),
     lat: z.coerce.number({ error: 'Vĩ độ phải là số' }).min(-90).max(90),
     lng: z.coerce.number({ error: 'Kinh độ phải là số' }).min(-180).max(180),
     price: z.coerce.number({ error: 'Giá phải là số' }).min(100000, 'Giá tối thiểu 100.000 đ'),
@@ -40,7 +43,11 @@ type ListingFormInput = z.input<typeof listingSchema>;
 
 export interface ListingFormData {
     title: string;
-    address: string;
+    street: string;
+    ward?: string;
+    district: string;
+    city: string;
+    province: string;
     lat: number;
     lng: number;
     price: number;
@@ -74,7 +81,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
     } = useForm<ListingFormInput>({
         resolver: zodResolver(listingSchema),
         defaultValues: {
-            title: '', address: '', lat: 0, lng: 0, price: 0, area: 0,
+            title: '', street: '', ward: '', district: '', city: '', province: '', lat: 0, lng: 0, price: 0, area: 0,
             electricityFee: '', waterFee: '', description: '', utilities: [],
             contactName: '', contactPhone: '',
         },
@@ -84,14 +91,13 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
     useEffect(() => {
         if (listing) {
-            // Format address object to string for the form
-            const addressString = typeof listing.address === 'string'
-                ? listing.address
-                : formatAddress(listing.address, { style: 'full' });
-
             reset({
                 title: listing.title,
-                address: addressString,
+                street: listing.address.street || '',
+                ward: listing.address.ward || '',
+                district: listing.address.district || '',
+                city: listing.address.city || '',
+                province: listing.address.province || '',
                 lat: listing.address.lat ?? 0,
                 lng: listing.address.lng ?? 0,
                 price: listing.price, area: listing.area,
@@ -122,7 +128,11 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
         // Convert all numeric fields to numbers for API
         const payload: ListingFormData = {
             title: data.title,
-            address: data.address,
+            street: data.street,
+            ward: data.ward || undefined,
+            district: data.district,
+            city: data.city,
+            province: data.province,
             lat: Number(data.lat),
             lng: Number(data.lng),
             price: Number(data.price),
@@ -154,13 +164,13 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
         }
     };
 
-    const inputCls = "w-full px-3 py-2.5 bg-[var(--color-bg-primary)] border border-white/[0.08] rounded-lg text-sm text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-[var(--color-accent-glow)] transition-all";
-    const errorCls = "text-[11px] text-red-400 mt-0.5";
+    const inputCls = "w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all";
+    const errorCls = "text-[11px] text-red-500 mt-0.5";
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-5 animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className="bg-[var(--color-bg-secondary)] border border-white/[0.08] rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl w-[650px] max-w-full p-6 relative animate-modal-in" id="listing-form-modal">
-                <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-white/[0.06] text-slate-400 hover:bg-red-500/20 hover:text-red-400 flex items-center justify-center transition-all">
+            <div className="bg-white border border-gray-200 rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl w-[650px] max-w-full p-6 relative animate-modal-in" id="listing-form-modal">
+                <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all">
                     <X size={18} />
                 </button>
 
@@ -175,11 +185,34 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                             {errors.title && <span className={errorCls}>{errors.title.message}</span>}
                         </div>
 
-                        {/* Address */}
+                        {/* Street */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Địa chỉ *</label>
-                            <input {...register('address')} className={inputCls} placeholder="Số nhà, đường, phường, quận" id="form-address" />
-                            {errors.address && <span className={errorCls}>{errors.address.message}</span>}
+                            <label className="text-xs font-medium text-slate-400">Đường/Phố *</label>
+                            <input {...register('street')} className={inputCls} placeholder="Số nhà, đường phố" id="form-street" />
+                            {errors.street && <span className={errorCls}>{errors.street.message}</span>}
+                        </div>
+
+                        {/* Ward / District */}
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-400">Phường/Xã</label>
+                            <input {...register('ward')} className={inputCls} placeholder="Phường/Xã" id="form-ward" />
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-400">Quận/Huyện *</label>
+                            <input {...register('district')} className={inputCls} placeholder="Quận/Huyện" id="form-district" />
+                            {errors.district && <span className={errorCls}>{errors.district.message}</span>}
+                        </div>
+
+                        {/* City / Province */}
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-400">Thành phố *</label>
+                            <input {...register('city')} className={inputCls} placeholder="Thành phố" id="form-city" />
+                            {errors.city && <span className={errorCls}>{errors.city.message}</span>}
+                        </div>
+                        <div className="flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-400">Tỉnh/Thành phố *</label>
+                            <input {...register('province')} className={inputCls} placeholder="Tỉnh/Thành phố" id="form-province" />
+                            {errors.province && <span className={errorCls}>{errors.province.message}</span>}
                         </div>
 
                         {/* Lat / Lng */}

@@ -13,6 +13,7 @@ interface MapViewProps {
     pinLocation: { lat: number; lng: number } | null;
     flyTo: [number, number] | null;
     onClose: () => void;
+    showClose?: boolean;
 }
 
 // Fix Leaflet marker icon assets
@@ -99,22 +100,47 @@ function MapClickHandler({ onMapClick }: { onMapClick: (latlng: L.LatLng) => voi
 function FlyTo({ center }: { center: [number, number] }) {
     const map = useMap();
     useEffect(() => {
-        if (center) map.flyTo(center, 15, { duration: 1.5 });
+        if (center) {
+            const [lat, lng] = center;
+            // Validate coordinates before flying
+            if (
+                typeof lat === "number" &&
+                !isNaN(lat) &&
+                typeof lng === "number" &&
+                !isNaN(lng) &&
+                lat >= -90 &&
+                lat <= 90 &&
+                lng >= -180 &&
+                lng <= 180
+            ) {
+                map.flyTo(center, 15, { duration: 1.5 });
+            }
+        }
     }, [center, map]);
     return null;
 }
 
-export default function MapView({ listings, onSelectListing, onMapClick, pinLocation, flyTo, onClose }: MapViewProps) {
+export default function MapView({
+    listings,
+    onSelectListing,
+    onMapClick,
+    pinLocation,
+    flyTo,
+    onClose,
+    showClose = true
+}: MapViewProps) {
     const defaultCenter: [number, number] = [21.0285, 105.8542];
 
     return (
         <div className="h-full w-full relative">
-            <button
-                onClick={onClose}
-                className="absolute top-3 right-3 z-[1000] bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition"
-            >
-                <XIcon size={18} />
-            </button>
+            {showClose && (
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 z-[1000] bg-white shadow-md rounded-full p-2 hover:bg-gray-100 transition"
+                >
+                    <XIcon size={18} />
+                </button>
+            )}
 
             <MapContainer
                 center={defaultCenter}

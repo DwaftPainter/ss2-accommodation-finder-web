@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
-import { Marker, Circle, Popup, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import { toast } from 'sonner';
+import { useEffect, useRef, useState } from "react";
+import { Marker, Circle, Popup, useMap } from "react-leaflet";
+import L from "leaflet";
+import { toast } from "sonner";
 
-/* ── Custom DivIcon: pulsing blue dot ── */
 const locationIcon = L.divIcon({
-    className: 'location-marker-wrapper',
+    className: "location-marker-wrapper",
     html: `
         <div class="location-dot">
             <div class="location-dot-pulse"></div>
@@ -14,78 +13,62 @@ const locationIcon = L.divIcon({
     `,
     iconSize: [40, 40],
     iconAnchor: [20, 20],
-    popupAnchor: [0, -20],
+    popupAnchor: [0, -20]
 });
 
-/* ── SVG for crosshair / locate icon ── */
 const LOCATE_SVG = `<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg>`;
 
-/**
- * LocationTracker — renders inside <MapContainer>.
- *
- * Inspired by Android's MyLocationDemoActivity:
- *  - Auto-starts tracking on mount           (enableMyLocation)
- *  - Custom "My Location" button below zoom   (onMyLocationButtonClick)
- *  - Click blue dot → shows location info     (onMyLocationClick)
- *  - Permission error toast                   (showMissingPermissionError)
- */
 export default function LocationTracker() {
     const map = useMap();
 
-    /* ── Geolocation state ── */
     const [position, setPosition] = useState<{ lat: number; lng: number } | null>(null);
     const [accuracy, setAccuracy] = useState<number>(0);
     const [speed, setSpeed] = useState<number | null>(null);
     const [heading, setHeading] = useState<number | null>(null);
 
-    /* ── Refs for stable callbacks ── */
     const positionRef = useRef<{ lat: number; lng: number } | null>(null);
-    const hasInitialFly = useRef(false);
-    const errorShown = useRef(false);
     const btnRef = useRef<HTMLElement | null>(null);
 
-    // Keep ref in sync
     useEffect(() => {
         positionRef.current = position;
-        // Highlight button when tracking is active
         if (btnRef.current) {
-            if (position) {
-                btnRef.current.classList.add('tracking-active');
-            } else {
-                btnRef.current.classList.remove('tracking-active');
-            }
+            btnRef.current.classList.toggle("tracking-active", !!position);
         }
     }, [position]);
 
     /* ── Custom Leaflet Control: "My Location" button ── */
     useEffect(() => {
         const MyLocationControl = L.Control.extend({
-            options: { position: 'topleft' as L.ControlPosition },
+            options: { position: "topleft" as L.ControlPosition },
 
             onAdd() {
-                const container = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
-                const btn = L.DomUtil.create('a', 'my-location-btn', container);
-                btn.href = '#';
-                btn.title = 'Vị trí của tôi';
-                btn.setAttribute('role', 'button');
-                btn.setAttribute('aria-label', 'Vị trí của tôi');
+                const container = L.DomUtil.create("div", "leaflet-bar leaflet-control");
+                const btn = L.DomUtil.create("a", "my-location-btn", container);
+                btn.href = "#";
+                btn.title = "Vị trí của tôi";
+                btn.setAttribute("role", "button");
+                btn.setAttribute("aria-label", "Vị trí của tôi");
                 btn.innerHTML = LOCATE_SVG;
 
                 btnRef.current = btn;
 
                 L.DomEvent.disableClickPropagation(container);
-                L.DomEvent.on(btn, 'click', (e) => {
+                L.DomEvent.on(btn, "click", (e) => {
                     L.DomEvent.preventDefault(e);
                     const pos = positionRef.current;
                     if (pos) {
-                        map.flyTo([pos.lat, pos.lng], 16, { duration: 1 });
+                        setTimeout(() => {
+                            map.invalidateSize();
+                            map.stop();
+                            map.flyTo([pos.lat, pos.lng], 16, { duration: 1 });
+                        }, 50);
                     } else {
-                        toast.error('Chưa xác định được vị trí');
+                        toast.error("Chưa xác định được vị trí");
                     }
                 });
 
                 return container;
-            },
+            }
         });
 
         const control = new MyLocationControl();
@@ -96,43 +79,51 @@ export default function LocationTracker() {
         };
     }, [map]);
 
-    /* ── Geolocation watcher — auto-starts on mount ── */
+    /* ── Geolocation watcher ── */
     useEffect(() => {
         if (!navigator.geolocation) {
-            toast.error('Trình duyệt không hỗ trợ định vị');
+            toast.error("Trình duyệt không hỗ trợ định vị");
             return;
         }
 
+        const mapContainer = map.getContainer();
+        const errorShown = { current: false };
+
         const watchId = navigator.geolocation.watchPosition(
             (pos) => {
-                const {
-                    latitude,
-                    longitude,
-                    accuracy: acc,
-                    speed: spd,
-                    heading: hdg,
-                } = pos.coords;
+                const { latitude, longitude, accuracy: acc, speed: spd, heading: hdg } = pos.coords;
 
-                setPosition({ lat: latitude, lng: longitude });
-                setAccuracy(acc);
-                setSpeed(spd);
-                setHeading(hdg);
+                const isValid = (val: number) => typeof val === "number" && !isNaN(val);
 
-                // Fly to user on first position fix
-                if (!hasInitialFly.current) {
-                    map.flyTo([latitude, longitude], 15, { duration: 1.5 });
-                    hasInitialFly.current = true;
+                if (isValid(latitude) && isValid(longitude)) {
+                    setPosition({ lat: latitude, lng: longitude });
+                    setAccuracy(acc);
+                    setSpeed(spd);
+                    setHeading(hdg);
+
+                    if (!mapContainer.dataset.initialFlown) {
+                        mapContainer.dataset.initialFlown = "true";
+                        setTimeout(() => {
+                            map.invalidateSize();
+                            const size = map.getSize();
+                            if (size.x > 0 && size.y > 0) {
+                                map.stop();
+                                map.flyTo([latitude, longitude], 15, { duration: 1.5 });
+                            } else {
+                                map.setView([latitude, longitude], 15);
+                            }
+                        }, 100);
+                    }
                 }
             },
             (err) => {
-                // Show error toast only once
                 if (!errorShown.current) {
                     const msg =
                         err.code === 1
-                            ? 'Bạn đã từ chối quyền truy cập vị trí'
+                            ? "Bạn đã từ chối quyền truy cập vị trí"
                             : err.code === 3
-                              ? 'Hết thời gian xác định vị trí'
-                              : 'Không thể xác định vị trí';
+                              ? "Hết thời gian xác định vị trí"
+                              : "Không thể xác định vị trí";
                     toast.error(msg);
                     errorShown.current = true;
                 }
@@ -140,43 +131,45 @@ export default function LocationTracker() {
             {
                 enableHighAccuracy: true,
                 maximumAge: 5000,
-                timeout: 15000,
-            },
+                timeout: 15000
+            }
         );
 
-        return () => navigator.geolocation.clearWatch(watchId);
+        return () => {
+            navigator.geolocation.clearWatch(watchId);
+            if (!document.contains(mapContainer)) {
+                delete mapContainer.dataset.initialFlown;
+            }
+        };
     }, [map]);
 
-    /* ── Nothing to render until we have a position ── */
     if (!position) return null;
 
     return (
         <>
-            {/* Accuracy radius circle */}
             <Circle
                 center={[position.lat, position.lng]}
                 radius={accuracy}
                 pathOptions={{
-                    color: '#6366f1',
-                    fillColor: '#6366f1',
+                    color: "#6366f1",
+                    fillColor: "#6366f1",
                     fillOpacity: 0.07,
                     weight: 1.5,
                     opacity: 0.25,
-                    dashArray: '4 6',
+                    dashArray: "4 6"
                 }}
             />
 
-            {/* Pulsing blue dot marker */}
             <Marker position={[position.lat, position.lng]} icon={locationIcon}>
                 <Popup>
                     <div className="map-popup min-w-[200px]">
                         <h4>📍 Vị trí của bạn</h4>
                         <div
                             style={{
-                                fontSize: '0.75rem',
-                                color: '#64748b',
-                                lineHeight: '1.7',
-                                marginTop: '4px',
+                                fontSize: "0.75rem",
+                                color: "#64748b",
+                                lineHeight: "1.7",
+                                marginTop: "4px"
                             }}
                         >
                             <div>

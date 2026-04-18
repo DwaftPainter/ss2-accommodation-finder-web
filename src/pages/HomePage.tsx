@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Heart, ChevronLeft, ChevronRight, Star, Home, SwitchCamera, X, Filter } from "lucide-react";
+import { Search, Heart, ChevronLeft, ChevronRight, Star, Home, SwitchCamera, X, Filter, LogOut, User, List } from "lucide-react";
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore, useUIStore } from "../stores";
@@ -11,6 +11,7 @@ import type { ListingSummary } from "../types";
 
 interface HomePageProps {
     onSelectListing?: (id: string) => void;
+    onNavigate?: (page: string) => void;
 }
 
 // Mock data for different cities
@@ -234,7 +235,99 @@ function ListingRow({
     );
 }
 
-export default function HomePage({ onSelectListing }: HomePageProps) {
+// User Menu Component
+interface UserMenuProps {
+    user: { name?: string } | null;
+    onNavigate?: (page: string) => void;
+}
+
+function UserMenu({ user, onNavigate }: UserMenuProps) {
+    const [isOpen, setIsOpen] = useState(false);
+    const menuRef = useRef<HTMLDivElement>(null);
+    const { logout } = useAuth();
+
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, []);
+
+    const handleSavedClick = () => {
+        onNavigate?.("saved");
+        setIsOpen(false);
+    };
+
+    const handleProfileClick = () => {
+        onNavigate?.("profile");
+        setIsOpen(false);
+    };
+
+    const handleLogout = () => {
+        logout();
+        setIsOpen(false);
+    };
+
+    return (
+        <div ref={menuRef} className="flex items-center gap-3 pl-4 border-l border-gray-200">
+            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                <svg
+                    width="18"
+                    height="18"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                >
+                    <path d="M3 12h18M3 6h18M3 18h18" />
+                </svg>
+            </button>
+            <div className="relative">
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="flex items-center gap-2 p-1 border border-gray-300 rounded-full hover:shadow-md transition-shadow cursor-pointer"
+                >
+                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                        {user?.name?.[0]?.toUpperCase() || "U"}
+                    </div>
+                </button>
+
+                {isOpen && (
+                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                        <button
+                            onClick={handleSavedClick}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <List size={18} />
+                            <span className="text-sm font-medium">Danh sách yêu thích</span>
+                        </button>
+                        <button
+                            onClick={handleProfileClick}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <User size={18} />
+                            <span className="text-sm font-medium">Hồ sơ</span>
+                        </button>
+                        <hr className="my-2 border-gray-200" />
+                        <button
+                            onClick={handleLogout}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <LogOut size={18} />
+                            <span className="text-sm font-medium">Đăng xuất</span>
+                        </button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
+export default function HomePage({ onSelectListing, onNavigate }: HomePageProps) {
     const { user } = useAuth();
     const { userMode, toggleUserMode } = useUIStore();
     const { listings, fetchListings } = useListingsStore();
@@ -248,7 +341,12 @@ export default function HomePage({ onSelectListing }: HomePageProps) {
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
 
-    const modeButtonText = userMode === "finder" ? "Cho thuê phòng" : "Tìm phòng trọ";
+    const modeButtonText = "Cho thuê phòng";
+
+    const handleToggleMode = () => {
+        // Navigate to landlord page
+        onNavigate?.("landlord");
+    };
 
     // Handle showing map view
     const handleShowMap = () => {
@@ -408,31 +506,13 @@ export default function HomePage({ onSelectListing }: HomePageProps) {
                         {/* Right side - User menu */}
                         <div className="flex items-center gap-3">
                             <button
-                                onClick={toggleUserMode}
+                                onClick={handleToggleMode}
                                 className="flex justify-center w-33 min-w-33 items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100  py-2 rounded-full transition-colors"
                             >
                                 {modeButtonText}
                             </button>
 
-                            <div className="flex items-center gap-3 pl-4 border-l border-gray-200">
-                                <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
-                                    <svg
-                                        width="18"
-                                        height="18"
-                                        viewBox="0 0 24 24"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        strokeWidth="2"
-                                    >
-                                        <path d="M3 12h18M3 6h18M3 18h18" />
-                                    </svg>
-                                </button>
-                                <div className="flex items-center gap-2 p-1 border border-gray-300 rounded-full hover:shadow-md transition-shadow cursor-pointer">
-                                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                                        {user?.name?.[0]?.toUpperCase() || "U"}
-                                    </div>
-                                </div>
-                            </div>
+                            <UserMenu user={user} onNavigate={onNavigate} />
                         </div>
                     </div>
                 </div>
