@@ -1,5 +1,7 @@
-import { MapPin, Star } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MapPin, Star, Heart } from 'lucide-react';
 import { formatAddress } from '../lib/utils';
+import { useListingsStore } from '../stores';
 import type { ListingSummary } from '../types/listing.type';
 
 interface ExploreViewProps {
@@ -7,11 +9,83 @@ interface ExploreViewProps {
     onSelectListing: (id: string) => void;
 }
 
-export default function ExploreView({ listings, onSelectListing }: ExploreViewProps) {
+// Individual Listing Card with save functionality
+function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect: (id: string) => void }) {
+    const { toggleSaved, isListingSaved } = useListingsStore();
+    const [isSaved, setIsSaved] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        setIsSaved(isListingSaved(listing.id));
+    }, [listing.id, isListingSaved]);
+
+    const handleToggleSaved = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (isLoading) return;
+
+        setIsLoading(true);
+        try {
+            const result = await toggleSaved(listing.id);
+            setIsSaved(result);
+        } catch (error) {
+            console.error('Failed to toggle saved:', error);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
     };
 
+    return (
+        <div
+            className="group flex flex-col gap-3 cursor-pointer"
+            onClick={() => onSelect(listing.id)}
+        >
+            <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
+                <img
+                    src={listing.images[0] || '/listing-studio.png'}
+                    alt={listing.title}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                />
+                {/* Heart/Save Button */}
+                <button
+                    onClick={handleToggleSaved}
+                    disabled={isLoading}
+                    className={`absolute top-3 right-3 p-2 rounded-full transition-all duration-200 hover:scale-110 ${
+                        isLoading ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
+                >
+                    <Heart
+                        size={22}
+                        className={`drop-shadow-md transition-all duration-200 ${
+                            isSaved
+                                ? "fill-rose-500 text-rose-500"
+                                : "fill-white/50 text-white hover:fill-white/80"
+                        }`}
+                    />
+                </button>
+            </div>
+            <div className="flex flex-col gap-0.5">
+                <div className="flex justify-between items-start gap-2">
+                    <h3 className="font-semibold text-slate-800 line-clamp-1 truncate text-base">{formatAddress(listing.address)}</h3>
+                    <div className="flex items-center gap-1 text-sm bg-slate-100 px-1.5 py-0.5 rounded-md flex-shrink-0">
+                        <Star size={12} className="fill-emerald-500 text-emerald-500" />
+                        <span className="font-medium text-slate-700">{listing.avgRating > 0 ? listing.avgRating.toFixed(1) : 'Mới'}</span>
+                    </div>
+                </div>
+                <p className="text-sm text-slate-500 line-clamp-1">{listing.title}</p>
+                <p className="text-sm text-slate-500">{listing.area} m² · {listing.utilities?.slice(0, 2).join(', ')}</p>
+                <div className="mt-1 font-semibold text-slate-800 flex items-center">
+                    {formatPrice(listing.price)} <span className="font-normal text-slate-500 ml-1 text-sm">/tháng</span>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function ExploreView({ listings, onSelectListing }: ExploreViewProps) {
     if (listings.length === 0) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white overflow-y-auto">
@@ -31,33 +105,11 @@ export default function ExploreView({ listings, onSelectListing }: ExploreViewPr
             <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 mt-14 md:mt-0 text-slate-800">Khám phá phòng trọ</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 {listings.map(listing => (
-                    <div
+                    <ListingCard
                         key={listing.id}
-                        className="group flex flex-col gap-3 cursor-pointer"
-                        onClick={() => onSelectListing(listing.id)}
-                    >
-                        <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
-                            <img
-                                src={listing.images[0] || '/listing-studio.png'}
-                                alt={listing.title}
-                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                            />
-                        </div>
-                        <div className="flex flex-col gap-0.5">
-                            <div className="flex justify-between items-start gap-2">
-                                <h3 className="font-semibold text-slate-800 line-clamp-1 truncate text-base">{formatAddress(listing.address)}</h3>
-                                <div className="flex items-center gap-1 text-sm bg-slate-100 px-1.5 py-0.5 rounded-md">
-                                    <Star size={12} className="fill-emerald-500 text-emerald-500" />
-                                    <span className="font-medium text-slate-700">{listing.avgRating > 0 ? listing.avgRating.toFixed(1) : 'Mới'}</span>
-                                </div>
-                            </div>
-                            <p className="text-sm text-slate-500 line-clamp-1">{listing.title}</p>
-                            <p className="text-sm text-slate-500">{listing.area} m² · {listing.utilities?.slice(0, 2).join(', ')}</p>
-                            <div className="mt-1 font-semibold text-slate-800 flex items-center">
-                                {formatPrice(listing.price)} <span className="font-normal text-slate-500 ml-1 text-sm">/tháng</span>
-                            </div>
-                        </div>
-                    </div>
+                        listing={listing}
+                        onSelect={onSelectListing}
+                    />
                 ))}
             </div>
         </div>

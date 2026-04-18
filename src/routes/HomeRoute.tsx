@@ -15,7 +15,7 @@ export default function HomeRoute() {
     const [showAuth, setShowAuth] = useState(false);
 
     const handleNavigateToMap = useCallback(() => {
-        navigate("/explore");
+        navigate("/?view=map");
     }, [navigate]);
 
     const handleNavigate = useCallback((page: string) => {
