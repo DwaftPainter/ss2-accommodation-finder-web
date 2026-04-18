@@ -11,13 +11,16 @@ export default function SavedRoute() {
     const { listings, fetchListings } = useListingsStore();
 
     const handleBack = useCallback(() => {
-        navigate("/explore");
+        navigate("/");
     }, [navigate]);
 
-    const handleSelectListing = useCallback((id: string) => {
-        navigate("/explore");
-        setSelectedListingId(id);
-    }, [navigate]);
+    const handleSelectListing = useCallback(
+        (id: string) => {
+            navigate("/");
+            setSelectedListingId(id);
+        },
+        [navigate]
+    );
 
     return (
         <>

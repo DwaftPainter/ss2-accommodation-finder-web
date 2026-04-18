@@ -1,5 +1,18 @@
 import { useState, useEffect, useRef } from "react";
-import { Search, Heart, ChevronLeft, ChevronRight, Star, Home, SwitchCamera, X, Filter, LogOut, User, List } from "lucide-react";
+import {
+    Search,
+    Heart,
+    ChevronLeft,
+    ChevronRight,
+    Star,
+    Home,
+    SwitchCamera,
+    X,
+    Filter,
+    LogOut,
+    User,
+    List
+} from "lucide-react";
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore, useUIStore } from "../stores";
@@ -8,6 +21,7 @@ import FilterPanel from "../components/FilterPanel";
 import ListingDetail from "../components/ListingDetail";
 import { formatAddress } from "../lib/utils";
 import type { ListingSummary } from "../types";
+import Loader from "@/components/ui/loading";
 
 interface HomePageProps {
     onSelectListing?: (id: string) => void;
@@ -42,8 +56,30 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
     };
 
     return (
-        <div className="flex items-center justify-center py-2">
-            <div className="flex items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+        <div className="flex items-center justify-center py-2 w-full px-4 sm:px-0">
+            {/* Mobile: Simplified Search Bar */}
+            <div className="flex md:hidden items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow w-full max-w-md">
+                <div className="flex flex-col px-4 py-2 hover:bg-gray-100 rounded-full transition-colors text-left flex-1 min-w-0">
+                    <input
+                        type="text"
+                        value={location}
+                        onChange={(e) => setLocation(e.target.value)}
+                        placeholder="Tìm kiếm địa điểm..."
+                        className="text-sm text-gray-700 bg-transparent outline-none w-full"
+                    />
+                </div>
+                <div className="pr-1.5 pl-1">
+                    <button
+                        onClick={handleSearch}
+                        className="flex items-center justify-center w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-full hover:scale-105 transition-transform"
+                    >
+                        <Search size={16} className="text-white" />
+                    </button>
+                </div>
+            </div>
+
+            {/* Desktop: Full Search Bar */}
+            <div className="hidden md:flex items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
                 {/* 📍 Location */}
                 <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[180px]">
                     <span className="text-xs font-semibold text-gray-900">Địa điểm</span>
@@ -475,10 +511,7 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-8 h-8 border-2 border-rose-500 border-t-transparent rounded-full animate-spin" />
-                    <p className="text-gray-500 text-sm">Đang tải...</p>
-                </div>
+                <Loader />
             </div>
         );
     }
@@ -488,28 +521,37 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
         <div className="min-h-screen bg-white flex flex-col">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-6">
-                    <div className="flex items-center justify-between h-20">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                    <div className="flex items-center justify-between h-16 sm:h-20">
                         {/* Logo */}
-                        <div className="flex items-center gap-2">
-                            <div className="w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                                <Home className="text-white" size={24} />
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                                <img src="/logo.png" alt="Logo" className="size-5"/>
                             </div>
-                            <div className="landing-brand">
-                                <span className="landing-brand-text">AccomFinder</span>
+                            <div className="landing-brand hidden sm:block">
+                                <span className="landing-brand-text text-lg sm:text-xl">AccomFinder</span>
                             </div>
                         </div>
 
-                        {/* Search Bar */}
-                        <SearchBar onShowMap={handleShowMap} />
+                        {/* Search Bar - Hidden on small mobile, shown on md+ */}
+                        <div className="flex-1 flex justify-center px-2 sm:px-4">
+                            <SearchBar onShowMap={handleShowMap} />
+                        </div>
 
                         {/* Right side - User menu */}
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
                             <button
                                 onClick={handleToggleMode}
-                                className="flex justify-center w-33 min-w-33 items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100  py-2 rounded-full transition-colors"
+                                className="hidden sm:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-4 rounded-full transition-colors whitespace-nowrap"
                             >
                                 {modeButtonText}
+                            </button>
+
+                            <button
+                                onClick={handleToggleMode}
+                                className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
+                            >
+                                <SwitchCamera size={20} className="text-gray-700" />
                             </button>
 
                             <UserMenu user={user} onNavigate={onNavigate} />

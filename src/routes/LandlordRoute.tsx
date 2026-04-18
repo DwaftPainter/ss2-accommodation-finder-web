@@ -9,17 +9,20 @@ export default function LandlordRoute() {
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const { listings, fetchListings } = useListingsStore();
 
-    const handleNavigate = useCallback((page: string) => {
-        if (page === "saved") {
-            navigate("/saved");
-        } else if (page === "profile") {
-            navigate("/profile");
-        } else if (page === "finder") {
-            navigate("/explore");
-        } else {
-            navigate(`/${page}`);
-        }
-    }, [navigate]);
+    const handleNavigate = useCallback(
+        (page: string) => {
+            if (page === "saved") {
+                navigate("/saved");
+            } else if (page === "profile") {
+                navigate("/profile");
+            } else if (page === "finder") {
+                navigate("/");
+            } else {
+                navigate(`/${page}`);
+            }
+        },
+        [navigate]
+    );
 
     const handleSelectListing = useCallback((id: string) => {
         setSelectedListingId(id);
@@ -27,10 +30,7 @@ export default function LandlordRoute() {
 
     return (
         <>
-            <LandlordPage
-                onSelectListing={handleSelectListing}
-                onNavigate={handleNavigate}
-            />
+            <LandlordPage onSelectListing={handleSelectListing} onNavigate={handleNavigate} />
             <ChatBox />
         </>
     );
