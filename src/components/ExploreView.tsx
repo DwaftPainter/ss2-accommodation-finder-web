@@ -93,9 +93,17 @@ export default function ExploreView({ listings, onSelectListing }: ExploreViewPr
                     <MapPin className="text-slate-400" size={24} />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-800 mb-2">Không tìm thấy phòng trọ nào</h3>
-                <p className="text-slate-500 max-w-sm">
+                <p className="text-slate-500 max-w-sm mb-4">
                     Hãy thử thay đổi bộ lọc tìm kiếm (Quận, Phường, Giá thuê) để xem thêm kết quả nhé.
                 </p>
+                {/* Temporary preview button for testing ListingDetail UI */}
+                <button
+                    onClick={() => onSelectListing("preview-mock")}
+                    className="px-5 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md hover:shadow-lg transition-all"
+                    id="preview-detail-btn"
+                >
+                    👀 Xem trước trang chi tiết
+                </button>
             </div>
         );
     }
