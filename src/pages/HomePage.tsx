@@ -11,7 +11,8 @@ import {
     Filter,
     LogOut,
     User,
-    List
+    List,
+    MessageSquare
 } from "lucide-react";
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
@@ -341,6 +342,10 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
                             <List size={18} />
                             <span className="text-sm font-medium">Danh sách yêu thích</span>
                         </button>
+                        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                            <MessageSquare size={18} />
+                            <span className="text-sm font-medium">Tin nhắn</span>
+                        </button>
                         <button
                             onClick={handleProfileClick}
                             className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
@@ -526,7 +531,7 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
                         {/* Logo */}
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
-                                <img src="/logo.png" alt="Logo" className="size-5"/>
+                                <img src="/logo.png" alt="Logo" className="size-5" />
                             </div>
                             <div className="landing-brand hidden sm:block">
                                 <span className="landing-brand-text text-lg sm:text-xl">AccomFinder</span>

@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Filter, Bookmark, LogIn, X, SwitchCamera, Map, Menu } from "lucide-react";
+import { Filter, Bookmark, LogIn, X, SwitchCamera, Map, Menu, MessageSquare } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
-import { useUserMode, type UserMode } from "../stores";
+import { useUserMode } from "../stores";
 
 interface NavbarProps {
     onOpenSaved: () => void;
+    onOpenMessages?: () => void;
     onToggleFilters: () => void;
     showFilters: boolean;
     onOpenAuth: () => void;
@@ -16,6 +17,7 @@ interface NavbarProps {
 
 export default function Navbar({
     onOpenSaved,
+    onOpenMessages,
     onToggleFilters,
     showFilters,
     onOpenAuth,
@@ -30,16 +32,6 @@ export default function Navbar({
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
     const modeButtonText = userMode === "finder" ? "Cho thuê phòng" : "Tìm phòng";
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        onSearch(query);
-    };
-
-    const handleClear = () => {
-        setQuery("");
-        onSearch("");
-    };
 
     const closeMobileMenu = () => setMobileMenuOpen(false);
 
@@ -110,14 +102,24 @@ export default function Navbar({
                     </button>
 
                     {user && (
-                        <button
-                            onClick={onOpenSaved}
-                            className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all border border-transparent"
-                            id="saved-btn"
-                        >
-                            <Bookmark size={16} />
-                            <span>Đã lưu</span>
-                        </button>
+                        <>
+                            <button
+                                onClick={onOpenSaved}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all border border-transparent"
+                                id="saved-btn"
+                            >
+                                <Bookmark size={16} />
+                                <span>Đã lưu</span>
+                            </button>
+                            <button
+                                onClick={onOpenMessages}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all border border-transparent"
+                                id="messages-btn"
+                            >
+                                <MessageSquare size={16} />
+                                <span>Tin nhắn</span>
+                            </button>
+                        </>
                     )}
 
                     {loading ? (
@@ -231,18 +233,30 @@ export default function Navbar({
                                 <span className="font-medium">Bộ lọc</span>
                             </button>
 
-                            {/* Saved */}
+                            {/* Saved & Messages */}
                             {user && (
-                                <button
-                                    onClick={() => {
-                                        onOpenSaved();
-                                        closeMobileMenu();
-                                    }}
-                                    className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 transition-all"
-                                >
-                                    <Bookmark size={20} />
-                                    <span className="font-medium">Đã lưu</span>
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => {
+                                            onOpenSaved();
+                                            closeMobileMenu();
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 transition-all"
+                                    >
+                                        <Bookmark size={20} />
+                                        <span className="font-medium">Đã lưu</span>
+                                    </button>
+                                    <button
+                                        onClick={() => {
+                                            onOpenMessages?.();
+                                            closeMobileMenu();
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 transition-all"
+                                    >
+                                        <MessageSquare size={20} />
+                                        <span className="font-medium">Tin nhắn</span>
+                                    </button>
+                                </>
                             )}
 
                             {/* Divider */}

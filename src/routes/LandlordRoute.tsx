@@ -13,6 +13,8 @@ export default function LandlordRoute() {
         (page: string) => {
             if (page === "saved") {
                 navigate("/saved");
+            } else if (page === "messages") {
+                navigate("/landlord/chat");
             } else if (page === "profile") {
                 navigate("/profile");
             } else if (page === "finder") {

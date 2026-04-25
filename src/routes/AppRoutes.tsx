@@ -1,25 +1,15 @@
-import { Routes, Route, Navigate } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import HomeRoute from "./HomeRoute";
-import ExploreRoute from "./ExploreRoute";
-import SavedRoute from "./SavedRoute";
-import LandlordRoute from "./LandlordRoute";
-import LoadingScreen from "./LoadingScreen";
+import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
+import publicRoutes from "./publicRoutes";
+import privateRoutes from "./privateRoutes";
 
-export default function AppRoutes() {
-    const { isLoading: auth0Loading } = useAuth0();
+const routes = createBrowserRouter([
+    ...publicRoutes,
+    ...privateRoutes,
+    { path: '*', element: <Navigate to="/" replace /> }
+]);
 
-    if (auth0Loading) {
-        return <LoadingScreen />;
-    }
+const AppRoutes = () => {
+    return <RouterProvider router={routes} />;
+};
 
-    return (
-        <Routes>
-            <Route path="/" element={<HomeRoute />} />
-            <Route path="/explore" element={<ExploreRoute />} />
-            <Route path="/saved" element={<SavedRoute />} />
-            <Route path="/landlord" element={<LandlordRoute />} />
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-    );
-}
+export default AppRoutes;
