@@ -111,7 +111,7 @@ export default function ExploreView({ listings, onSelectListing }: ExploreViewPr
     return (
         <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-white" id="explore-view-container">
             <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6 mt-14 md:mt-0 text-slate-800">Khám phá phòng trọ</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
                 {listings.map(listing => (
                     <ListingCard
                         key={listing.id}

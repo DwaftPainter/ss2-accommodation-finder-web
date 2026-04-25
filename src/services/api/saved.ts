@@ -10,30 +10,34 @@ export const savedApi = {
     /**
      * Get all saved listings
      */
-    getAll: async (): Promise<SavedListing[]> => {
-        const { data } = await apiClient.get<SavedListing[]>("/api/saved");
+    getAll: async (page = 1, limit = 20): Promise<SavedListing[]> => {
+        const { data } = await apiClient.get<SavedListing[]>("/api/listings/saved", {
+            params: { page, limit }
+        });
         return data;
     },
 
     /**
-     * Toggle saved status for a listing
+     * Save a listing
      */
-    toggle: async (
-        listingId: string
-    ): Promise<ToggleSavedResponse> => {
-        const { data } = await apiClient.post<ToggleSavedResponse>(
-            `/api/saved/${listingId}`
-        );
-        return data;
+    save: async (listingId: string): Promise<void> => {
+        await apiClient.post("/api/listings/saved", { listingId });
+    },
+
+    /**
+     * Unsave a listing
+     */
+    unsave: async (listingId: string): Promise<void> => {
+        await apiClient.delete(`/api/listings/saved/${listingId}`);
     },
 
     /**
      * Check if a listing is saved
      */
     checkStatus: async (listingId: string): Promise<boolean> => {
-        const { data } = await apiClient.get<{ saved: boolean }>(
-            `/api/saved/${listingId}/status`
+        const { data } = await apiClient.get<boolean>(
+            `/api/listings/saved/check/${listingId}`
         );
-        return data.saved;
+        return data;
     },
 };

@@ -22,9 +22,10 @@ import {
     ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { listingsApi, savedApi } from "../services/api";
+import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
-import { formatAddress } from "../lib/utils";
+import { useListingsStore } from "../stores";
+import { formatAddress, formatPrice } from "../lib/utils";
 import ReviewSection from "./ReviewSection";
 import type { ListingDetail as ListingDetailType } from "../types";
 import Loader from "./ui/loading";
@@ -40,9 +41,6 @@ const UTILITY_ICONS: Record<string, { icon: React.ReactNode; label: string }> = 
     security: { icon: <ShieldCheck size={22} />, label: "Bảo vệ 24/7" },
     flexible_hours: { icon: <Clock size={22} />, label: "Giờ giấc tự do" },
 };
-
-// Utility function defined outside component
-const formatPrice = (p: number) => new Intl.NumberFormat("vi-VN").format(p) + " đ";
 
 interface ListingDetailProps {
     listingId: string;
@@ -347,6 +345,7 @@ function PriceCard({
 /* ─── Main Component ─── */
 export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }: ListingDetailProps) {
     const { user } = useAuth();
+    const { toggleSaved } = useListingsStore();
     const [listing, setListing] = useState<ListingDetailType | null>(null);
     const [loading, setLoading] = useState(true);
     const [isSaved, setIsSaved] = useState(false);
@@ -404,14 +403,19 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
     }, []);
 
     const handleSave = useCallback(async () => {
-        try {
-            const r = await savedApi.toggle(listingId);
-            setIsSaved(r.saved);
-            toast.success(r.saved ? "Đã lưu tin!" : "Đã bỏ lưu tin.");
-        } catch {
+        if (!user) {
             toast.error("Bạn cần đăng nhập để lưu tin.");
+            return;
         }
-    }, [listingId]);
+        
+        try {
+            const saved = await toggleSaved(listingId);
+            setIsSaved(saved);
+            toast.success(saved ? "Đã lưu tin!" : "Đã bỏ lưu tin.");
+        } catch {
+            toast.error("Không thể lưu tin lúc này.");
+        }
+    }, [listingId, user, toggleSaved]);
 
     const handleDelete = useCallback(() => {
         toast("Bạn có chắc muốn xóa tin này?", {

@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { ArrowLeft, Plus } from "lucide-react";
-import { savedApi } from "../services/api";
+import { useListingsStore } from "../stores";
 import { formatAddress } from "../lib/utils";
 import type { SavedListing } from "../types";
 
@@ -16,17 +16,11 @@ interface WishlistGroup {
 }
 
 export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
-    const [savedListings, setSavedListings] = useState<SavedListing[]>([]);
-    const [loading, setLoading] = useState(true);
+    const { savedListings, isLoadingSaved: loading, fetchSavedListings } = useListingsStore();
 
     useEffect(() => {
-        setLoading(true);
-        savedApi
-            .getAll()
-            .then(setSavedListings)
-            .catch(console.error)
-            .finally(() => setLoading(false));
-    }, []);
+        fetchSavedListings();
+    }, [fetchSavedListings]);
 
     // Group listings into wishlists (for now, create default groups based on location)
     // In a real app, this would come from the backend with actual wishlist data
@@ -79,7 +73,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
         <div className="min-h-screen bg-white">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                <div className="max-w-6xl px-6 h-16 flex items-center justify-between">
+                <div className="w-full px-6 h-16 flex items-center justify-between">
                     <button
                         onClick={onBack}
                         className="flex items-center gap-2 text-gray-800 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
@@ -93,7 +87,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
             </header>
 
             {/* Main Content */}
-            <main className="max-w-6xl mx-auto px-6 py-8">
+            <main className="w-full px-6 py-8">
                 {/* Title Section */}
                 <div className="flex items-start justify-between mb-8">
                     <div>
@@ -150,7 +144,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
 
                 {/* Wishlists Grid */}
                 {!loading && savedListings.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
                         {wishlists.map((wishlist) => (
                             <WishlistCard
                                 key={wishlist.id}

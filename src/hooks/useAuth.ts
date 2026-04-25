@@ -1,7 +1,6 @@
 import { useEffect } from "react";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useAuthStore, useUser, useIsAuthenticated, useAuthLoading, useAuthError } from "../stores";
-import type { LoginPayload, RegisterPayload } from "../types";
 
 /**
  * Hook for auth operations with auto-fetch on mount
@@ -12,21 +11,34 @@ export function useAuth() {
     const isLoading = useAuthLoading();
     const error = useAuthError();
     const { isAuthenticated: isAuth0Authenticated, user: auth0User } = useAuth0();
-    const { login, register, logout, logoutAll, fetchUser, verifyOtp, resendOtp, refreshAccessToken, clearError } = useAuthStore();
+    
+    // Select actions individually to ensure stability
+    const login = useAuthStore(state => state.login);
+    const register = useAuthStore(state => state.register);
+    const logout = useAuthStore(state => state.logout);
+    const logoutAll = useAuthStore(state => state.logoutAll);
+    const fetchUser = useAuthStore(state => state.fetchUser);
+    const verifyOtp = useAuthStore(state => state.verifyOtp);
+    const resendOtp = useAuthStore(state => state.resendOtp);
+    const refreshAccessToken = useAuthStore(state => state.refreshAccessToken);
+    const clearError = useAuthStore(state => state.clearError);
 
     // Auto-fetch user on mount if token exists
     useEffect(() => {
-        fetchUser();
-    }, [fetchUser]);
+        // Only fetch if not already authenticated to avoid loops
+        const token = localStorage.getItem('access_token');
+        if (token && !user) {
+            fetchUser();
+        }
+    }, [fetchUser, !!user]);
 
     // Sync Auth0 state with local auth store
     useEffect(() => {
         if (isAuth0Authenticated && auth0User) {
-            // You can sync Auth0 user data with your backend here
-            // or store it in your auth store
-            console.log('Auth0 user authenticated:', auth0User);
+            // Optional: Sync logic if needed
+            console.log('Auth0 user authenticated:', auth0User.sub);
         }
-    }, [isAuth0Authenticated, auth0User]);
+    }, [isAuth0Authenticated, auth0User?.sub]);
 
     return {
         user,

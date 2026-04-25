@@ -11,14 +11,13 @@ import ChatBox from "../components/ChatBox";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore, useUserMode, useUIStore } from "../stores";
 import { toast } from "sonner";
-import type { ListingDetail as ListingDetailType, ListingFilters, ListingPayload } from "../types";
+import type { ListingDetail as ListingDetailType, ListingPayload } from "../types";
 import type { LatLng } from "leaflet";
 
 export default function ExploreRoute() {
     const userMode = useUserMode();
     const { toggleUserMode } = useUIStore();
     const [showMap, setShowMap] = useState(false);
-    const [filters, setFilters] = useState<ListingFilters>({});
     const [showFilters, setShowFilters] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [editListing, setEditListing] = useState<ListingDetailType | null>(null);
@@ -30,15 +29,24 @@ export default function ExploreRoute() {
 
     const navigate = useNavigate();
     const { user } = useAuth();
-    const { listings, fetchListings, createListing, updateListing, fetchMyListings } = useListingsStore();
+    
+    // Use selectors for better performance and to avoid infinite loops
+    const listings = useListingsStore(state => state.listings);
+    const filters = useListingsStore(state => state.filters);
+    const setFilters = useListingsStore(state => state.setFilters);
+    const fetchListings = useListingsStore(state => state.fetchListings);
+    const createListing = useListingsStore(state => state.createListing);
+    const updateListing = useListingsStore(state => state.updateListing);
+    const fetchMyListings = useListingsStore(state => state.fetchMyListings);
 
     useEffect(() => {
         if (userMode === "landlord" && user) {
             fetchMyListings();
         } else {
-            fetchListings(filters);
+            fetchListings();
         }
-    }, [fetchListings, fetchMyListings, filters, userMode, user]);
+        // fetchListings and fetchMyListings are stable actions from Zustand
+    }, [fetchListings, fetchMyListings, userMode, !!user]);
 
     const handleMapClick = (latlng: LatLng) => {
         if (!addingMode) return;
@@ -70,8 +78,17 @@ export default function ExploreRoute() {
         navigate("/saved");
     }, [user, navigate]);
 
+    const handleNavigateToMessages = useCallback(() => {
+        if (!user) {
+            setShowAuth(true);
+            return;
+        }
+        navigate(userMode === "landlord" ? "/landlord/chat" : "/finder/chat");
+    }, [user, navigate, userMode]);
+
     const handleNavbarSearch = (query: string) => {
-        setFilters((prev) => ({ ...prev, search: query }));
+        setFilters({ search: query });
+        fetchListings();
     };
 
     const handleFormSubmit = async (data: ListingPayload) => {
@@ -96,6 +113,7 @@ export default function ExploreRoute() {
         <div className="h-screen flex flex-col overflow-hidden">
             <Navbar
                 onOpenSaved={handleNavigateToSaved}
+                onOpenMessages={handleNavigateToMessages}
                 onToggleFilters={() => setShowFilters((p) => !p)}
                 showFilters={showFilters}
                 onOpenAuth={() => setShowAuth(true)}
@@ -110,7 +128,7 @@ export default function ExploreRoute() {
                     <FilterPanel
                         filters={filters}
                         onFilterChange={setFilters}
-                        onSearch={() => fetchListings(filters)}
+                        onSearch={fetchListings}
                         visible={showFilters}
                     />
                 )}
@@ -125,13 +143,14 @@ export default function ExploreRoute() {
                         ) : (
                             <div className="h-full p-4">
                                 <div className="h-full rounded-2xl overflow-hidden border border-slate-200 shadow-lg bg-white">
-                                    {/* <MapView
+                                    <MapView
                                         listings={listings}
                                         onSelectListing={(id) => setSelectedListingId(id)}
-                                        onMapClick={null}
-                                        pinLocation={null}
+                                        onMapClick={handleMapClick}
+                                        pinLocation={pinLocation}
                                         flyTo={flyTo}
-                                    /> */}
+                                        onClose={() => {}}
+                                    />
                                 </div>
                             </div>
                         )}
@@ -139,11 +158,19 @@ export default function ExploreRoute() {
                 ) : (
                     <div className="flex-1 overflow-hidden">
                         <div className="flex flex-col h-full">
-                            <div className="px-6 py-4 bg-white border-b border-slate-200">
-                                <h1 className="text-xl font-semibold text-slate-800">Tin đăng của tôi</h1>
-                                <p className="text-sm text-slate-500 mt-1">
-                                    Quản lý tin đăng cho thuê phòng trọ của bạn
-                                </p>
+                            <div className="px-6 py-4 bg-white border-b border-slate-200 flex justify-between items-center">
+                                <div>
+                                    <h1 className="text-xl font-semibold text-slate-800">Tin đăng của tôi</h1>
+                                    <p className="text-sm text-slate-500 mt-1">
+                                        Quản lý tin đăng cho thuê phòng trọ của bạn
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={handleStartAdding}
+                                    className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+                                >
+                                    Đăng tin mới
+                                </button>
                             </div>
                             <div className="flex-1 overflow-hidden">
                                 <ExploreView
