@@ -11,7 +11,7 @@ import type {
  * Maps snake_case frontend filters to camelCase backend params
  */
 function buildQueryString(
-    params: Record<string, string | number | undefined | string[]>
+    params: ListingFilters
 ): string {
     const query = new URLSearchParams();
 
@@ -28,7 +28,11 @@ function buildQueryString(
 
         const backendKey = keyMapping[key] || key;
 
-        if (Array.isArray(val)) {
+        if (key === "utilities" && Array.isArray(val)) {
+            if (val.length > 0) {
+                query.set(backendKey, val.join(","));
+            }
+        } else if (Array.isArray(val)) {
             val.forEach((v) => query.append(backendKey, String(v)));
         } else {
             query.set(backendKey, String(val));
@@ -47,15 +51,12 @@ export const listingsApi = {
     getAll: async (
         filters: ListingFilters = {}
     ): Promise<ListingSummary[]> => {
-        const query = buildQueryString(filters as Record<
-            string,
-            string | number | undefined | string[]
-        >);
-        const response = await apiClient.get<{
+        const query = buildQueryString(filters);
+        const { data } = await apiClient.get<{
             data: ListingSummary[];
             meta: { page: number; limit: number; total: number };
         }>(`/api/listings${query}`);
-        return response.data.data;
+        return data.data;
     },
 
     /**

@@ -8,7 +8,7 @@ import { useListingsStore } from "../stores";
 export default function SavedRoute() {
     const navigate = useNavigate();
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-    const { listings, fetchListings } = useListingsStore();
+    const fetchListings = useListingsStore(state => state.fetchListings);
 
     const handleBack = useCallback(() => {
         navigate("/");

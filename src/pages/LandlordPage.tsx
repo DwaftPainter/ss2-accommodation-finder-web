@@ -1,27 +1,24 @@
 import { useState, useEffect, useRef } from "react";
 import {
-    Search,
-    Heart,
     ChevronLeft,
     ChevronRight,
-    Star,
     Home,
     Plus,
     List,
     LogOut,
     User,
     Menu,
-    SwitchCamera
+    SwitchCamera,
+    MessageSquare
 } from "lucide-react";
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
-import { useListingsStore, useUIStore } from "../stores";
+import { useListingsStore } from "../stores";
 import MapView from "../components/MapView";
-import FilterPanel from "../components/FilterPanel";
 import ListingDetail from "../components/ListingDetail";
 import ListingForm from "../components/ListingForm";
 import { formatAddress } from "../lib/utils";
-import type { ListingSummary, ListingDetail as ListingDetailType, ListingPayload } from "../types";
+import type { ListingSummary, ListingDetail as ListingDetailType } from "../types";
 import { toast } from "sonner";
 import type L from "leaflet";
 import Loader from "@/components/ui/loading";
@@ -100,6 +97,10 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
         onNavigate?.("saved");
         setIsOpen(false);
     };
+    const handleMessagesClick = () => {
+        onNavigate?.("messages");
+        setIsOpen(false);
+    };
     const handleProfileClick = () => {
         onNavigate?.("profile");
         setIsOpen(false);
@@ -127,11 +128,18 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
                 {isOpen && (
                     <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
                         <button
+                            onClick={handleMessagesClick}
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                        >
+                            <MessageSquare size={18} />
+                            <span className="text-sm font-medium">Tin nhắn</span>
+                        </button>
+                        <button
                             onClick={handleSavedClick}
                             className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
                         >
-                            <Heart size={18} />
-                            <span className="text-sm font-medium">Danh sách yêu thích</span>
+                            <List size={18} className="rotate-90" />
+                            <span className="text-sm font-medium">Yêu thích đã lưu</span>
                         </button>
                         <button
                             onClick={handleProfileClick}
@@ -258,13 +266,11 @@ function ListingsRow({
 
 export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPageProps) {
     const { user } = useAuth();
-    const { userMode, toggleUserMode } = useUIStore();
-    const { listings, fetchListings } = useListingsStore();
+    const { fetchListings } = useListingsStore();
     const [myListings, setMyListings] = useState<ListingSummary[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<"listings" | "create">("listings");
 
-    const [showMap, setShowMap] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
     const [pinLocation, setPinLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -273,49 +279,22 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
     const modeButtonText = "Tìm phòng trọ";
 
     useEffect(() => {
-        const fetchMyListings = async () => {
+        const fetchMyListingsAction = async () => {
             setIsLoading(true);
             try {
-                const allListings = await listingsApi.getAll({});
-                setMyListings(allListings.slice(0, 6));
+                // Should fetch ONLY user's listings, not all listings
+                const allListings = await listingsApi.getMyListings();
+                setMyListings(allListings);
             } catch (error) {
                 console.error("Failed to fetch listings:", error);
-                setMyListings(generateMockListings());
+                toast.error("Không thể tải danh sách bài đăng của bạn");
             } finally {
                 setIsLoading(false);
             }
         };
 
-        fetchMyListings();
+        fetchMyListingsAction();
     }, []);
-
-    const generateMockListings = (): ListingSummary[] => {
-        const types = ["Phòng", "Căn hộ", "Nhà", "Studio"];
-        const districts = ["Quận 1", "Quận 3", "Quận 7", "Quận Phú Nhuận"];
-        const wards = ["Phường 1", "Phường 2", "Phường Bến Nghé", "Phường Tân Định"];
-
-        return Array.from({ length: 6 }, (_, i) => ({
-            id: `my-listing-${i}`,
-            title: `${types[i % types.length]} của tôi tại ${districts[i % districts.length]}`,
-            address: {
-                street: "123 Đường Nguyễn Văn A",
-                ward: wards[i % wards.length],
-                district: districts[i % districts.length],
-                city: "Hồ Chí Minh",
-                province: "Hồ Chí Minh",
-                lat: 10.8231 + Math.random() * 0.1,
-                lng: 106.6297 + Math.random() * 0.1
-            },
-            price: 500000 + Math.floor(Math.random() * 2000000),
-            area: 15 + Math.floor(Math.random() * 50),
-            utilities: ["wifi", "ac", "parking"],
-            images: [sampleImages[i % sampleImages.length]],
-            owner: { id: user?.id || "1", name: user?.name || "Host", avatarUrl: null },
-            avgRating: 4.5 + Math.random() * 0.5,
-            reviewCount: Math.floor(Math.random() * 100),
-            createdAt: new Date().toISOString()
-        }));
-    };
 
     const handleToggleMode = () => {
         onNavigate?.("finder");
@@ -347,7 +326,6 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
         setActiveTab(tab);
         if (tab === "create") {
             setFlyTo(null);
-            // Force Leaflet to recalculate container size after the DOM transition
             setTimeout(() => {
                 window.dispatchEvent(new Event("resize"));
             }, 50);
@@ -370,7 +348,7 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
         <div className="h-screen flex flex-col overflow-hidden bg-white">
             {/* Header */}
             <header className="flex-shrink-0 z-50 bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6">
+                <div className="w-full px-4 sm:px-6">
                     <div className="flex items-center justify-between h-16 sm:h-20">
                         <div className="flex items-center gap-2 flex-shrink-0">
                             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
@@ -409,7 +387,7 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
             <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {activeTab === "listings" ? (
                     <div className="flex-1 overflow-y-auto">
-                        <div className="max-w-7xl mx-auto px-6 pb-12">
+                        <div className="w-full px-6 pb-12">
                             {myListings.length > 0 ? (
                                 <ListingsRow
                                     title="Bài đăng của bạn"
@@ -512,8 +490,8 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                             setShowForm(false);
                             setPinLocation(null);
                             // Refresh listings
-                            const allListings = await listingsApi.getAll({});
-                            setMyListings(allListings.slice(0, 6));
+                            const allListings = await listingsApi.getMyListings();
+                            setMyListings(allListings);
                             // Switch back to listings tab
                             setActiveTab("listings");
                         } catch (error) {

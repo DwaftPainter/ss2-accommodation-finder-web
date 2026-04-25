@@ -103,7 +103,7 @@ export const useChatStore = create<ChatState>()(
                 }));
 
                 try {
-                    const response = await chatApi.sendMessage({
+                    const response = await chatApi.sendAIMessage({
                         content: trimmed,
                         role: "user",
                         sessionId: sessionId || undefined

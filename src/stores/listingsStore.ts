@@ -186,11 +186,31 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
 
     toggleSaved: async (listingId) => {
         try {
-            const result = await savedApi.toggle(listingId);
+            const isCurrentlySaved = get().isListingSaved(listingId);
+            if (isCurrentlySaved) {
+                await savedApi.unsave(listingId);
+            } else {
+                await savedApi.save(listingId);
+            }
+            
+            // Update local state for immediate feedback
             await get().fetchSavedListings();
-            return result.saved;
+            
+            // If the current listing is the one toggled, update its isSaved status
+            const currentListing = get().currentListing;
+            if (currentListing && currentListing.id === listingId) {
+                set({
+                    currentListing: {
+                        ...currentListing,
+                        isSaved: !isCurrentlySaved
+                    }
+                });
+            }
+            
+            return !isCurrentlySaved;
         } catch (error) {
             console.error("Failed to toggle saved status:", error);
+            set({ error: error instanceof Error ? error.message : "Failed to toggle saved status" });
             return false;
         }
     },
