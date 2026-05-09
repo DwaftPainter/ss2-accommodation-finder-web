@@ -5,10 +5,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Star,
-    Home,
     SwitchCamera,
-    X,
-    Filter,
     LogOut,
     User,
     List,
@@ -23,18 +20,20 @@ import ListingDetail from "../components/ListingDetail";
 import { formatAddress } from "../lib/utils";
 import type { ListingSummary } from "../types";
 import Loader from "@/components/ui/loading";
+import { useNavigate } from "react-router-dom";
 
 interface HomePageProps {
     onSelectListing?: (id: string) => void;
     onNavigate?: (page: string) => void;
+    onRequireAuth?: () => void;
 }
 
 // Mock data for different cities
 const citySections = [
-    { name: "Hồ Chí Minh", query: "Ho Chi Minh" },
-    { name: "Đà Nẵng", query: "Da Nang" },
+    { name: "Hồ Chí Minh", query: "Hồ Chí Minh" },
+    { name: "Đà Nẵng", query: "Đà Nẵng" },
     { name: "Seoul", query: "Seoul" },
-    { name: "Hà Nội", query: "Ha Noi" }
+    { name: "Hà Nội", query: "Hà Nội" }
 ];
 
 // Sample listing images for fallback
@@ -135,18 +134,38 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
     );
 }
 
-function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect: (id: string) => void }) {
-    const { toggleSaved, isListingSaved } = useListingsStore();
-    const [isSaved, setIsSaved] = useState(false);
-
-    useEffect(() => {
-        setIsSaved(isListingSaved(listing.id));
-    }, [listing.id, isListingSaved]);
+function ListingCard({
+    listing,
+    onSelect,
+    onRequireAuth
+}: {
+    listing: ListingSummary;
+    onSelect: (id: string) => void;
+    onRequireAuth?: () => void;
+}) {
+    const isSaved = useListingsStore((state) => state.isListingSaved(listing.id));
+    const toggleSaved = useListingsStore((state) => state.toggleSaved);
+    const { user } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleToggleSaved = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        const result = await toggleSaved(listing.id);
-        setIsSaved(result);
+
+        if (!user) {
+            onRequireAuth?.();
+            return;
+        }
+
+        if (isLoading) return;
+
+        setIsLoading(true);
+        try {
+            await toggleSaved(listing.id);
+        } catch (error) {
+            console.error("Failed to toggle saved status:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const formatPrice = (price: number) => {
@@ -201,11 +220,13 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
 function ListingRow({
     title,
     listings,
-    onSelectListing
+    onSelectListing,
+    onRequireAuth
 }: {
     title: string;
     listings: ListingSummary[];
     onSelectListing: (id: string) => void;
+    onRequireAuth?: () => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -265,7 +286,12 @@ function ListingRow({
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} onSelect={onSelectListing} />
+                    <ListingCard
+                        key={listing.id}
+                        listing={listing}
+                        onSelect={onSelectListing}
+                        onRequireAuth={onRequireAuth}
+                    />
                 ))}
             </div>
         </div>
@@ -282,6 +308,7 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const { logout } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -342,7 +369,10 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
                             <List size={18} />
                             <span className="text-sm font-medium">Danh sách yêu thích</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                        <button
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            onClick={() => navigate("/finder/chat")}
+                        >
                             <MessageSquare size={18} />
                             <span className="text-sm font-medium">Tin nhắn</span>
                         </button>
@@ -368,10 +398,10 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     );
 }
 
-export default function HomePage({ onSelectListing, onNavigate }: HomePageProps) {
+export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }: HomePageProps) {
     const { user } = useAuth();
     const { userMode, toggleUserMode } = useUIStore();
-    const { listings, fetchListings } = useListingsStore();
+    const { listings, fetchListings, fetchSavedListings } = useListingsStore();
     const [listingsByCity, setListingsByCity] = useState<Record<string, ListingSummary[]>>({});
     const [isLoading, setIsLoading] = useState(true);
 
@@ -447,7 +477,11 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
         };
 
         fetchAllListings();
-    }, []);
+
+        if (user) {
+            fetchSavedListings();
+        }
+    }, [user, fetchSavedListings]);
 
     // Fetch listings for map view
     useEffect(() => {
@@ -599,6 +633,7 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
                                     title={`Nơi lưu trú được ưa chuộng tại ${city.name}`}
                                     listings={listingsByCity[city.name] || []}
                                     onSelectListing={handleSelectListingInternal}
+                                    onRequireAuth={onRequireAuth}
                                 />
                             )
                     )}

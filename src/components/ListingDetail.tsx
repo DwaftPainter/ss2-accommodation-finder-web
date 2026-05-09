@@ -345,10 +345,11 @@ function PriceCard({
 /* ─── Main Component ─── */
 export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }: ListingDetailProps) {
     const { user } = useAuth();
-    const { toggleSaved } = useListingsStore();
+    const isSaved = useListingsStore(state => state.isListingSaved(listingId));
+    const toggleSaved = useListingsStore(state => state.toggleSaved);
+    const fetchSavedListings = useListingsStore(state => state.fetchSavedListings);
     const [listing, setListing] = useState<ListingDetailType | null>(null);
     const [loading, setLoading] = useState(true);
-    const [isSaved, setIsSaved] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
@@ -357,7 +358,6 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
             .getById(listingId)
             .then((data) => {
                 setListing(data);
-                setIsSaved(data.isSaved);
             })
             .catch(() => {
                 // Fallback mock data for UI preview when API is unavailable
@@ -392,7 +392,11 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                 } as ListingDetailType);
             })
             .finally(() => setLoading(false));
-    }, [listingId]);
+
+        if (user) {
+            fetchSavedListings();
+        }
+    }, [listingId, user, fetchSavedListings]);
 
     // Lock body scroll when detail is open
     useEffect(() => {
@@ -410,7 +414,6 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
         
         try {
             const saved = await toggleSaved(listingId);
-            setIsSaved(saved);
             toast.success(saved ? "Đã lưu tin!" : "Đã bỏ lưu tin.");
         } catch {
             toast.error("Không thể lưu tin lúc này.");

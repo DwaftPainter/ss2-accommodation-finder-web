@@ -44,6 +44,7 @@ export default function HomeRoute() {
             <HomePage
                 onSelectListing={handleSelectListing}
                 onNavigate={handleNavigate}
+                onRequireAuth={() => setShowAuth(true)}
             />
             {selectedListingId && (
                 <ListingDetail

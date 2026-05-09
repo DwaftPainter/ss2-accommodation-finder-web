@@ -11,10 +11,13 @@ export const savedApi = {
      * Get all saved listings
      */
     getAll: async (page = 1, limit = 20): Promise<SavedListing[]> => {
-        const { data } = await apiClient.get<SavedListing[]>("/api/listings/saved", {
+        const { data } = await apiClient.get<{
+            data: SavedListing[];
+            meta: { page: number; limit: number; total: number };
+        }>("/api/listings/saved", {
             params: { page, limit }
         });
-        return data;
+        return data.data;
     },
 
     /**
@@ -35,9 +38,9 @@ export const savedApi = {
      * Check if a listing is saved
      */
     checkStatus: async (listingId: string): Promise<boolean> => {
-        const { data } = await apiClient.get<boolean>(
+        const { data } = await apiClient.get<{ saved: boolean }>(
             `/api/listings/saved/check/${listingId}`
         );
-        return data;
+        return data.saved;
     },
 };

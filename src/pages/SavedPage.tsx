@@ -16,7 +16,7 @@ interface WishlistGroup {
 }
 
 export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
-    const { savedListings, isLoadingSaved: loading, fetchSavedListings } = useListingsStore();
+    const { savedListings = [], isLoadingSaved: loading, fetchSavedListings } = useListingsStore();
 
     useEffect(() => {
         fetchSavedListings();
@@ -25,12 +25,13 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
     // Group listings into wishlists (for now, create default groups based on location)
     // In a real app, this would come from the backend with actual wishlist data
     const wishlists: WishlistGroup[] = (() => {
-        if (savedListings.length === 0) return [];
+        if (!Array.isArray(savedListings) || savedListings.length === 0) return [];
 
         // For demo purposes, create wishlists based on location keywords
         const groups: Record<string, SavedListing[]> = {};
 
         savedListings.forEach((listing) => {
+            if (!listing || !listing.address) return;
             const location = formatAddress(listing.address, { style: "short" });
             if (!groups[location]) {
                 groups[location] = [];
@@ -63,10 +64,10 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
         }
 
         // Sort by number of listings
-        return result.sort((a, b) => b.listings.length - a.listings.length);
+        return result.sort((a, b) => (b.listings?.length || 0) - (a.listings?.length || 0));
     })();
 
-    const totalStays = savedListings.length;
+    const totalStays = Array.isArray(savedListings) ? savedListings.length : 0;
     const totalLists = wishlists.length || (totalStays > 0 ? 1 : 0);
 
     return (
@@ -114,7 +115,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                 )}
 
                 {/* Empty State */}
-                {!loading && savedListings.length === 0 && (
+                {!loading && totalStays === 0 && (
                     <div className="text-center py-20">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg
@@ -143,7 +144,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                 )}
 
                 {/* Wishlists Grid */}
-                {!loading && savedListings.length > 0 && (
+                {!loading && totalStays > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
                         {wishlists.map((wishlist) => (
                             <WishlistCard
@@ -151,7 +152,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                                 wishlist={wishlist}
                                 onClick={() => {
                                     // If only one listing, open it directly
-                                    if (wishlist.listings.length === 1) {
+                                    if (wishlist.listings?.length === 1) {
                                         onSelectListing(wishlist.listings[0].id);
                                     }
                                     // Otherwise, could open a detail view of the wishlist
@@ -171,11 +172,12 @@ interface WishlistCardProps {
 }
 
 function WishlistCard({ wishlist, onClick }: WishlistCardProps) {
-    const images = wishlist.listings
+    const listings = wishlist.listings || [];
+    const images = listings
         .slice(0, 3)
-        .map((l) => l.images[0])
+        .map((l) => l.images?.[0])
         .filter(Boolean);
-    const stayCount = wishlist.listings.length;
+    const stayCount = listings.length;
 
     return (
         <div onClick={onClick} className="group cursor-pointer">

@@ -105,6 +105,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         set({ isLoadingSaved: true, error: null });
         try {
             const savedListings = await savedApi.getAll();
+            console.log('🚀 ~ savedListings:', savedListings)
             set({ savedListings, isLoadingSaved: false });
         } catch (error) {
             set({
@@ -216,7 +217,10 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
     },
 
     isListingSaved: (listingId) => {
-        return get().savedListings.some((l) => l.id === listingId);
+        const savedListings = get().savedListings;
+        console.log('🚀 ~ listingId:', listingId)
+        console.log('🚀 ~ savedListings:', savedListings)
+        return Array.isArray(savedListings) && savedListings.some((l) => l.id === listingId);
     },
 
     setFilters: (filters) => {

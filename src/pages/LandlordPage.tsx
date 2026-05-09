@@ -430,15 +430,6 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                                 showClose={false}
                             />
 
-                            {/* Back button - top left */}
-                            <button
-                                onClick={() => handleTabChange("listings")}
-                                className="absolute top-4 left-4 z-[400] flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
-                            >
-                                <ChevronLeft size={16} />
-                                Quay lại
-                            </button>
-
                             {/* Create listing button - top right */}
                             <div className="absolute top-4 right-4 z-[400]">
                                 <button

@@ -2,31 +2,35 @@ import { useState, useEffect } from 'react';
 import { MapPin, Star, Heart } from 'lucide-react';
 import { formatAddress } from '../lib/utils';
 import { useListingsStore } from '../stores';
+import { useAuth } from '../hooks/useAuth';
 import type { ListingSummary } from '../types/listing.type';
 
 interface ExploreViewProps {
     listings: ListingSummary[];
     onSelectListing: (id: string) => void;
+    onRequireAuth?: () => void;
 }
 
 // Individual Listing Card with save functionality
-function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect: (id: string) => void }) {
-    const { toggleSaved, isListingSaved } = useListingsStore();
-    const [isSaved, setIsSaved] = useState(false);
+function ListingCard({ listing, onSelect, onRequireAuth }: { listing: ListingSummary; onSelect: (id: string) => void; onRequireAuth?: () => void }) {
+    const isSaved = useListingsStore(state => state.isListingSaved(listing.id));
+    const toggleSaved = useListingsStore(state => state.toggleSaved);
+    const { user } = useAuth();
     const [isLoading, setIsLoading] = useState(false);
-
-    useEffect(() => {
-        setIsSaved(isListingSaved(listing.id));
-    }, [listing.id, isListingSaved]);
 
     const handleToggleSaved = async (e: React.MouseEvent) => {
         e.stopPropagation();
+        
+        if (!user) {
+            onRequireAuth?.();
+            return;
+        }
+
         if (isLoading) return;
 
         setIsLoading(true);
         try {
-            const result = await toggleSaved(listing.id);
-            setIsSaved(result);
+            await toggleSaved(listing.id);
         } catch (error) {
             console.error('Failed to toggle saved:', error);
         } finally {
@@ -45,7 +49,7 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
         >
             <div className="relative aspect-square sm:aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
                 <img
-                    src={listing.images[0] || '/listing-studio.png'}
+                    src={listing.images?.[0] || '/listing-studio.png'}
                     alt={listing.title}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                 />
@@ -85,7 +89,7 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
     );
 }
 
-export default function ExploreView({ listings, onSelectListing }: ExploreViewProps) {
+export default function ExploreView({ listings, onSelectListing, onRequireAuth }: ExploreViewProps) {
     if (listings.length === 0) {
         return (
             <div className="flex-1 flex flex-col items-center justify-center p-8 text-center bg-white overflow-y-auto">
@@ -117,6 +121,7 @@ export default function ExploreView({ listings, onSelectListing }: ExploreViewPr
                         key={listing.id}
                         listing={listing}
                         onSelect={onSelectListing}
+                        onRequireAuth={onRequireAuth}
                     />
                 ))}
             </div>

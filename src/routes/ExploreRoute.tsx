@@ -35,6 +35,7 @@ export default function ExploreRoute() {
     const filters = useListingsStore(state => state.filters);
     const setFilters = useListingsStore(state => state.setFilters);
     const fetchListings = useListingsStore(state => state.fetchListings);
+    const fetchSavedListings = useListingsStore(state => state.fetchSavedListings);
     const createListing = useListingsStore(state => state.createListing);
     const updateListing = useListingsStore(state => state.updateListing);
     const fetchMyListings = useListingsStore(state => state.fetchMyListings);
@@ -45,8 +46,12 @@ export default function ExploreRoute() {
         } else {
             fetchListings();
         }
+        
+        if (user) {
+            fetchSavedListings();
+        }
         // fetchListings and fetchMyListings are stable actions from Zustand
-    }, [fetchListings, fetchMyListings, userMode, !!user]);
+    }, [fetchListings, fetchMyListings, fetchSavedListings, userMode, !!user]);
 
     const handleMapClick = (latlng: LatLng) => {
         if (!addingMode) return;
@@ -139,6 +144,7 @@ export default function ExploreRoute() {
                             <ExploreView
                                 listings={listings}
                                 onSelectListing={(id) => setSelectedListingId(id)}
+                                onRequireAuth={() => setShowAuth(true)}
                             />
                         ) : (
                             <div className="h-full p-4">
@@ -176,6 +182,7 @@ export default function ExploreRoute() {
                                 <ExploreView
                                     listings={listings}
                                     onSelectListing={(id) => setSelectedListingId(id)}
+                                    onRequireAuth={() => setShowAuth(true)}
                                 />
                             </div>
                         </div>
