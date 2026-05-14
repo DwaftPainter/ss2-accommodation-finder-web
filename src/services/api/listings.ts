@@ -105,6 +105,25 @@ export const listingsApi = {
     },
 
     /**
+     * Upload images
+     */
+    uploadImages: async (files: File[]): Promise<string[]> => {
+        const formData = new FormData();
+        files.forEach((file) => formData.append("images", file));
+        
+        const { data } = await apiClient.post<string[]>(
+            "/api/listings/upload",
+            formData,
+            {
+                headers: {
+                    "Content-Type": "multipart/form-data",
+                },
+            }
+        );
+        return data;
+    },
+
+    /**
      * Search listings by address (geocodes address first)
      * Returns { location, listings }
      */

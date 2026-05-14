@@ -1,5 +1,5 @@
-import { useEffect } from 'react';
-import { X } from 'lucide-react';
+import { useEffect, useState, useRef } from 'react';
+import { X, Plus, Image as ImageIcon, Loader2 } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -36,6 +36,7 @@ const listingSchema = z.object({
     utilities: z.array(z.string()),
     contactName: z.string().optional(),
     contactPhone: z.string().optional(),
+    images: z.array(z.string()).optional(),
 });
 
 type ListingFormValues = z.infer<typeof listingSchema>;
@@ -70,6 +71,11 @@ interface ListingFormProps {
 
 export default function ListingForm({ listing, pinLocation, onClose, onSaved }: ListingFormProps) {
     const isEdit = !!listing;
+    const fileInputRef = useRef<HTMLInputElement>(null);
+    const [imageFiles, setImageFiles] = useState<File[]>([]);
+    const [existingImages, setExistingImages] = useState<string[]>([]);
+    const [previews, setPreviews] = useState<string[]>([]);
+    const [isUploading, setIsUploading] = useState(false);
 
     const {
         register,
@@ -83,11 +89,20 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
         defaultValues: {
             title: '', street: '', ward: '', district: '', city: '', province: '', lat: 0, lng: 0, price: 0, area: 0,
             electricityFee: '', waterFee: '', description: '', utilities: [],
-            contactName: '', contactPhone: '',
+            contactName: '', contactPhone: '', images: [],
         },
     });
 
     const utilities = watch('utilities');
+    const previewsRef = useRef<string[]>([]);
+    previewsRef.current = previews;
+
+    // Cleanup previews on unmount
+    useEffect(() => {
+        return () => {
+            previewsRef.current.forEach(url => URL.revokeObjectURL(url));
+        };
+    }, []);
 
     useEffect(() => {
         if (listing) {
@@ -107,7 +122,9 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                 utilities: listing.utilities || [],
                 contactName: listing.contactName || '',
                 contactPhone: listing.contactPhone || '',
+                images: listing.images || [],
             });
+            setExistingImages(listing.images || []);
         } else if (pinLocation) {
             setValue('lat', parseFloat(pinLocation.lat.toFixed(6)));
             setValue('lng', parseFloat(pinLocation.lng.toFixed(6)));
@@ -123,29 +140,75 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
         );
     };
 
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const files = Array.from(e.target.files || []);
+        if (files.length === 0) return;
+
+        // Limit total images to 10
+        if (imageFiles.length + existingImages.length + files.length > 10) {
+            toast.error('Bạn chỉ có thể tải lên tối đa 10 hình ảnh');
+            return;
+        }
+
+        setImageFiles(prev => [...prev, ...files]);
+
+        // Generate previews
+        const newPreviews = files.map(file => URL.createObjectURL(file));
+        setPreviews(prev => [...prev, ...newPreviews]);
+        
+        // Reset file input
+        if (fileInputRef.current) fileInputRef.current.value = '';
+    };
+
+    const removeNewImage = (index: number) => {
+        setImageFiles(prev => prev.filter((_, i) => i !== index));
+        setPreviews(prev => {
+            const newPreviews = [...prev];
+            URL.revokeObjectURL(newPreviews[index]);
+            return newPreviews.filter((_, i) => i !== index);
+        });
+    };
+
+    const removeExistingImage = (index: number) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== index));
+    };
+
     const onSubmit = async (rawData: ListingFormInput) => {
         const data = rawData as ListingFormValues;
-        // Convert all numeric fields to numbers for API
-        const payload: ListingFormData = {
-            title: data.title,
-            street: data.street,
-            ward: data.ward || undefined,
-            district: data.district,
-            city: data.city,
-            province: data.province,
-            lat: Number(data.lat),
-            lng: Number(data.lng),
-            price: Number(data.price),
-            area: Number(data.area),
-            electricityFee: data.electricityFee ? Number(data.electricityFee) : undefined,
-            waterFee: data.waterFee ? Number(data.waterFee) : undefined,
-            description: data.description || undefined,
-            utilities: data.utilities || [],
-            images: [], // Required by backend, empty for now until image upload is implemented
-            contactName: data.contactName || undefined,
-            contactPhone: data.contactPhone || undefined,
-        };
+        
         try {
+            setIsUploading(true);
+            
+            // 1. Upload new images if any
+            let uploadedUrls: string[] = [];
+            if (imageFiles.length > 0) {
+                uploadedUrls = await listingsApi.uploadImages(imageFiles);
+            }
+
+            // 2. Combine existing and newly uploaded images
+            const finalImages = [...existingImages, ...uploadedUrls];
+
+            // Convert all numeric fields to numbers for API
+            const payload: ListingFormData = {
+                title: data.title,
+                street: data.street,
+                ward: data.ward || undefined,
+                district: data.district,
+                city: data.city,
+                province: data.province,
+                lat: Number(data.lat),
+                lng: Number(data.lng),
+                price: Number(data.price),
+                area: Number(data.area),
+                electricityFee: data.electricityFee ? Number(data.electricityFee) : undefined,
+                waterFee: data.waterFee ? Number(data.waterFee) : undefined,
+                description: data.description || undefined,
+                utilities: data.utilities || [],
+                images: finalImages,
+                contactName: data.contactName || undefined,
+                contactPhone: data.contactPhone || undefined,
+            };
+
             if (isEdit && listing) {
                 await listingsApi.update(listing.id, payload);
                 toast.success(LISTING_MESSAGES.UPDATE_SUCCESS);
@@ -161,6 +224,8 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                 isEdit ? LISTING_MESSAGES.UPDATE_ERROR : LISTING_MESSAGES.CREATE_ERROR
             );
             toast.error(errorMessage);
+        } finally {
+            setIsUploading(false);
         }
     };
 
@@ -183,6 +248,52 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                             <label className="text-xs font-medium text-slate-400">Tiêu đề *</label>
                             <input {...register('title')} className={inputCls} placeholder="VD: Phòng trọ cao cấp gần ĐH Bách Khoa" id="form-title" />
                             {errors.title && <span className={errorCls}>{errors.title.message}</span>}
+                        </div>
+
+                        {/* Images */}
+                        <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
+                            <label className="text-xs font-medium text-slate-400">Hình ảnh phòng trọ (Tối đa 10)</label>
+                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-1">
+                                {/* Previews for existing images */}
+                                {existingImages.map((url, idx) => (
+                                    <div key={`existing-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                                        <img src={url} alt="Room" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Previews for new images */}
+                                {previews.map((url, idx) => (
+                                    <div key={`new-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
+                                        <img src={url} alt="New upload" className="w-full h-full object-cover" />
+                                        <button type="button" onClick={() => removeNewImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                                            <X size={14} />
+                                        </button>
+                                    </div>
+                                ))}
+
+                                {/* Add button */}
+                                {(imageFiles.length + existingImages.length < 10) && (
+                                    <button
+                                        type="button"
+                                        onClick={() => fileInputRef.current?.click()}
+                                        className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:text-indigo-500 hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+                                    >
+                                        <Plus size={20} />
+                                        <span className="text-[10px] mt-1 font-medium">Thêm ảnh</span>
+                                    </button>
+                                )}
+                            </div>
+                            <input
+                                type="file"
+                                ref={fileInputRef}
+                                onChange={handleImageChange}
+                                accept="image/*"
+                                multiple
+                                className="hidden"
+                            />
                         </div>
 
                         {/* Street */}
@@ -284,8 +395,9 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
                     <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-white/[0.08]">
                         <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/[0.06] transition-all">Hủy</button>
-                        <button type="submit" disabled={isSubmitting} className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] disabled:opacity-50 transition-all" id="submit-listing-btn">
-                            {isSubmitting ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Đăng tin'}
+                        <button type="submit" disabled={isSubmitting || isUploading} className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] disabled:opacity-50 transition-all flex items-center gap-2" id="submit-listing-btn">
+                            {(isSubmitting || isUploading) && <Loader2 size={16} className="animate-spin" />}
+                            {isUploading ? 'Đang tải ảnh...' : isSubmitting ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Đăng tin'}
                         </button>
                     </div>
                 </form>
