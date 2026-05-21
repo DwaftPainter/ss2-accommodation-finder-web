@@ -4,6 +4,27 @@ button {
     cursor: pointer;
 }
 
+* {
+    box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+    min-height: 100%;
+}
+
+body {
+    overflow-x: hidden;
+}
+
+img,
+video,
+canvas,
+svg {
+    max-width: 100%;
+}
+
 @theme {
     --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
 
@@ -1058,8 +1079,26 @@ body {
         display: none;
     }
 
+    .landing-navbar {
+        padding: 0 16px;
+    }
+
+    .landing-navbar-inner {
+        gap: 12px;
+    }
+
+    .landing-nav-map-btn {
+        padding: 8px 10px;
+    }
+
+    .landing-nav-avatar-placeholder,
+    .landing-nav-logout {
+        display: none;
+    }
+
     .landing-hero {
-        height: 520px;
+        height: auto;
+        min-height: 520px;
     }
 
     .landing-hero-title {
@@ -1095,6 +1134,12 @@ body {
         grid-template-columns: 1fr;
     }
 
+    .landing-listings-header {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 12px;
+    }
+
     .landing-listing-card.horizontal {
         flex-direction: column;
     }
@@ -1124,11 +1169,40 @@ body {
     }
 
     .landing-navbar {
-        padding: 0 16px;
+        padding: 0 12px;
+    }
+
+    .landing-brand-text {
+        font-size: 1rem;
+    }
+
+    .landing-nav-actions {
+        gap: 6px;
+    }
+
+    .landing-nav-map-btn {
+        font-size: 0;
+        width: 38px;
+        height: 38px;
+        justify-content: center;
+        padding: 0;
+    }
+
+    .landing-nav-login-btn {
+        padding: 8px 12px;
     }
 
     .landing-hero-content {
         padding: 0 16px;
+    }
+
+    .landing-features,
+    .landing-listings {
+        padding: 56px 16px;
+    }
+
+    .landing-footer {
+        padding: 40px 16px 28px;
     }
 }
 

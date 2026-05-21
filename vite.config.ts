@@ -25,5 +25,18 @@ export default defineConfig({
             "/api": "http://localhost:5000",
             "/auth": "http://localhost:5000"
         }
+    },
+    build: {
+        rollupOptions: {
+            output: {
+                manualChunks: {
+                    "vendor-react": ["react", "react-dom", "react-router-dom"],
+                    "vendor-auth": ["@auth0/auth0-react"],
+                    "vendor-map": ["leaflet", "react-leaflet"],
+                    "vendor-markdown": ["react-markdown", "remark-gfm"],
+                    "vendor-validation": ["zod", "@hookform/resolvers"],
+                },
+            },
+        },
     }
 });

@@ -45,8 +45,11 @@ export const authApi = {
     /**
      * Resend OTP to email
      */
-    resendOtp: async (email: string): Promise<{ message: string }> => {
-        const { data } = await apiClient.post<{ message: string }>("/api/auth/resend-otp", { email });
+    resendOtp: async (email: string): Promise<{ code?: string; message: string }> => {
+        const { data } = await apiClient.post<{ code?: string; message: string }>(
+            "/api/auth/resend-otp",
+            { email }
+        );
         return data;
     },
 
@@ -80,7 +83,6 @@ export const authApi = {
      * Sends the Auth0 access token to your backend for verification
      */
     loginWithGoogle: async (auth0Token: string): Promise<AuthResponse> => {
-        console.log('🚀 ~ auth0Token:', auth0Token)
         const { data } = await apiClient.post<AuthResponse>("/api/auth/google", {
             token: auth0Token
         });

@@ -7,6 +7,7 @@ interface ListingsState {
     listings: ListingSummary[];
     currentListing: ListingDetail | null;
     savedListings: SavedListing[];
+    savedListingIds: Set<string>;
 
     // Filters
     filters: ListingFilters;
@@ -39,6 +40,7 @@ interface ListingsActions {
     // Saved operations
     toggleSaved: (listingId: string) => Promise<boolean>;
     isListingSaved: (listingId: string) => boolean;
+    clearSavedListings: () => void;
 
     // Filter operations
     setFilters: (filters: Partial<ListingFilters>) => void;
@@ -65,6 +67,7 @@ const initialState: Omit<ListingsState, keyof ListingsActions> = {
     listings: [],
     currentListing: null,
     savedListings: [],
+    savedListingIds: new Set(),
     filters: initialFilters,
     isLoading: false,
     isLoadingDetail: false,
@@ -105,9 +108,15 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         set({ isLoadingSaved: true, error: null });
         try {
             const savedListings = await savedApi.getAll();
-            set({ savedListings, isLoadingSaved: false });
-        } catch (error) {
             set({
+                savedListings,
+                savedListingIds: new Set(savedListings.map((listing) => listing.id)),
+                isLoadingSaved: false,
+            });
+        } catch (error) {
+            const statusCode = (error as { statusCode?: number })?.statusCode;
+            set({
+                ...(statusCode === 401 ? { savedListings: [], savedListingIds: new Set<string>() } : {}),
                 isLoadingSaved: false,
                 error: error instanceof Error ? error.message : "Failed to fetch saved listings"
             });
@@ -180,43 +189,80 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         set((state) => ({
             listings: state.listings.filter((l) => l.id !== id),
             savedListings: state.savedListings.filter((l) => l.id !== id),
+            savedListingIds: new Set([...state.savedListingIds].filter((listingId) => listingId !== id)),
             currentListing: state.currentListing?.id === id ? null : state.currentListing
         }));
     },
 
     toggleSaved: async (listingId) => {
+        const isCurrentlySaved = get().isListingSaved(listingId);
+        const previousSavedListings = get().savedListings;
+        const previousSavedListingIds = get().savedListingIds;
+        const nextSavedListingIds = new Set(previousSavedListingIds);
+
+        if (isCurrentlySaved) {
+            nextSavedListingIds.delete(listingId);
+        } else {
+            nextSavedListingIds.add(listingId);
+        }
+
+        set((state) => ({
+            savedListingIds: nextSavedListingIds,
+            savedListings: isCurrentlySaved
+                ? state.savedListings.filter((listing) => listing.id !== listingId)
+                : state.savedListings,
+            currentListing:
+                state.currentListing?.id === listingId
+                    ? { ...state.currentListing, isSaved: !isCurrentlySaved }
+                    : state.currentListing,
+            error: null,
+        }));
+
         try {
-            const isCurrentlySaved = get().isListingSaved(listingId);
             if (isCurrentlySaved) {
                 await savedApi.unsave(listingId);
             } else {
                 await savedApi.save(listingId);
             }
-            
-            // Update local state for immediate feedback
+
             await get().fetchSavedListings();
-            
-            // If the current listing is the one toggled, update its isSaved status
-            const currentListing = get().currentListing;
-            if (currentListing && currentListing.id === listingId) {
-                set({
-                    currentListing: {
-                        ...currentListing,
-                        isSaved: !isCurrentlySaved
-                    }
-                });
-            }
-            
             return !isCurrentlySaved;
         } catch (error) {
-            console.error("Failed to toggle saved status:", error);
-            set({ error: error instanceof Error ? error.message : "Failed to toggle saved status" });
-            return false;
+            const statusCode = (error as { statusCode?: number })?.statusCode;
+            const message = error instanceof Error ? error.message : "Failed to toggle saved status";
+            const isAlreadySaved = !isCurrentlySaved && statusCode === 409;
+            const isAlreadyUnsaved = isCurrentlySaved && statusCode === 404;
+
+            if (isAlreadySaved || isAlreadyUnsaved) {
+                await get().fetchSavedListings();
+                return !isCurrentlySaved;
+            }
+
+            set((state) => ({
+                savedListings: previousSavedListings,
+                savedListingIds: previousSavedListingIds,
+                currentListing:
+                    state.currentListing?.id === listingId
+                        ? { ...state.currentListing, isSaved: isCurrentlySaved }
+                        : state.currentListing,
+                error: message,
+            }));
+            throw error;
         }
     },
 
     isListingSaved: (listingId) => {
-        return get().savedListings.some((l) => l.id === listingId);
+        return get().savedListingIds.has(listingId);
+    },
+
+    clearSavedListings: () => {
+        set((state) => ({
+            savedListings: [],
+            savedListingIds: new Set(),
+            currentListing: state.currentListing
+                ? { ...state.currentListing, isSaved: false }
+                : state.currentListing,
+        }));
     },
 
     setFilters: (filters) => {

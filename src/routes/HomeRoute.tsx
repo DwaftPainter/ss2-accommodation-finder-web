@@ -1,16 +1,17 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LandingPage, HomePage } from "../pages";
 import { AuthModal } from "../components/auth";
-import ChatBox from "../components/ChatBox";
-import ListingDetail from "../components/ListingDetail";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore } from "../stores";
+
+const ChatBox = lazy(() => import("../components/ChatBox"));
+const ListingDetail = lazy(() => import("../components/ListingDetail"));
 
 export default function HomeRoute() {
     const { user } = useAuth();
     const navigate = useNavigate();
-    const { listings, fetchListings } = useListingsStore();
+    const fetchListings = useListingsStore((state) => state.fetchListings);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [showAuth, setShowAuth] = useState(false);
 
@@ -44,17 +45,22 @@ export default function HomeRoute() {
             <HomePage
                 onSelectListing={handleSelectListing}
                 onNavigate={handleNavigate}
+                onRequireAuth={() => setShowAuth(true)}
             />
             {selectedListingId && (
-                <ListingDetail
-                    listingId={selectedListingId}
-                    onClose={() => setSelectedListingId(null)}
-                    onEdit={() => {}}
-                    onDeleted={fetchListings}
-                />
+                <Suspense fallback={null}>
+                    <ListingDetail
+                        listingId={selectedListingId}
+                        onClose={() => setSelectedListingId(null)}
+                        onEdit={() => {}}
+                        onDeleted={fetchListings}
+                    />
+                </Suspense>
             )}
             {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
-            <ChatBox />
+            <Suspense fallback={null}>
+                <ChatBox />
+            </Suspense>
         </>
     );
 }

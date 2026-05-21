@@ -4,6 +4,7 @@ import { chatApi, type Chat } from "../services/api/chat";
 import { useAuth } from "../hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
+import UserChat from "../components/UserChat";
 
 interface MessagesPageProps {
     mode: "landlord" | "finder";
@@ -36,12 +37,12 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
     });
 
     return (
-        <div className="flex h-screen bg-white">
+        <div className="flex h-[100dvh] bg-white overflow-hidden">
             {/* Sidebar */}
-            <div className="w-80 border-r border-gray-200 flex flex-col">
-                <div className="p-6 border-b border-gray-100">
-                    <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-2xl font-bold text-gray-900">Tin nhắn</h1>
+            <div className={`${selectedChatId ? "hidden md:flex" : "flex"} w-full md:w-80 lg:w-96 border-r border-gray-200 flex-col min-w-0`}>
+                <div className="p-4 sm:p-6 border-b border-gray-100">
+                    <div className="flex items-center justify-between mb-4 sm:mb-6">
+                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tin nhắn</h1>
                         <div className="flex gap-2">
                             <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
                                 <Search size={20} className="text-gray-600" />
@@ -52,7 +53,7 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
                         </div>
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 overflow-x-auto pb-1">
                         <button 
                             onClick={() => setFilter("all")}
                             className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-all ${
@@ -104,7 +105,7 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
                                     <button
                                         key={chat.id}
                                         onClick={() => setSelectedChatId(chat.id)}
-                                        className={`flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 ${
+                                        className={`w-full flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 ${
                                             isSelected ? "bg-gray-50" : ""
                                         }`}
                                     >
@@ -149,15 +150,9 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
             </div>
 
             {/* Chat Area */}
-            <div className="flex-1 flex flex-col bg-gray-50">
+            <div className={`${selectedChatId ? "flex" : "hidden md:flex"} flex-1 min-w-0 flex-col bg-gray-50`}>
                 {selectedChatId ? (
-                    <div className="flex-1 flex items-center justify-center text-gray-400">
-                        {/* Placeholder for actual chat component */}
-                        <div className="text-center">
-                            <p className="text-lg">Khu vực hội thoại</p>
-                            <p className="text-sm">(Đang phát triển nội dung chi tiết)</p>
-                        </div>
-                    </div>
+                    <UserChat chatId={selectedChatId} onClose={() => setSelectedChatId(null)} />
                 ) : (
                     <div className="flex-1 flex flex-col items-center justify-center text-center p-8">
                         <div className="w-20 h-20 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">

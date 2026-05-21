@@ -13,12 +13,13 @@ export interface LoginViewProps {
 
 export interface RegisterViewProps {
     onSwitchToLogin: () => void;
-    onRegisterSuccess: (email: string) => void;
+    onRegisterSuccess: (email: string, message?: string) => void;
 }
 
 export interface OTPViewProps {
     email: string;
     error: string | null;
+    message: string | null;
     onBack: () => void;
     onVerify: (data: OtpFormData) => Promise<void>;
     onResend: () => Promise<void>;

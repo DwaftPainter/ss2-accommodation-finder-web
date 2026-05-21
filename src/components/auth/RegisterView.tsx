@@ -2,16 +2,25 @@
 
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useAuth0 } from "@auth0/auth0-react";
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Chrome, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { registerSchema, type RegisterFormData } from "@/schemas";
-import { AUTH_MESSAGES, getErrorMessage } from "@/config/messages";
-import { inputClass, gradientButtonStyle, dividerLineStyle, outlinedButtonStyle } from "./constants";
-import type { RegisterViewProps } from "./types";
+import { AUTH_MESSAGES, getErrorMessage, getSuccessMessage } from "@/config/messages";
+import {
+    inputClass,
+    inputStyle,
+    inputFocusStyle,
+    gradientButtonStyle,
+    dividerLineStyle,
+    outlinedButtonStyle,
+} from "./constants";
+import type { FocusHandlers, RegisterViewProps } from "./types";
 
 export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: RegisterViewProps) {
     const { register: registerUser } = useAuth();
+    const { loginWithRedirect } = useAuth0();
 
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirm, setShowConfirm] = useState(false);
@@ -28,15 +37,48 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
         }
     });
 
-    const handleGoogleLogin = async () => {
-        console.log("hello");
+    const focusHandlers: FocusHandlers = {
+        onFocus: (e: React.FocusEvent<HTMLInputElement>) => {
+            Object.assign(e.currentTarget.style, inputFocusStyle);
+        },
+        onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+            e.currentTarget.style.border = inputStyle.border;
+            e.currentTarget.style.background = inputStyle.background;
+            e.currentTarget.style.boxShadow = "none";
+        },
+    };
+
+    const registerWithFocus = (name: keyof RegisterFormData) => {
+        const field = form.register(name);
+        return {
+            ...field,
+            onFocus: focusHandlers.onFocus,
+            onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+                field.onBlur(e);
+                focusHandlers.onBlur(e);
+            },
+        };
+    };
+
+    const handleGoogleLogin = () => {
+        loginWithRedirect({
+            appState: {
+                returnTo: `${window.location.pathname}${window.location.search}`,
+            },
+            authorizationParams: {
+                connection: "google-oauth2",
+            },
+        });
     };
 
     const onSubmit = async (data: RegisterFormData) => {
         try {
             setError(null);
-            await registerUser(data);
-            onRegisterSuccess(data.email);
+            const result = await registerUser(data);
+            onRegisterSuccess(
+                data.email,
+                getSuccessMessage(result.code, AUTH_MESSAGES.REGISTER_SUCCESS)
+            );
         } catch (err) {
             const errorMessage = getErrorMessage(err, AUTH_MESSAGES.REGISTER_GENERIC_ERROR);
             setError(errorMessage);
@@ -73,11 +115,12 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                             placeholder="Họ và tên"
                             autoComplete="name"
                             className={`${inputClass} pl-10`}
-                            {...form.register("name")}
+                            style={inputStyle}
+                            {...registerWithFocus("name")}
                         />
                     </div>
                     {form.formState.errors.name && (
-                        <p className="text-xs text-red-400 pl-1 mt-1">{form.formState.errors.name.message}</p>
+                        <p className="text-xs text-red-600 pl-1 mt-1">{form.formState.errors.name.message}</p>
                     )}
                 </div>
 
@@ -93,11 +136,12 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                             placeholder="Email"
                             autoComplete="email"
                             className={`${inputClass} pl-10`}
-                            {...form.register("email")}
+                            style={inputStyle}
+                            {...registerWithFocus("email")}
                         />
                     </div>
                     {form.formState.errors.email && (
-                        <p className="text-xs text-red-400 pl-1 mt-1">
+                        <p className="text-xs text-red-600 pl-1 mt-1">
                             {form.formState.errors.email.message}
                         </p>
                     )}
@@ -115,7 +159,8 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                             placeholder="Mật khẩu"
                             autoComplete="new-password"
                             className={`${inputClass} pl-10 pr-10`}
-                            {...form.register("password")}
+                            style={inputStyle}
+                            {...registerWithFocus("password")}
                         />
                         <button
                             type="button"
@@ -126,7 +171,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                         </button>
                     </div>
                     {form.formState.errors.password && (
-                        <p className="text-xs text-red-400 pl-1 mt-1">
+                        <p className="text-xs text-red-600 pl-1 mt-1">
                             {form.formState.errors.password.message}
                         </p>
                     )}
@@ -144,7 +189,8 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                             placeholder="Xác nhận mật khẩu"
                             autoComplete="new-password"
                             className={`${inputClass} pl-10 pr-10`}
-                            {...form.register("confirmPassword")}
+                            style={inputStyle}
+                            {...registerWithFocus("confirmPassword")}
                         />
                         <button
                             type="button"
@@ -155,7 +201,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
                         </button>
                     </div>
                     {form.formState.errors.confirmPassword && (
-                        <p className="text-xs text-red-400 pl-1 mt-1">
+                        <p className="text-xs text-red-600 pl-1 mt-1">
                             {form.formState.errors.confirmPassword.message}
                         </p>
                     )}
@@ -163,7 +209,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
 
                 {/* Global Error */}
                 {error && (
-                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                         <AlertCircle size={16} className="shrink-0" />
                         <span>{error}</span>
                     </div>

@@ -16,7 +16,7 @@ interface WishlistGroup {
 }
 
 export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
-    const { savedListings, isLoadingSaved: loading, fetchSavedListings } = useListingsStore();
+    const { savedListings = [], isLoadingSaved: loading, fetchSavedListings } = useListingsStore();
 
     useEffect(() => {
         fetchSavedListings();
@@ -25,12 +25,13 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
     // Group listings into wishlists (for now, create default groups based on location)
     // In a real app, this would come from the backend with actual wishlist data
     const wishlists: WishlistGroup[] = (() => {
-        if (savedListings.length === 0) return [];
+        if (!Array.isArray(savedListings) || savedListings.length === 0) return [];
 
         // For demo purposes, create wishlists based on location keywords
         const groups: Record<string, SavedListing[]> = {};
 
         savedListings.forEach((listing) => {
+            if (!listing || !listing.address) return;
             const location = formatAddress(listing.address, { style: "short" });
             if (!groups[location]) {
                 groups[location] = [];
@@ -63,43 +64,42 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
         }
 
         // Sort by number of listings
-        return result.sort((a, b) => b.listings.length - a.listings.length);
+        return result.sort((a, b) => (b.listings?.length || 0) - (a.listings?.length || 0));
     })();
 
-    const totalStays = savedListings.length;
+    const totalStays = Array.isArray(savedListings) ? savedListings.length : 0;
     const totalLists = wishlists.length || (totalStays > 0 ? 1 : 0);
 
     return (
         <div className="min-h-screen bg-white">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                <div className="w-full px-6 h-16 flex items-center justify-between">
+                <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
                     <button
                         onClick={onBack}
-                        className="flex items-center gap-2 text-gray-800 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
+                        className="flex items-center gap-2 text-gray-800 hover:bg-gray-100 px-2 sm:px-3 py-2 rounded-full transition-colors"
                     >
                         <ArrowLeft size={20} />
-                        <span className="font-medium">Quay lại</span>
+                        <span className="font-medium hidden sm:inline">Quay lại</span>
                     </button>
                     <h1 className="text-xl font-semibold text-gray-900 hidden sm:block">Đã lưu</h1>
-                    <div className="w-20" /> {/* Spacer for centering */}
+                    <div className="w-10 sm:w-20" /> {/* Spacer for centering */}
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="w-full px-6 py-8">
+            <main className="w-full px-4 sm:px-6 py-6 sm:py-8">
                 {/* Title Section */}
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                     <div>
-                        <h2 className="text-3xl font-semibold text-gray-900 mb-1">Đã lưu</h2>
+                        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-1">Đã lưu</h2>
                         <p className="text-gray-500">{totalLists} danh sách</p>
                     </div>
 
                     <button
-                        className="flex items-center gap-2 px-4 py-2.5 border border-emerald-600 rounded-lg text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
-                        onClick={() => {
-                            /* TODO: Create list functionality */
-                        }}
+                        className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed transition-colors"
+                        disabled
+                        title="Tính năng đang được phát triển"
                     >
                         <Plus size={18} />
                         Tạo danh sách
@@ -114,7 +114,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                 )}
 
                 {/* Empty State */}
-                {!loading && savedListings.length === 0 && (
+                {!loading && totalStays === 0 && (
                     <div className="text-center py-20">
                         <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
                             <svg
@@ -143,7 +143,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                 )}
 
                 {/* Wishlists Grid */}
-                {!loading && savedListings.length > 0 && (
+                {!loading && totalStays > 0 && (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-6">
                         {wishlists.map((wishlist) => (
                             <WishlistCard
@@ -151,7 +151,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                                 wishlist={wishlist}
                                 onClick={() => {
                                     // If only one listing, open it directly
-                                    if (wishlist.listings.length === 1) {
+                                    if (wishlist.listings?.length === 1) {
                                         onSelectListing(wishlist.listings[0].id);
                                     }
                                     // Otherwise, could open a detail view of the wishlist
@@ -171,11 +171,12 @@ interface WishlistCardProps {
 }
 
 function WishlistCard({ wishlist, onClick }: WishlistCardProps) {
-    const images = wishlist.listings
+    const listings = wishlist.listings || [];
+    const images = listings
         .slice(0, 3)
-        .map((l) => l.images[0])
+        .map((l) => l.images?.[0])
         .filter(Boolean);
-    const stayCount = wishlist.listings.length;
+    const stayCount = listings.length;
 
     return (
         <div onClick={onClick} className="group cursor-pointer">

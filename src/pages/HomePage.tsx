@@ -1,14 +1,12 @@
-import { useState, useEffect, useRef } from "react";
+import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import {
     Search,
     Heart,
     ChevronLeft,
     ChevronRight,
     Star,
-    Home,
+    SlidersHorizontal,
     SwitchCamera,
-    X,
-    Filter,
     LogOut,
     User,
     List,
@@ -17,47 +15,104 @@ import {
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore, useUIStore } from "../stores";
-import MapView from "../components/MapView";
 import FilterPanel from "../components/FilterPanel";
-import ListingDetail from "../components/ListingDetail";
+import NotificationBell from "../components/NotificationBell";
 import { formatAddress } from "../lib/utils";
-import type { ListingSummary } from "../types";
+import type { ListingFilters, ListingSummary } from "../types";
 import Loader from "@/components/ui/loading";
+import { useNavigate } from "react-router-dom";
+import {
+    CITY_SECTIONS,
+    LISTING_FALLBACK_IMAGES,
+    formatListingPrice,
+} from "@/features/listings";
+
+const ListingDetail = lazy(() => import("../components/ListingDetail"));
+const MapView = lazy(() => import("../components/MapView"));
 
 interface HomePageProps {
     onSelectListing?: (id: string) => void;
     onNavigate?: (page: string) => void;
+    onRequireAuth?: () => void;
 }
 
-// Mock data for different cities
-const citySections = [
-    { name: "Hồ Chí Minh", query: "Ho Chi Minh" },
-    { name: "Đà Nẵng", query: "Da Nang" },
-    { name: "Seoul", query: "Seoul" },
-    { name: "Hà Nội", query: "Ha Noi" }
-];
+type SearchInput = {
+    location: string;
+    price: string;
+    keyword: string;
+};
 
-// Sample listing images for fallback
-const sampleImages = [
-    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop"
-];
+function parsePriceFilter(priceInput: string): Pick<ListingFilters, "price_min" | "price_max"> {
+    const normalized = priceInput
+        .trim()
+        .toLowerCase()
+        .replace(/,/g, ".")
+        .replace(/\s+/g, " ");
 
-function SearchBar({ onShowMap }: { onShowMap: () => void }) {
+    if (!normalized) return {};
+
+    const toVnd = (value: string) => {
+        const parsed = Number.parseFloat(value);
+        if (!Number.isFinite(parsed)) return undefined;
+        return Math.round(parsed * 1_000_000);
+    };
+
+    const rangeMatch = normalized.match(/(\d+(?:\.\d+)?)\s*(?:-|đến|toi|tới)\s*(\d+(?:\.\d+)?)/);
+    if (rangeMatch) {
+        return {
+            price_min: toVnd(rangeMatch[1]),
+            price_max: toVnd(rangeMatch[2]),
+        };
+    }
+
+    const amountMatch = normalized.match(/(\d+(?:\.\d+)?)/);
+    if (!amountMatch) return {};
+
+    const amount = toVnd(amountMatch[1]);
+    if (amount === undefined) return {};
+
+    if (
+        normalized.includes(">") ||
+        normalized.includes("trên") ||
+        normalized.includes("tu ") ||
+        normalized.includes("từ ")
+    ) {
+        return { price_min: amount };
+    }
+
+    return { price_max: amount };
+}
+
+function buildSearchFilters({ location, price, keyword }: SearchInput): ListingFilters {
+    const search = [location, keyword]
+        .map((value) => value.trim())
+        .filter(Boolean)
+        .join(" ");
+
+    return {
+        ...(search ? { search } : {}),
+        ...parsePriceFilter(price),
+    };
+}
+
+function hasActiveFilters(filters: ListingFilters) {
+    return Object.values(filters).some((value) => {
+        if (Array.isArray(value)) return value.length > 0;
+        return value !== undefined && value !== null && value !== "";
+    });
+}
+
+function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }) {
     const [location, setLocation] = useState("");
     const [price, setPrice] = useState("");
     const [keyword, setKeyword] = useState("");
 
     const handleSearch = () => {
-        onShowMap();
+        onSearch(buildSearchFilters({ location, price, keyword }));
     };
 
     return (
-        <div className="flex items-center justify-center py-2 w-full px-4 sm:px-0">
+        <div className="flex items-center justify-center py-1.5 w-full px-0">
             {/* Mobile: Simplified Search Bar */}
             <div className="flex md:hidden items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow w-full max-w-md">
                 <div className="flex flex-col px-4 py-2 hover:bg-gray-100 rounded-full transition-colors text-left flex-1 min-w-0">
@@ -65,6 +120,7 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Tìm kiếm địa điểm..."
                         className="text-sm text-gray-700 bg-transparent outline-none w-full"
                     />
@@ -80,14 +136,15 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
             </div>
 
             {/* Desktop: Full Search Bar */}
-            <div className="hidden md:flex items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="hidden md:flex items-center max-w-full bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
                 {/* 📍 Location */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[180px]">
+                <div className="flex flex-col px-4 xl:px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-0 w-40 xl:w-[180px]">
                     <span className="text-xs font-semibold text-gray-900">Địa điểm</span>
                     <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="VD: Hà Nội, Cầu Giấy..."
                         className="text-sm text-gray-500 bg-transparent outline-none w-full"
                     />
@@ -96,12 +153,13 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
                 <div className="w-px h-6 bg-gray-300" />
 
                 {/* 💰 Price */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[140px]">
+                <div className="flex flex-col px-4 xl:px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-0 w-32 xl:w-[140px]">
                     <span className="text-xs font-semibold text-gray-900">Giá</span>
                     <input
                         type="text"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="VD: ≤ 3 triệu"
                         className="text-sm text-gray-500 bg-transparent outline-none w-full"
                     />
@@ -110,12 +168,13 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
                 <div className="w-px h-6 bg-gray-300" />
 
                 {/* 🏠 Keyword / Type */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[160px]">
+                <div className="flex flex-col px-4 xl:px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-0 w-40 xl:w-[160px]">
                     <span className="text-xs font-semibold text-gray-900">Loại / Từ khóa</span>
                     <input
                         type="text"
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Phòng trọ, căn hộ, gần trường..."
                         className="text-sm text-gray-500 bg-transparent outline-none w-full"
                     />
@@ -135,28 +194,44 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
     );
 }
 
-function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect: (id: string) => void }) {
-    const { toggleSaved, isListingSaved } = useListingsStore();
-    const [isSaved, setIsSaved] = useState(false);
-
-    useEffect(() => {
-        setIsSaved(isListingSaved(listing.id));
-    }, [listing.id, isListingSaved]);
+function ListingCard({
+    listing,
+    onSelect,
+    onRequireAuth
+}: {
+    listing: ListingSummary;
+    onSelect: (id: string) => void;
+    onRequireAuth?: () => void;
+}) {
+    const isSaved = useListingsStore((state) => state.isListingSaved(listing.id));
+    const toggleSaved = useListingsStore((state) => state.toggleSaved);
+    const { user } = useAuth();
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleToggleSaved = async (e: React.MouseEvent) => {
         e.stopPropagation();
-        const result = await toggleSaved(listing.id);
-        setIsSaved(result);
+
+        if (!user) {
+            onRequireAuth?.();
+            return;
+        }
+
+        if (isLoading) return;
+
+        setIsLoading(true);
+        try {
+            await toggleSaved(listing.id);
+        } catch (error) {
+            console.error("Failed to toggle saved status:", error);
+        } finally {
+            setIsLoading(false);
+        }
     };
 
-    const formatPrice = (price: number) => {
-        return new Intl.NumberFormat("vi-VN").format(price);
-    };
-
-    const imageUrl = listing.images?.[0] || sampleImages[0];
+    const imageUrl = listing.images?.[0] || LISTING_FALLBACK_IMAGES[0];
 
     return (
-        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[280px]">
+        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[72vw] max-w-[280px] sm:w-[280px]">
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 mb-3">
                 <img
                     src={imageUrl}
@@ -164,11 +239,11 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
                 {/* Guest favorite badge */}
-                {/* {listing.avgRating >= 4.8 && (
+                {listing.avgRating >= 4.5 && (
                     <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-xs font-semibold text-gray-900">Được khách yêu thích</span>
+                        <span className="text-xs font-semibold text-gray-900">Được yêu thích</span>
                     </div>
-                )} */}
+                )}
                 {/* Heart button */}
                 <button
                     onClick={handleToggleSaved}
@@ -185,13 +260,13 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
                     <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{listing.title}</h3>
                     <div className="flex items-center gap-1 text-sm">
                         <Star size={14} className="fill-gray-900 text-gray-900" />
-                        {/* <span>{listing.avgRating.toFixed(2)}</span> */}
+                        <span>{listing.avgRating > 0 ? listing.avgRating.toFixed(1) : "N/A"}</span>
                     </div>
                 </div>
                 <p className="text-sm text-gray-500 line-clamp-1">{formatAddress(listing.address)}</p>
                 <p className="text-sm text-gray-500">{listing.area} m²</p>
                 <div className="flex items-baseline gap-1 pt-1">
-                    <span className="text-sm font-semibold text-gray-900">₫{formatPrice(listing.price)}</span>
+                    <span className="text-sm font-semibold text-gray-900">₫{formatListingPrice(listing.price, "")}</span>
                 </div>
             </div>
         </div>
@@ -201,11 +276,13 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
 function ListingRow({
     title,
     listings,
-    onSelectListing
+    onSelectListing,
+    onRequireAuth
 }: {
     title: string;
     listings: ListingSummary[];
     onSelectListing: (id: string) => void;
+    onRequireAuth?: () => void;
 }) {
     const scrollRef = useRef<HTMLDivElement>(null);
     const [showLeftArrow, setShowLeftArrow] = useState(false);
@@ -240,8 +317,8 @@ function ListingRow({
 
     return (
         <div className="py-8">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            <div className="flex items-center justify-between gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h2>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => scroll("left")}
@@ -265,7 +342,12 @@ function ListingRow({
                 style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} onSelect={onSelectListing} />
+                    <ListingCard
+                        key={listing.id}
+                        listing={listing}
+                        onSelect={onSelectListing}
+                        onRequireAuth={onRequireAuth}
+                    />
                 ))}
             </div>
         </div>
@@ -282,6 +364,7 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     const [isOpen, setIsOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
     const { logout } = useAuth();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -342,7 +425,10 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
                             <List size={18} />
                             <span className="text-sm font-medium">Danh sách yêu thích</span>
                         </button>
-                        <button className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors">
+                        <button
+                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            onClick={() => navigate("/finder/chat")}
+                        >
                             <MessageSquare size={18} />
                             <span className="text-sm font-medium">Tin nhắn</span>
                         </button>
@@ -368,16 +454,20 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     );
 }
 
-export default function HomePage({ onSelectListing, onNavigate }: HomePageProps) {
+export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }: HomePageProps) {
     const { user } = useAuth();
-    const { userMode, toggleUserMode } = useUIStore();
-    const { listings, fetchListings } = useListingsStore();
+    const userMode = useUIStore((state) => state.userMode);
+    const listings = useListingsStore((state) => state.listings);
+    const fetchListings = useListingsStore((state) => state.fetchListings);
+    const fetchSavedListings = useListingsStore((state) => state.fetchSavedListings);
+    const isSearching = useListingsStore((state) => state.isLoading);
+    const searchError = useListingsStore((state) => state.error);
     const [listingsByCity, setListingsByCity] = useState<Record<string, ListingSummary[]>>({});
     const [isLoading, setIsLoading] = useState(true);
 
     // Map view state controlled by search params
     const [showMap, setShowMap] = useState(false);
-    const [filters, setFilters] = useState<{ search?: string }>({});
+    const [filters, setFilters] = useState<ListingFilters>({});
     const [showFilters, setShowFilters] = useState(false);
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
@@ -390,19 +480,28 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
     };
 
     // Handle showing map view
-    const handleShowMap = () => {
+    const handleShowMap = (searchFilters: ListingFilters = filters) => {
+        setFilters(searchFilters);
         setShowMap(true);
         // Update URL with search param without navigation
         const url = new URL(window.location.href);
         url.searchParams.set("view", "map");
+        if (searchFilters.search) {
+            url.searchParams.set("q", String(searchFilters.search));
+        } else {
+            url.searchParams.delete("q");
+        }
         window.history.pushState({}, "", url);
     };
 
     // Handle closing map view
     const handleCloseMap = () => {
         setShowMap(false);
+        setFilters({});
+        setShowFilters(false);
         const url = new URL(window.location.href);
         url.searchParams.delete("view");
+        url.searchParams.delete("q");
         window.history.pushState({}, "", url);
     };
 
@@ -410,6 +509,8 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
     useEffect(() => {
         const url = new URL(window.location.href);
         if (url.searchParams.get("view") === "map") {
+            const q = url.searchParams.get("q");
+            if (q) setFilters({ search: q });
             setShowMap(true);
         }
     }, []);
@@ -420,23 +521,27 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
             try {
                 const results: Record<string, ListingSummary[]> = {};
 
-                for (const city of citySections) {
+                await Promise.all(CITY_SECTIONS.map(async (city) => {
                     try {
                         const cityListings = await listingsApi.getAll({ search: city.query });
 
-                        const listingsWithImages = cityListings.map((listing, idx) => ({
-                            ...listing,
-                            images:
-                                listing.images?.length > 0
-                                    ? listing.images
-                                    : [sampleImages[idx % sampleImages.length]]
-                        }));
+                        if (cityListings.length > 0) {
+                            const listingsWithImages = cityListings.map((listing, idx) => ({
+                                ...listing,
+                                images:
+                                    listing.images?.length > 0
+                                        ? listing.images
+                                        : [LISTING_FALLBACK_IMAGES[idx % LISTING_FALLBACK_IMAGES.length]]
+                            }));
 
-                        results[city.name] = listingsWithImages.slice(0, 8);
+                            results[city.name] = listingsWithImages.slice(0, 8);
+                        } else {
+                            results[city.name] = [];
+                        }
                     } catch {
-                        results[city.name] = generateMockListings(city.name);
+                        results[city.name] = [];
                     }
-                }
+                }));
 
                 setListingsByCity(results);
             } catch (error) {
@@ -447,48 +552,31 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
         };
 
         fetchAllListings();
-    }, []);
+
+        if (user) {
+            fetchSavedListings();
+        }
+    }, [user, fetchSavedListings]);
 
     // Fetch listings for map view
     useEffect(() => {
         if (showMap) {
             fetchListings(filters);
         }
-    }, [showMap, filters]);
+    }, [showMap, filters, fetchListings]);
 
-    const generateMockListings = (cityName: string): ListingSummary[] => {
-        const types = ["Phòng", "Căn hộ", "Nhà", "Studio"];
-        const districts =
-            cityName === "Hồ Chí Minh"
-                ? ["Quận 1", "Quận 3", "Quận 7", "Quận Phú Nhuận"]
-                : cityName === "Đà Nẵng"
-                  ? ["Quận Hải Châu", "Quận Sơn Trà", "Quận Ngũ Hành Sơn"]
-                  : cityName === "Hà Nội"
-                    ? ["Quận Hoàn Kiếm", "Quận Ba Đình", "Quận Cầu Giấy"]
-                    : ["Quận Trung tâm", "Quận Gangnam", "Quận Hongdae"];
-        const wards = ["Phường 1", "Phường 2", "Phường Bến Nghé", "Phường Tân Định"];
+    const updateFilters = (nextFilters: ListingFilters) => {
+        setFilters(nextFilters);
+    };
 
-        return Array.from({ length: 8 }, (_, i) => ({
-            id: `${cityName}-${i}`,
-            title: `${types[i % types.length]} tại ${districts[i % districts.length]}`,
-            address: {
-                street: "123 Đường Nguyễn Văn A",
-                ward: wards[i % wards.length],
-                district: districts[i % districts.length],
-                city: cityName,
-                province: cityName,
-                lat: 10.8231 + Math.random() * 0.1,
-                lng: 106.6297 + Math.random() * 0.1
-            },
-            price: 500000 + Math.floor(Math.random() * 2000000),
-            area: 15 + Math.floor(Math.random() * 50),
-            utilities: ["wifi", "ac", "parking"],
-            images: [sampleImages[i % sampleImages.length]],
-            owner: { id: "1", name: "Host", avatarUrl: null },
-            avgRating: 4.5 + Math.random() * 0.5,
-            reviewCount: Math.floor(Math.random() * 100),
-            createdAt: new Date().toISOString()
-        }));
+    const applyFilters = () => {
+        fetchListings(filters);
+        setShowFilters(false);
+    };
+
+    const clearSearch = () => {
+        setFilters({});
+        fetchListings({});
     };
 
     const handleSelectListingInternal = (id: string) => {
@@ -509,10 +597,6 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
         setSelectedListingId(null);
     };
 
-    useEffect(() => {
-        console.log("listingsByCity:", listingsByCity);
-    }, [listingsByCity]);
-
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
@@ -527,38 +611,39 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                    <div className="flex items-center justify-between h-16 sm:h-20">
+                    <div className="flex flex-wrap lg:flex-nowrap items-center justify-between min-h-16 lg:min-h-20 py-2 gap-2 lg:gap-3">
                         {/* Logo */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="order-1 flex items-center gap-2 flex-shrink-0 min-w-0">
                             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
                                 <img src="/logo.png" alt="Logo" className="size-5" />
                             </div>
-                            <div className="landing-brand hidden sm:block">
-                                <span className="landing-brand-text text-lg sm:text-xl">AccomFinder</span>
+                            <div className="landing-brand hidden lg:block min-w-0">
+                                <span className="landing-brand-text text-lg xl:text-xl">AccomFinder</span>
                             </div>
                         </div>
 
                         {/* Search Bar - Hidden on small mobile, shown on md+ */}
-                        <div className="flex-1 flex justify-center px-2 sm:px-4">
-                            <SearchBar onShowMap={handleShowMap} />
+                        <div className="order-3 lg:order-2 basis-full lg:basis-auto lg:flex-1 flex justify-center min-w-0 px-0 lg:px-2 xl:px-4">
+                            <SearchBar onSearch={handleShowMap} />
                         </div>
 
                         {/* Right side - User menu */}
-                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <div className="order-2 lg:order-3 flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
                             <button
                                 onClick={handleToggleMode}
-                                className="hidden sm:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-4 rounded-full transition-colors whitespace-nowrap"
+                                className="hidden lg:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-3 xl:px-4 rounded-full transition-colors whitespace-nowrap"
                             >
                                 {modeButtonText}
                             </button>
 
                             <button
                                 onClick={handleToggleMode}
-                                className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
+                                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
                             >
                                 <SwitchCamera size={20} className="text-gray-700" />
                             </button>
 
+                            <NotificationBell enabled={Boolean(user)} />
                             <UserMenu user={user} onNavigate={onNavigate} />
                         </div>
                     </div>
@@ -566,39 +651,132 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
             </header>
 
             {showMap ? (
-                <div className="flex-1 flex overflow-hidden relative">
+                <div className="flex-1 min-h-[calc(100dvh-4rem)] sm:min-h-[calc(100dvh-5rem)] flex flex-col md:flex-row overflow-hidden relative">
                     {userMode === "finder" && (
                         <FilterPanel
                             filters={filters}
-                            onFilterChange={setFilters}
-                            onSearch={() => {}}
+                            onFilterChange={updateFilters}
+                            onSearch={applyFilters}
                             visible={showFilters}
                         />
                     )}
 
-                    <div className="flex-1 p-4 overflow-hidden">
-                        <div className="h-full rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
-                            <MapView
-                                listings={listings}
-                                onSelectListing={(id) => handleSelectListingInternal(id)}
-                                onMapClick={null}
-                                pinLocation={null}
-                                flyTo={flyTo}
-                                onClose={() => setShowMap(false)}
-                            />
+                    <div className="w-full md:w-[360px] lg:w-[380px] md:max-w-[40vw] bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col max-h-[45dvh] md:max-h-none z-[900]">
+                        <div className="p-4 border-b border-gray-100 flex items-start justify-between gap-3">
+                            <div className="min-w-0">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Kết quả tìm kiếm</p>
+                                <h2 className="text-lg font-semibold text-slate-900 truncate">
+                                    {filters.search ? filters.search : "Tất cả phòng trọ"}
+                                </h2>
+                                <p className="text-sm text-slate-500">
+                                    {isSearching ? "Đang tải..." : `${listings.length} bài đăng phù hợp`}
+                                </p>
+                            </div>
+                            <button
+                                onClick={() => setShowFilters((open) => !open)}
+                                className={`shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-full border transition-colors ${
+                                    hasActiveFilters(filters)
+                                        ? "border-emerald-500 text-emerald-600 bg-emerald-50"
+                                        : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                                }`}
+                                aria-label="Mở bộ lọc"
+                            >
+                                <SlidersHorizontal size={18} />
+                            </button>
+                        </div>
+
+                        {hasActiveFilters(filters) && (
+                            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 overflow-x-auto">
+                                {filters.search && (
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        {filters.search}
+                                    </span>
+                                )}
+                                {filters.price_min && (
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        Từ ₫{formatListingPrice(Number(filters.price_min), "")}
+                                    </span>
+                                )}
+                                {filters.price_max && (
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        Đến ₫{formatListingPrice(Number(filters.price_max), "")}
+                                    </span>
+                                )}
+                                <button
+                                    onClick={clearSearch}
+                                    className="shrink-0 rounded-full px-3 py-1 text-xs font-medium text-rose-600 hover:bg-rose-50"
+                                >
+                                    Xóa
+                                </button>
+                            </div>
+                        )}
+
+                        <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
+                            {isSearching ? (
+                                <div className="py-12 flex justify-center">
+                                    <Loader />
+                                </div>
+                            ) : searchError ? (
+                                <div className="rounded-lg border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
+                                    {searchError}
+                                </div>
+                            ) : listings.length === 0 ? (
+                                <div className="py-12 text-center">
+                                    <p className="font-medium text-slate-900">Không tìm thấy bài đăng</p>
+                                    <p className="mt-1 text-sm text-slate-500">Thử đổi khu vực, khoảng giá hoặc tiện ích.</p>
+                                </div>
+                            ) : (
+                                listings.map((listing) => (
+                                    <button
+                                        key={listing.id}
+                                        onClick={() => handleSelectListingInternal(listing.id)}
+                                        className="w-full text-left flex gap-3 rounded-lg border border-slate-200 p-2 hover:border-emerald-300 hover:bg-emerald-50/40 transition-colors"
+                                    >
+                                        <img
+                                            src={listing.images?.[0] || LISTING_FALLBACK_IMAGES[0]}
+                                            alt={listing.title}
+                                            className="h-20 w-24 shrink-0 rounded-md object-cover bg-slate-100"
+                                        />
+                                        <span className="min-w-0 flex-1">
+                                            <span className="block text-sm font-semibold text-slate-900 line-clamp-1">{listing.title}</span>
+                                            <span className="block text-xs text-slate-500 line-clamp-1">{formatAddress(listing.address)}</span>
+                                            <span className="mt-2 flex items-center justify-between gap-2">
+                                                <span className="text-sm font-semibold text-emerald-600">₫{formatListingPrice(listing.price, "")}</span>
+                                                <span className="text-xs text-slate-500">{listing.area} m²</span>
+                                            </span>
+                                        </span>
+                                    </button>
+                                ))
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 min-h-[55dvh] p-2 sm:p-4 overflow-hidden">
+                        <div className="h-full min-h-[55dvh] rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
+                            <Suspense fallback={<Loader />}>
+                                <MapView
+                                    listings={listings}
+                                    onSelectListing={(id) => handleSelectListingInternal(id)}
+                                    onMapClick={null}
+                                    pinLocation={null}
+                                    flyTo={flyTo}
+                                    onClose={handleCloseMap}
+                                />
+                            </Suspense>
                         </div>
                     </div>
                 </div>
             ) : (
-                <main className="max-w-7xl mx-auto px-6 pb-12">
-                    {citySections.map(
+                <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 pb-12">
+                    {CITY_SECTIONS.map(
                         (city) =>
                             listingsByCity[city.name]?.length > 0 && (
                                 <ListingRow
                                     key={city.name}
-                                    title={`Nơi lưu trú được ưa chuộng tại ${city.name}`}
+                                    title={`Nơi lưu trú được ưa chuộng tại ${city.label}`}
                                     listings={listingsByCity[city.name] || []}
                                     onSelectListing={handleSelectListingInternal}
+                                    onRequireAuth={onRequireAuth}
                                 />
                             )
                     )}
@@ -607,12 +785,14 @@ export default function HomePage({ onSelectListing, onNavigate }: HomePageProps)
 
             {/* Listing Detail Modal */}
             {selectedListingId && (
-                <ListingDetail
-                    listingId={selectedListingId}
-                    onClose={handleCloseDetail}
-                    onEdit={() => {}}
-                    onDeleted={() => {}}
-                />
+                <Suspense fallback={null}>
+                    <ListingDetail
+                        listingId={selectedListingId}
+                        onClose={handleCloseDetail}
+                        onEdit={() => {}}
+                        onDeleted={() => {}}
+                    />
+                </Suspense>
             )}
         </div>
     );

@@ -1,12 +1,12 @@
 import { useEffect, useRef, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ArrowLeft, ShieldCheck, RotateCcw, AlertCircle } from "lucide-react";
+import { ArrowLeft, ShieldCheck, RotateCcw, AlertCircle, CheckCircle2 } from "lucide-react";
 import { otpSchema, type OtpFormData } from "@/schemas";
 import { OTP_LENGTH, gradientGreenButtonStyle } from "./constants";
 import type { OTPViewProps } from "./types";
 
-export default function OTPView({ email, error, onBack, onVerify, onResend }: OTPViewProps) {
+export default function OTPView({ email, error, message, onBack, onVerify, onResend }: OTPViewProps) {
     const [countdown, setCountdown] = useState(60);
     const [resendable, setResendable] = useState(false);
     const [isResending, setIsResending] = useState(false);
@@ -35,6 +35,8 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
             setResendable(false);
             form.reset({ otp: "" });
             otpRefs.current[0]?.focus();
+        } catch {
+            // Parent owns the visible error message.
         } finally {
             setIsResending(false);
         }
@@ -123,7 +125,7 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
             {/* OTP Inputs */}
             <form onSubmit={form.handleSubmit(onVerify)}>
                 <input type="hidden" {...form.register("otp")} />
-                <div className="flex justify-center gap-2.5 mb-6">
+                <div className="grid grid-cols-6 gap-2 sm:gap-2.5 mb-6">
                     {otpDigits.map((digit, idx) => (
                         <input
                             key={idx}
@@ -138,7 +140,7 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                             onChange={(e) => handleOtpChange(idx, e.target.value)}
                             onKeyDown={(e) => handleOtpKeyDown(idx, e)}
                             onPaste={idx === 0 ? handleOtpPaste : undefined}
-                            className="w-12 h-14 text-center text-xl font-bold text-slate-900 rounded-xl transition-all duration-200 focus:outline-none"
+                            className="w-full min-w-0 h-12 sm:h-14 text-center text-lg sm:text-xl font-bold text-slate-900 rounded-lg sm:rounded-xl transition-all duration-200 focus:outline-none"
                             style={{
                                 background: digit ? "rgba(16,185,129,0.05)" : "rgba(0,0,0,0.03)",
                                 border: digit
@@ -167,9 +169,15 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                     ))}
                 </div>
                 {(form.formState.errors.otp || error) && (
-                    <div className="flex items-center justify-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400 mb-4">
+                    <div className="flex items-center justify-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700 mb-4">
                         <AlertCircle size={16} className="shrink-0" />
                         <span>{form.formState.errors.otp?.message || error}</span>
+                    </div>
+                )}
+                {!form.formState.errors.otp && !error && message && (
+                    <div className="flex items-center justify-center gap-2 p-3 bg-emerald-500/10 border border-emerald-500/20 rounded-lg text-sm text-emerald-700 mb-4">
+                        <CheckCircle2 size={16} className="shrink-0" />
+                        <span>{message}</span>
                     </div>
                 )}
 
@@ -182,7 +190,7 @@ export default function OTPView({ email, error, onBack, onVerify, onResend }: OT
                     style={gradientGreenButtonStyle}
                 >
                     <ShieldCheck size={16} />
-                    Xác thực
+                    {form.formState.isSubmitting ? "Đang xác thực..." : "Xác thực"}
                 </button>
             </form>
 
