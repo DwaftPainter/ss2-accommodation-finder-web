@@ -20,9 +20,11 @@ import {
     X,
     ChevronLeft,
     ChevronRight,
+    MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { listingsApi } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { listingsApi, chatApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore } from "../stores";
 import { formatAddress, formatPrice } from "../lib/utils";
@@ -234,6 +236,7 @@ function PriceCard({
     listing,
     isSaved,
     onSave,
+    onChat,
     user,
     onEdit,
     onDelete,
@@ -241,6 +244,7 @@ function PriceCard({
     listing: ListingDetailType;
     isSaved: boolean;
     onSave: () => void;
+    onChat: () => void;
     user: { id: string } | null;
     onEdit: () => void;
     onDelete: () => void;
@@ -292,16 +296,26 @@ function PriceCard({
                 </div>
             </div>
 
-            {/* Contact */}
-            {listing.contactPhone && (
-                <a
-                    href={`tel:${listing.contactPhone}`}
-                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg hover:-translate-y-0.5 transition-all mb-3"
+            {/* Actions */}
+            <div className="flex flex-col gap-2">
+                <button
+                    onClick={onChat}
+                    className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 hover:shadow-lg hover:-translate-y-0.5 transition-all"
                 >
-                    <Phone size={16} />
-                    Liên hệ ngay
-                </a>
-            )}
+                    <MessageSquare size={16} />
+                    Nhắn tin chủ nhà
+                </button>
+
+                {listing.contactPhone && (
+                    <a
+                        href={`tel:${listing.contactPhone}`}
+                        className="w-full flex items-center justify-center gap-2 py-3 rounded-lg text-sm font-semibold border border-emerald-600 text-emerald-600 hover:bg-emerald-50 transition-all"
+                    >
+                        <Phone size={16} />
+                        Gọi ngay
+                    </a>
+                )}
+            </div>
 
             {/* Save */}
             {user && (
@@ -345,6 +359,7 @@ function PriceCard({
 /* ─── Main Component ─── */
 export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }: ListingDetailProps) {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const isSaved = useListingsStore(state => state.isListingSaved(listingId));
     const toggleSaved = useListingsStore(state => state.toggleSaved);
     const fetchSavedListings = useListingsStore(state => state.fetchSavedListings);
@@ -352,44 +367,35 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
+    const handleChat = useCallback(async () => {
+        if (!user) {
+            toast.error("Bạn cần đăng nhập để nhắn tin.");
+            return;
+        }
+
+        if (!listing) return;
+
+        try {
+            const chat = await chatApi.createChat(listing.ownerId, listing.id);
+            onClose();
+            navigate(`/finder/chat?id=${chat.id}`);
+        } catch (err) {
+            console.error("Failed to create chat:", err);
+            toast.error("Không thể bắt đầu cuộc trò chuyện lúc này.");
+        }
+    }, [listing, user, navigate, onClose]);
+
     useEffect(() => {
         setLoading(true);
+        setError(null);
         listingsApi
             .getById(listingId)
             .then((data) => {
                 setListing(data);
             })
-            .catch(() => {
-                // Fallback mock data for UI preview when API is unavailable
-                setListing({
-                    id: listingId,
-                    title: "Studio Lake View – Tây Hồ, Hà Nội",
-                    address: { street: "12 Nguyễn Đình Thi", ward: "Quảng An", district: "Quận Tây Hồ", city: "Hà Nội", province: "Hà Nội", lat: 21.065, lng: 105.822 },
-                    price: 5500000,
-                    area: 35,
-                    utilities: ["wifi", "air_conditioning", "balcony", "washing_machine", "parking", "security", "flexible_hours"],
-                    images: [
-                        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
-                        "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop",
-                        "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=800&auto=format&fit=crop",
-                        "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop",
-                        "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop",
-                    ],
-                    owner: { id: "mock-owner", name: "Linh Nguyễn", avatarUrl: null },
-                    avgRating: 4.86,
-                    reviewCount: 44,
-                    savedCount: 12,
-                    createdAt: "2025-12-15T08:00:00Z",
-                    electricityFee: 3500,
-                    waterFee: 25000,
-                    description: "Căn studio view hồ Tây tuyệt đẹp, nằm trên tầng cao với ban công rộng rãi hướng thẳng ra mặt hồ. Phòng được trang bị đầy đủ nội thất cao cấp, bao gồm giường đôi êm ái, bếp mini tiện nghi, và phòng tắm riêng biệt.\n\nVị trí thuận tiện, chỉ cách phố cổ 10 phút di chuyển, gần nhiều quán cafe và nhà hàng nổi tiếng. Khu vực yên tĩnh, an ninh tốt, phù hợp cho cả người đi làm và sinh viên.",
-                    contactName: "Linh Nguyễn",
-                    contactPhone: "0912345678",
-                    ownerId: "mock-owner",
-                    reviews: [],
-                    starBreakdown: { 5: 30, 4: 10, 3: 3, 2: 1, 1: 0 },
-                    isSaved: false,
-                } as ListingDetailType);
+            .catch((err) => {
+                console.error("Failed to fetch listing:", err);
+                setError("Không thể tải thông tin phòng trọ. Vui lòng thử lại sau.");
             })
             .finally(() => setLoading(false));
 
@@ -565,6 +571,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                                     listing={listing}
                                     isSaved={isSaved}
                                     onSave={handleSave}
+                                    onChat={handleChat}
                                     user={user}
                                     onEdit={() => onEdit(listing)}
                                     onDelete={handleDelete}
@@ -579,21 +586,29 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                             <span className="text-lg font-bold text-slate-900">{formatPrice(listing.price)}</span>
                             <span className="text-sm text-slate-500"> /tháng</span>
                         </div>
-                        {listing.contactPhone ? (
-                            <a
-                                href={`tel:${listing.contactPhone}`}
-                                className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md"
-                            >
-                                Liên hệ ngay
-                            </a>
-                        ) : (
+                        <div className="flex gap-2">
                             <button
-                                onClick={handleSave}
-                                className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md"
+                                onClick={handleChat}
+                                className="p-2.5 rounded-lg text-emerald-600 border border-emerald-600 hover:bg-emerald-50"
                             >
-                                {isSaved ? "Đã lưu" : "Lưu tin"}
+                                <MessageSquare size={20} />
                             </button>
-                        )}
+                            {listing.contactPhone ? (
+                                <a
+                                    href={`tel:${listing.contactPhone}`}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md"
+                                >
+                                    Gọi ngay
+                                </a>
+                            ) : (
+                                <button
+                                    onClick={handleSave}
+                                    className="px-6 py-2.5 rounded-lg text-sm font-semibold text-white bg-gradient-to-r from-emerald-500 to-teal-600 shadow-md"
+                                >
+                                    {isSaved ? "Đã lưu" : "Lưu tin"}
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     {/* ─── Reviews (full width) ─── */}

@@ -10,11 +10,17 @@ const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || '';
 const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
 const AUTH0_REDIRECT_URI = window.location.origin;
 
+const handleAuth0Redirect = (appState?: { returnTo?: string }) => {
+    const returnTo = appState?.returnTo || window.location.pathname;
+    window.history.replaceState({}, document.title, returnTo);
+};
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
     <React.StrictMode>
         <Auth0Provider
             domain={AUTH0_DOMAIN}
             clientId={AUTH0_CLIENT_ID}
+            onRedirectCallback={handleAuth0Redirect}
             authorizationParams={{
                 redirect_uri: AUTH0_REDIRECT_URI,
                 connection: 'google-oauth2',

@@ -38,8 +38,23 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
         },
     };
 
+    const registerWithFocus = (name: keyof LoginFormData) => {
+        const field = form.register(name);
+        return {
+            ...field,
+            onFocus: focusHandlers.onFocus,
+            onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
+                field.onBlur(e);
+                focusHandlers.onBlur(e);
+            },
+        };
+    };
+
     const handleGoogleLogin = () => {
         loginWithRedirect({
+            appState: {
+                returnTo: `${window.location.pathname}${window.location.search}`,
+            },
             authorizationParams: {
                 connection: 'google-oauth2',
             },
@@ -96,12 +111,11 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                         placeholder="Email"
                         className={inputClass}
                         style={inputStyle}
-                        {...form.register("email")}
-                        {...focusHandlers}
+                        {...registerWithFocus("email")}
                     />
                 </div>
                 {form.formState.errors.email && (
-                    <p className="text-xs text-red-400 pl-1">
+                    <p className="text-xs text-red-600 pl-1">
                         {form.formState.errors.email.message}
                     </p>
                 )}
@@ -118,8 +132,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                         placeholder="Mật khẩu"
                         className={`${inputClass} pr-10`}
                         style={inputStyle}
-                        {...form.register("password")}
-                        {...focusHandlers}
+                        {...registerWithFocus("password")}
                     />
                     <button
                         type="button"
@@ -130,14 +143,14 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     </button>
                 </div>
                 {form.formState.errors.password && (
-                    <p className="text-xs text-red-400 pl-1">
+                    <p className="text-xs text-red-600 pl-1">
                         {form.formState.errors.password.message}
                     </p>
                 )}
 
                 {/* Error Message */}
                 {error && (
-                    <div className="flex items-center gap-2 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">
+                    <div className="flex items-center gap-2 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                         <AlertCircle size={16} className="shrink-0" />
                         <span>{error}</span>
                     </div>
@@ -161,7 +174,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     className="w-full flex items-center justify-center gap-2 py-3.5 px-5 rounded-xl text-sm font-semibold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-40 disabled:pointer-events-none"
                     style={gradientButtonStyle}
                 >
-                    Đăng nhập
+                    {form.formState.isSubmitting ? "Đang xử lý..." : "Đăng nhập"}
                 </button>
             </form>
 

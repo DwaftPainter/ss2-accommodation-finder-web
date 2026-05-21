@@ -23,7 +23,7 @@ export const AUTH_MESSAGES = {
 
     // OTP errors
     OTP_INVALID: "Mã xác nhận không đúng. Vui lòng kiểm tra lại.",
-    OTP_EXPIRED: "Mã xác nhận đã hết hạn. Vui lòng yêu cầu mã mới.",
+    OTP_EXPIRED: "Mã xác nhận không đúng hoặc đã hết hạn. Vui lòng kiểm tra lại hoặc yêu cầu mã mới.",
     OTP_RATE_LIMIT: "Vui lòng đợi 1 phút trước khi yêu cầu mã mới.",
     OTP_GENERIC_ERROR: "Xác nhận thất bại. Vui lòng thử lại.",
 
@@ -87,8 +87,50 @@ export const REVIEW_MESSAGES = {
     FETCH_ERROR: "Không thể tải đánh giá.",
 } as const;
 
+const API_CODE_MESSAGES: Record<string, string> = {
+    AUTH_EMAIL_EXISTS: AUTH_MESSAGES.REGISTER_EMAIL_EXISTS,
+    AUTH_INVALID_CREDENTIALS: AUTH_MESSAGES.LOGIN_INVALID_CREDENTIALS,
+    AUTH_INVALID_REFRESH_TOKEN: AUTH_MESSAGES.SESSION_EXPIRED,
+    AUTH_USER_NOT_FOUND: AUTH_MESSAGES.LOGIN_USER_NOT_FOUND,
+    AUTH_EMAIL_ALREADY_VERIFIED: "Email này đã được xác thực. Vui lòng đăng nhập.",
+    AUTH_OTP_INVALID_OR_EXPIRED: AUTH_MESSAGES.OTP_EXPIRED,
+    AUTH_OTP_RATE_LIMITED: AUTH_MESSAGES.OTP_RATE_LIMIT,
+    AUTH_REGISTRATION_FAILED: AUTH_MESSAGES.REGISTER_GENERIC_ERROR,
+    AUTH_VERIFICATION_EMAIL_FAILED: "Không thể gửi email xác thực. Vui lòng thử lại sau.",
+    AUTH_LOGIN_FAILED: AUTH_MESSAGES.LOGIN_GENERIC_ERROR,
+    AUTH_TOKEN_REFRESH_FAILED: AUTH_MESSAGES.SESSION_EXPIRED,
+    AUTH_OTP_VERIFICATION_FAILED: AUTH_MESSAGES.OTP_GENERIC_ERROR,
+    AUTH_OTP_RESEND_FAILED: "Không thể gửi lại mã xác nhận. Vui lòng thử lại sau.",
+    AUTH_AUTH0_TOKEN_INVALID: "Đăng nhập Google không hợp lệ. Vui lòng thử lại.",
+    AUTH_AUTH0_EMAIL_MISSING: "Tài khoản Google chưa cung cấp email.",
+    AUTH_GOOGLE_LOGIN_FAILED: "Đăng nhập Google thất bại. Vui lòng thử lại.",
+};
+
+const API_SUCCESS_MESSAGES: Record<string, string> = {
+    AUTH_REGISTERED_VERIFICATION_REQUIRED: AUTH_MESSAGES.REGISTER_SUCCESS,
+    AUTH_LOGIN_SUCCESS: AUTH_MESSAGES.LOGIN_SUCCESS,
+    AUTH_EMAIL_VERIFIED: AUTH_MESSAGES.OTP_VERIFIED,
+    AUTH_OTP_RESENT: AUTH_MESSAGES.OTP_RESENT,
+    AUTH_GOOGLE_LOGIN_SUCCESS: AUTH_MESSAGES.LOGIN_SUCCESS,
+};
+
+function getApiErrorCode(error: unknown): string | undefined {
+    if (!error || typeof error !== "object") return undefined;
+    const { apiCode, code } = error as { apiCode?: string; code?: string };
+    return apiCode || (code?.startsWith("AUTH_") ? code : undefined);
+}
+
+export function getSuccessMessage(code: string | undefined, fallback: string): string {
+    return code ? API_SUCCESS_MESSAGES[code] || fallback : fallback;
+}
+
 // Helper function to get user-friendly error message
 export function getErrorMessage(error: unknown, fallback = "Đã xảy ra lỗi. Vui lòng thử lại."): string {
+    const apiCode = getApiErrorCode(error);
+    if (apiCode && API_CODE_MESSAGES[apiCode]) {
+        return API_CODE_MESSAGES[apiCode];
+    }
+
     if (error instanceof Error) {
         const message = error.message.toLowerCase();
 
@@ -106,7 +148,9 @@ export function getErrorMessage(error: unknown, fallback = "Đã xảy ra lỗi.
         // OTP errors
         if (message.includes("invalid or expired otp")) return AUTH_MESSAGES.OTP_EXPIRED;
         if (message.includes("invalid otp")) return AUTH_MESSAGES.OTP_INVALID;
-        if (message.includes("rate limit")) return AUTH_MESSAGES.OTP_RATE_LIMIT;
+        if (message.includes("rate limit") || message.includes("wait before requesting")) {
+            return AUTH_MESSAGES.OTP_RATE_LIMIT;
+        }
 
         // Register errors
         if (message.includes("email already exists")) return AUTH_MESSAGES.REGISTER_EMAIL_EXISTS;

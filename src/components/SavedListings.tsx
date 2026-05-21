@@ -1,10 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { X } from 'lucide-react';
-import { savedApi } from '../services/api';
+import { useListingsStore } from '../stores';
 import { formatAddress } from '../lib/utils';
-import type { SavedListing } from '../types';
-
-const formatPrice = (p: number) => new Intl.NumberFormat('vi-VN').format(p) + ' đ';
+import { formatListingPrice } from '@/features/listings';
 
 interface SavedListingsProps {
     visible: boolean;
@@ -13,15 +11,16 @@ interface SavedListingsProps {
 }
 
 export default function SavedListings({ visible, onClose, onSelectListing }: SavedListingsProps) {
-    const [listings, setListings] = useState<SavedListing[]>([]);
-    const [loading, setLoading] = useState(true);
+    const listings = useListingsStore((state) => state.savedListings);
+    const loading = useListingsStore((state) => state.isLoadingSaved);
+    const error = useListingsStore((state) => state.error);
+    const fetchSavedListings = useListingsStore((state) => state.fetchSavedListings);
 
     useEffect(() => {
         if (visible) {
-            setLoading(true);
-            savedApi.getAll().then(setListings).catch(console.error).finally(() => setLoading(false));
+            fetchSavedListings();
         }
-    }, [visible]);
+    }, [fetchSavedListings, visible]);
 
     if (!visible) return null;
 
@@ -39,7 +38,9 @@ export default function SavedListings({ visible, onClose, onSelectListing }: Sav
                     <div className="w-7 h-7 border-[3px] border-white/[0.08] border-t-indigo-500 rounded-full animate-spin mx-auto" />
                 </div>
             ) : listings.length === 0 ? (
-                <div className="py-10 text-center text-slate-500 text-sm">Bạn chưa lưu tin nào</div>
+                <div className="py-10 text-center text-slate-500 text-sm">
+                    {error || "Bạn chưa lưu tin nào"}
+                </div>
             ) : (
                 <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-2">
                     {listings?.map((l) => (
@@ -47,7 +48,7 @@ export default function SavedListings({ visible, onClose, onSelectListing }: Sav
                             <h4 className="text-sm font-semibold mb-1">{l.title}</h4>
                             <p className="text-[11px] text-slate-500 mb-1.5">{formatAddress(l.address)}</p>
                             <div className="flex gap-2.5 text-xs">
-                                <span className="font-semibold text-indigo-400">{formatPrice(l.price)}/tháng</span>
+                                <span className="font-semibold text-indigo-400">{formatListingPrice(l.price, " đ")}/tháng</span>
                                 <span className="text-slate-400">{l.area} m²</span>
                                 <span className="text-amber-400">★ {l.avgRating}</span>
                             </div>

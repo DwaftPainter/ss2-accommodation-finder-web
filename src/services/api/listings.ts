@@ -45,17 +45,30 @@ function buildQueryString(
 
 export const listingsApi = {
     /**
+     * Get paginated listings with backend metadata
+     */
+    getPage: async (
+        filters: ListingFilters = {}
+    ): Promise<{
+        data: ListingSummary[];
+        meta: { page: number; limit: number; total: number };
+    }> => {
+        const query = buildQueryString(filters);
+        const { data } = await apiClient.get<{
+            data: ListingSummary[];
+            meta: { page: number; limit: number; total: number };
+        }>(`/api/listings${query}`);
+        return data;
+    },
+
+    /**
      * Get all listings with filters
      * Backend returns { data, meta } - we extract just the data array
      */
     getAll: async (
         filters: ListingFilters = {}
     ): Promise<ListingSummary[]> => {
-        const query = buildQueryString(filters);
-        const { data } = await apiClient.get<{
-            data: ListingSummary[];
-            meta: { page: number; limit: number; total: number };
-        }>(`/api/listings${query}`);
+        const data = await listingsApi.getPage(filters);
         return data.data;
     },
 
@@ -128,11 +141,25 @@ export const listingsApi = {
      * Returns { location, listings }
      */
     searchByAddress: async (address: string, radius: number = 5): Promise<ListingSummary[]> => {
+        const data = await listingsApi.searchByAddressWithLocation(address, radius);
+        return data.listings;
+    },
+
+    /**
+     * Search listings by address and keep geocoded location in response
+     */
+    searchByAddressWithLocation: async (
+        address: string,
+        radius: number = 5
+    ): Promise<{
+        location: { lat: number; lng: number; displayName?: string };
+        listings: ListingSummary[];
+    }> => {
         const response = await apiClient.get<{
             location: { lat: number; lng: number };
             listings: ListingSummary[];
         }>("/api/listings/search/by-address", { params: { address, radius } });
-        return response.data.listings;
+        return response.data;
     },
 
     /**
@@ -163,6 +190,16 @@ export const listingsApi = {
     getMyListings: async (): Promise<ListingSummary[]> => {
         const { data } = await apiClient.get<ListingSummary[]>(
             "/api/listings/me"
+        );
+        return data;
+    },
+
+    /**
+     * Get unique locations (cities, districts, wards) from all listings
+     */
+    getLocations: async (): Promise<Record<string, Record<string, string[]>>> => {
+        const { data } = await apiClient.get<Record<string, Record<string, string[]>>>(
+            "/api/listings/locations"
         );
         return data;
     },

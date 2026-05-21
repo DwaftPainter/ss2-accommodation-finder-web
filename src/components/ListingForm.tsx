@@ -233,8 +233,8 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
     const errorCls = "text-[11px] text-red-500 mt-0.5";
 
     return (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-center justify-center p-5 animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
-            <div className="bg-white border border-gray-200 rounded-2xl max-h-[90vh] overflow-y-auto shadow-2xl w-[650px] max-w-full p-6 relative animate-modal-in" id="listing-form-modal">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-5 animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
+            <div className="bg-white border border-gray-200 rounded-t-2xl sm:rounded-2xl max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl w-full sm:w-[650px] sm:max-w-full p-4 sm:p-6 relative animate-modal-in" id="listing-form-modal">
                 <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all">
                     <X size={18} />
                 </button>
@@ -253,7 +253,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                         {/* Images */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
                             <label className="text-xs font-medium text-slate-400">Hình ảnh phòng trọ (Tối đa 10)</label>
-                            <div className="grid grid-cols-4 sm:grid-cols-5 gap-2 mt-1">
+                            <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-1">
                                 {/* Previews for existing images */}
                                 {existingImages.map((url, idx) => (
                                     <div key={`existing-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
@@ -383,7 +383,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                                 {UTILITY_OPTIONS.map((opt) => {
                                     const active = (utilities || []).includes(opt.value);
                                     return (
-                                        <label key={opt.value} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all border ${active ? 'bg-indigo-500/15 border-indigo-500 text-indigo-400' : 'bg-white/[0.06] border-white/[0.08] text-slate-400 hover:border-white/[0.15]'}`}>
+                                        <label key={opt.value} className={`inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-xs cursor-pointer transition-all border ${active ? 'bg-emerald-50 border-emerald-500 text-emerald-700' : 'bg-white border-gray-200 text-gray-600 hover:border-gray-300'}`}>
                                             <input type="checkbox" className="hidden" checked={active} onChange={() => handleUtilityToggle(opt.value)} />
                                             {opt.label}
                                         </label>
@@ -393,9 +393,9 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                         </div>
                     </div>
 
-                    <div className="flex justify-end gap-2 mt-5 pt-4 border-t border-white/[0.08]">
-                        <button type="button" onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-medium text-slate-400 hover:bg-white/[0.06] transition-all">Hủy</button>
-                        <button type="submit" disabled={isSubmitting || isUploading} className="px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-sm hover:shadow-[0_0_20px_var(--color-accent-glow)] disabled:opacity-50 transition-all flex items-center gap-2" id="submit-listing-btn">
+                    <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5 pt-4 border-t border-gray-100">
+                        <button type="button" onClick={onClose} className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-all">Hủy</button>
+                        <button type="submit" disabled={isSubmitting || isUploading} className="w-full sm:w-auto justify-center px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm hover:shadow-md disabled:opacity-50 transition-all flex items-center gap-2" id="submit-listing-btn">
                             {(isSubmitting || isUploading) && <Loader2 size={16} className="animate-spin" />}
                             {isUploading ? 'Đang tải ảnh...' : isSubmitting ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Đăng tin'}
                         </button>

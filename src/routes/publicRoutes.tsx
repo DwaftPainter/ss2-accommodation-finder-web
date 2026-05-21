@@ -1,9 +1,10 @@
-import HomeRoute from "./HomeRoute";
-import ExploreRoute from "./ExploreRoute";
+import { lazy } from "react";
+import LazyRoute from "./LazyRoute";
+
+const HomeRoute = lazy(() => import("./HomeRoute"));
 
 const publicRoutes = [
-    { path: '/', element: <HomeRoute /> },
-    { path: '/explore', element: <ExploreRoute /> }
+    { path: '/', element: <LazyRoute component={HomeRoute} /> }
 ];
 
 export default publicRoutes;

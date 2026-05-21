@@ -1,7 +1,9 @@
-import { useState } from "react";
-import { Filter, Bookmark, LogIn, X, SwitchCamera, Map, Menu, MessageSquare } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bell, Filter, Bookmark, LogIn, X, SwitchCamera, Map, Menu, MessageSquare } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useUserMode } from "../stores";
+import { notificationsApi } from "../services/api";
+import type { Notification } from "../types";
 
 interface NavbarProps {
     onOpenSaved: () => void;
@@ -30,10 +32,78 @@ export default function Navbar({
     const userMode = useUserMode();
     const [query, setQuery] = useState("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+    const [notificationsOpen, setNotificationsOpen] = useState(false);
+    const [notifications, setNotifications] = useState<Notification[]>([]);
+    const [unreadCount, setUnreadCount] = useState(0);
+    const [notificationsLoading, setNotificationsLoading] = useState(false);
+    const notificationsRef = useRef<HTMLDivElement>(null);
 
     const modeButtonText = userMode === "finder" ? "Cho thuê phòng" : "Tìm phòng";
 
     const closeMobileMenu = () => setMobileMenuOpen(false);
+
+    const loadNotifications = async () => {
+        if (!user) return;
+        try {
+            setNotificationsLoading(true);
+            const response = await notificationsApi.getAll({ limit: 5 });
+            setNotifications(response.data);
+            setUnreadCount(response.meta.unreadCount);
+        } finally {
+            setNotificationsLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        if (!user) {
+            setNotifications([]);
+            setUnreadCount(0);
+            setNotificationsOpen(false);
+            return;
+        }
+
+        loadNotifications().catch(() => {});
+    }, [user?.id]);
+
+    useEffect(() => {
+        if (!notificationsOpen) return;
+
+        const handlePointerDown = (event: MouseEvent) => {
+            if (!notificationsRef.current?.contains(event.target as Node)) {
+                setNotificationsOpen(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handlePointerDown);
+        return () => document.removeEventListener("mousedown", handlePointerDown);
+    }, [notificationsOpen]);
+
+    const handleToggleNotifications = async () => {
+        const nextOpen = !notificationsOpen;
+        setNotificationsOpen(nextOpen);
+        if (nextOpen) {
+            await loadNotifications().catch(() => {});
+        }
+    };
+
+    const handleMarkAllNotificationsRead = async () => {
+        await notificationsApi.markAllAsRead();
+        setUnreadCount(0);
+        setNotifications((items) => items.map((item) => ({ ...item, isRead: true })));
+    };
+
+    const handleNotificationClick = async (notification: Notification) => {
+        if (!notification.isRead) {
+            await notificationsApi.markAsRead(notification.id);
+            setUnreadCount((count) => Math.max(count - 1, 0));
+            setNotifications((items) =>
+                items.map((item) =>
+                    item.id === notification.id ? { ...item, isRead: true } : item
+                )
+            );
+        }
+        setNotificationsOpen(false);
+    };
 
     return (
         <>
@@ -103,6 +173,75 @@ export default function Navbar({
 
                     {user && (
                         <>
+                            <div className="relative" ref={notificationsRef}>
+                                <button
+                                    onClick={handleToggleNotifications}
+                                    className="relative flex items-center justify-center w-9 h-9 rounded-lg text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all border border-transparent"
+                                    id="notifications-btn"
+                                >
+                                    <Bell size={17} />
+                                    {unreadCount > 0 && (
+                                        <span className="absolute -top-1 -right-1 min-w-5 h-5 px-1 rounded-full bg-rose-500 text-white text-[11px] font-semibold flex items-center justify-center">
+                                            {unreadCount > 9 ? "9+" : unreadCount}
+                                        </span>
+                                    )}
+                                </button>
+
+                                {notificationsOpen && (
+                                    <div className="absolute right-0 top-11 w-80 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden z-[1100]">
+                                        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
+                                            <h3 className="text-sm font-semibold text-slate-900">Thông báo</h3>
+                                            {unreadCount > 0 && (
+                                                <button
+                                                    onClick={handleMarkAllNotificationsRead}
+                                                    className="text-xs font-medium text-emerald-600 hover:text-emerald-700"
+                                                >
+                                                    Đánh dấu đã đọc
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        {notificationsLoading ? (
+                                            <div className="p-4 space-y-3">
+                                                {[0, 1, 2].map((item) => (
+                                                    <div key={item} className="h-12 rounded-lg bg-slate-100 animate-pulse" />
+                                                ))}
+                                            </div>
+                                        ) : notifications.length === 0 ? (
+                                            <div className="px-4 py-8 text-center text-sm text-slate-500">
+                                                Chưa có thông báo
+                                            </div>
+                                        ) : (
+                                            <div className="max-h-96 overflow-y-auto">
+                                                {notifications.map((notification) => (
+                                                    <button
+                                                        key={notification.id}
+                                                        onClick={() => handleNotificationClick(notification)}
+                                                        className="w-full text-left px-4 py-3 hover:bg-slate-50 border-b border-slate-100 last:border-b-0 transition-colors"
+                                                    >
+                                                        <div className="flex items-start gap-3">
+                                                            <span
+                                                                className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                                                                    notification.isRead ? "bg-slate-200" : "bg-emerald-500"
+                                                                }`}
+                                                            />
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-semibold text-slate-900 line-clamp-1">
+                                                                    {notification.title}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500 line-clamp-2 mt-0.5">
+                                                                    {notification.body}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+
                             <button
                                 onClick={onOpenSaved}
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900 transition-all border border-transparent"
@@ -236,6 +375,64 @@ export default function Navbar({
                             {/* Saved & Messages */}
                             {user && (
                                 <>
+                                    <button
+                                        onClick={() => {
+                                            handleToggleNotifications();
+                                        }}
+                                        className="w-full flex items-center gap-3 px-4 py-3 text-slate-700 hover:bg-slate-50 transition-all"
+                                    >
+                                        <div className="relative">
+                                            <Bell size={20} />
+                                            {unreadCount > 0 && (
+                                                <span className="absolute -top-2 -right-2 min-w-4 h-4 px-1 rounded-full bg-rose-500 text-white text-[10px] font-semibold flex items-center justify-center">
+                                                    {unreadCount > 9 ? "9+" : unreadCount}
+                                                </span>
+                                            )}
+                                        </div>
+                                        <span className="font-medium">Thông báo</span>
+                                    </button>
+                                    {notificationsOpen && (
+                                        <div className="mx-4 mb-2 rounded-xl border border-slate-200 overflow-hidden">
+                                            {notificationsLoading ? (
+                                                <div className="p-3 space-y-2">
+                                                    {[0, 1].map((item) => (
+                                                        <div key={item} className="h-10 rounded-lg bg-slate-100 animate-pulse" />
+                                                    ))}
+                                                </div>
+                                            ) : notifications.length === 0 ? (
+                                                <div className="px-3 py-4 text-center text-sm text-slate-500">
+                                                    Chưa có thông báo
+                                                </div>
+                                            ) : (
+                                                notifications.map((notification) => (
+                                                    <button
+                                                        key={notification.id}
+                                                        onClick={() => {
+                                                            handleNotificationClick(notification);
+                                                            closeMobileMenu();
+                                                        }}
+                                                        className="w-full text-left px-3 py-2.5 border-b border-slate-100 last:border-b-0 hover:bg-slate-50"
+                                                    >
+                                                        <div className="flex items-start gap-2">
+                                                            <span
+                                                                className={`mt-1.5 w-2 h-2 rounded-full shrink-0 ${
+                                                                    notification.isRead ? "bg-slate-200" : "bg-emerald-500"
+                                                                }`}
+                                                            />
+                                                            <div className="min-w-0">
+                                                                <p className="text-sm font-semibold text-slate-900 line-clamp-1">
+                                                                    {notification.title}
+                                                                </p>
+                                                                <p className="text-xs text-slate-500 line-clamp-2">
+                                                                    {notification.body}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    </button>
+                                                ))
+                                            )}
+                                        </div>
+                                    )}
                                     <button
                                         onClick={() => {
                                             onOpenSaved();

@@ -15,6 +15,7 @@ import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
 import { useListingsStore } from "../stores";
 import MapView from "../components/MapView";
+import NotificationBell from "../components/NotificationBell";
 import ListingDetail from "../components/ListingDetail";
 import ListingForm from "../components/ListingForm";
 import { formatAddress } from "../lib/utils";
@@ -44,11 +45,11 @@ interface LandlordNavProps {
 
 function LandlordNav({ activeTab, onTabChange }: LandlordNavProps) {
     return (
-        <div className="flex items-center justify-center">
-            <div className="flex items-center bg-white rounded-full shadow-md border border-gray-200 p-1">
+        <div className="flex items-center justify-center w-full">
+            <div className="grid grid-cols-2 w-full max-w-sm sm:max-w-md lg:w-auto lg:max-w-none lg:flex lg:items-center bg-white rounded-full shadow-md border border-gray-200 p-1">
                 <button
                     onClick={() => onTabChange("listings")}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 rounded-full transition-all ${
+                    className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 rounded-full transition-all ${
                         activeTab === "listings"
                             ? "bg-gray-900 text-white"
                             : "text-gray-600 hover:bg-gray-100"
@@ -59,7 +60,7 @@ function LandlordNav({ activeTab, onTabChange }: LandlordNavProps) {
                 </button>
                 <button
                     onClick={() => onTabChange("create")}
-                    className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 rounded-full transition-all ${
+                    className={`flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-6 py-2 rounded-full transition-all ${
                         activeTab === "create"
                             ? "bg-emerald-500 text-white"
                             : "text-gray-600 hover:bg-gray-100"
@@ -168,7 +169,7 @@ function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect:
     const imageUrl = listing.images?.[0] || sampleImages[0];
 
     return (
-        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[280px]">
+        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[72vw] max-w-[280px] sm:w-[280px]">
             <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 mb-3">
                 <img
                     src={imageUrl}
@@ -232,8 +233,8 @@ function ListingsRow({
 
     return (
         <div className="py-8">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
+            <div className="flex items-center justify-between gap-3 mb-6">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h2>
                 <div className="flex items-center gap-2">
                     <button
                         onClick={() => scroll("left")}
@@ -336,6 +337,23 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
         setSelectedListingId(null);
     };
 
+    const handleEditListing = (listing: ListingDetailType) => {
+        setSelectedListingId(null);
+        setEditingListing(listing);
+        setShowForm(true);
+    };
+
+    const [editingListing, setEditingListing] = useState<ListingDetailType | null>(null);
+
+    const refreshListings = async () => {
+        try {
+            const allListings = await listingsApi.getMyListings();
+            setMyListings(allListings);
+        } catch (error) {
+            console.error("Failed to refresh listings:", error);
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
@@ -345,38 +363,39 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
     }
 
     return (
-        <div className="h-screen flex flex-col overflow-hidden bg-white">
+        <div className="min-h-[100dvh] h-[100dvh] flex flex-col overflow-hidden bg-white">
             {/* Header */}
             <header className="flex-shrink-0 z-50 bg-white border-b border-gray-200">
                 <div className="w-full px-4 sm:px-6">
-                    <div className="flex items-center justify-between h-16 sm:h-20">
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex flex-wrap lg:flex-nowrap items-center justify-between min-h-16 lg:min-h-20 py-2 gap-2 lg:gap-3">
+                        <div className="order-1 flex items-center gap-2 flex-shrink-0 min-w-0">
                             <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
                                 <Home className="text-white" size={20} />
                             </div>
-                            <div className="landing-brand hidden sm:block">
-                                <span className="landing-brand-text text-lg sm:text-xl">AccomFinder</span>
+                            <div className="landing-brand hidden lg:block min-w-0">
+                                <span className="landing-brand-text text-lg xl:text-xl">AccomFinder</span>
                             </div>
                         </div>
 
-                        <div className="flex-1 flex justify-center px-2 sm:px-4">
+                        <div className="order-3 lg:order-2 basis-full lg:basis-auto lg:flex-1 flex justify-center min-w-0 px-0 lg:px-2 xl:px-4">
                             <LandlordNav activeTab={activeTab} onTabChange={handleTabChange} />
                         </div>
 
-                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <div className="order-2 lg:order-3 flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
                             <button
                                 onClick={handleToggleMode}
-                                className="hidden sm:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-4 rounded-full transition-colors whitespace-nowrap"
+                                className="hidden lg:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-3 xl:px-4 rounded-full transition-colors whitespace-nowrap"
                             >
                                 {modeButtonText}
                             </button>
 
                             <button
                                 onClick={handleToggleMode}
-                                className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
+                                className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
                             >
                                 <SwitchCamera size={20} className="text-gray-700" />
                             </button>
+                            <NotificationBell enabled={Boolean(user)} />
                             <UserMenu user={user} onNavigate={onNavigate} />
                         </div>
                     </div>
@@ -387,7 +406,7 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
             <main className="flex-1 flex flex-col min-h-0 overflow-hidden">
                 {activeTab === "listings" ? (
                     <div className="flex-1 overflow-y-auto">
-                        <div className="w-full px-6 pb-12">
+                        <div className="w-full px-4 sm:px-6 pb-12">
                             {myListings.length > 0 ? (
                                 <ListingsRow
                                     title="Bài đăng của bạn"
@@ -416,8 +435,8 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                         </div>
                     </div>
                 ) : (
-                    <div className="flex-1 p-4 overflow-hidden">
-                        <div className="h-full rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white relative">
+                    <div className="flex-1 p-2 sm:p-4 overflow-hidden">
+                        <div className="h-full rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white relative">
                             <MapView
                                 listings={[]}
                                 onSelectListing={() => {}}
@@ -431,11 +450,14 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                             />
 
                             {/* Create listing button - top right */}
-                            <div className="absolute top-4 right-4 z-[400]">
+                            <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-[400]">
                                 <button
-                                    onClick={() => setShowForm(true)}
+                                    onClick={() => {
+                                        setEditingListing(null);
+                                        setShowForm(true);
+                                    }}
                                     disabled={!pinLocation}
-                                    className={`flex items-center gap-2 px-6 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${
+                                    className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${
                                         pinLocation
                                             ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-xl hover:scale-105"
                                             : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -461,33 +483,25 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                 <ListingDetail
                     listingId={selectedListingId}
                     onClose={handleCloseDetail}
-                    onEdit={() => {}}
-                    onDeleted={() => {}}
+                    onEdit={handleEditListing}
+                    onDeleted={refreshListings}
                 />
             )}
 
             {showForm && (
                 <ListingForm
-                    listing={null}
+                    listing={editingListing}
                     pinLocation={pinLocation}
                     onClose={() => {
                         setShowForm(false);
+                        setEditingListing(null);
                         setPinLocation(null);
                     }}
-                    onSaved={async (data) => {
-                        try {
-                            await listingsApi.create(data);
-                            toast.success("Đăng tin thành công!");
-                            setShowForm(false);
-                            setPinLocation(null);
-                            // Refresh listings
-                            const allListings = await listingsApi.getMyListings();
-                            setMyListings(allListings);
-                            // Switch back to listings tab
+                    onSaved={async () => {
+                        await refreshListings();
+                        // If we were creating (no editingListing), switch to listings tab
+                        if (!editingListing) {
                             setActiveTab("listings");
-                        } catch (error) {
-                            const errorMessage = error instanceof Error ? error.message : "Đăng tin thất bại";
-                            toast.error(errorMessage);
                         }
                     }}
                 />

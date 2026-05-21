@@ -211,31 +211,6 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
     const ref = useRef<HTMLDivElement>(null);
     const [visible, setVisible] = useState(false);
 
-    // Fallback image data for when API is not available
-    const fallbackListings = [
-        {
-            id: '1',
-            title: 'Sunny Studio - Gần ĐH Bách Khoa',
-            address: 'Quận Hai Bà Trưng, Hà Nội',
-            price: 3500000,
-            images: ['/listing-studio.png'],
-        },
-        {
-            id: '2',
-            title: 'Phòng Trọ Khép Kín - Cầu Giấy',
-            address: 'Quận Cầu Giấy, Hà Nội',
-            price: 2800000,
-            images: ['/listing-room1.png'],
-        },
-        {
-            id: '3',
-            title: 'Chung Cư Mini - Gần ĐH Quốc Gia',
-            address: 'Quận Nam Từ Liêm, Hà Nội',
-            price: 4200000,
-            images: ['/listing-room2.png'],
-        },
-    ];
-
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => { if (entry.isIntersecting) setVisible(true); },
@@ -251,13 +226,12 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                 setListings(data.slice(0, 3));
             })
             .catch(() => {
-                // Use fallback data if API fails
-                setListings(fallbackListings as any);
+                setListings([]);
             })
             .finally(() => setLoading(false));
     }, []);
 
-    const displayListings = listings.length > 0 ? listings : fallbackListings;
+    const displayListings = listings;
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -288,7 +262,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                             <div className="landing-listings-skeleton small" />
                         </div>
                     </div>
-                ) : (
+                ) : displayListings.length > 0 ? (
                     <div className={`landing-listings-grid ${visible ? 'visible' : ''}`}>
                         {/* Large card */}
                         <div className="landing-listing-card large" style={{ transitionDelay: '0ms' }}>
@@ -341,6 +315,10 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                 </div>
                             ))}
                         </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-slate-500">
+                        <p className="text-lg">Hiện tại chưa có phòng trọ nổi bật nào.</p>
                     </div>
                 )}
             </div>

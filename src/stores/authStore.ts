@@ -3,6 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { RegisterPayload, User, LoginPayload } from "../types";
 import { STORAGE_KEYS } from "../lib/constants";
 import { authApi } from "../services/api";
+import { useListingsStore } from "./listingsStore";
 
 interface AuthState {
     user: User | null;
@@ -16,12 +17,15 @@ interface AuthActions {
     login: (payload: LoginPayload) => Promise<void>;
     logout: () => Promise<void>;
     logoutAll: () => Promise<void>;
-    register: (payload: RegisterPayload) => Promise<{ message: string }>;
+    register: (payload: RegisterPayload) => Promise<{ code?: string; message: string }>;
     verifyOtp: (email: string, otp: string) => Promise<void>;
-    resendOtp: (email: string) => Promise<{ message: string }>;
+    resendOtp: (email: string) => Promise<{ code?: string; message: string }>;
     fetchUser: () => Promise<void>;
+    validateSession: () => Promise<void>;
     refreshAccessToken: () => Promise<boolean>;
     handleAuthCallback: (accessToken: string, refreshToken: string) => Promise<void>;
+    loginWithGoogleToken: (auth0Token: string) => Promise<void>;
+    updateProfile: (user: User) => void;
     clearError: () => void;
 }
 
@@ -44,6 +48,11 @@ const storeTokens = (accessToken: string, refreshToken: string) => {
 const clearTokens = () => {
     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
+};
+
+const clearSessionData = () => {
+    clearTokens();
+    useListingsStore.getState().clearSavedListings();
 };
 
 export const useAuthStore = create<AuthStore>()(
@@ -83,7 +92,7 @@ export const useAuthStore = create<AuthStore>()(
                 try {
                     const result = await authApi.register(payload);
                     set({ isLoading: false });
-                    return { message: result.message };
+                    return { code: result.code, message: result.message };
                 } catch (error) {
                     set({
                         isLoading: false,
@@ -120,7 +129,7 @@ export const useAuthStore = create<AuthStore>()(
                         await authApi.logout(refreshToken);
                     }
                 } finally {
-                    clearTokens();
+                    clearSessionData();
                     set({ ...initialState, isLoading: false });
                 }
             },
@@ -129,7 +138,7 @@ export const useAuthStore = create<AuthStore>()(
                 try {
                     await authApi.logoutAll();
                 } finally {
-                    clearTokens();
+                    clearSessionData();
                     set({ ...initialState, isLoading: false });
                 }
             },
@@ -137,7 +146,8 @@ export const useAuthStore = create<AuthStore>()(
             fetchUser: async () => {
                 const token = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
                 if (!token) {
-                    set({ isLoading: false });
+                    clearSessionData();
+                    set({ user: null, isAuthenticated: false, isLoading: false });
                     return;
                 }
 
@@ -146,7 +156,7 @@ export const useAuthStore = create<AuthStore>()(
                     const user = await authApi.getMe();
                     set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
-                    clearTokens();
+                    clearSessionData();
                     set({
                         user: null,
                         isAuthenticated: false,
@@ -154,6 +164,51 @@ export const useAuthStore = create<AuthStore>()(
                         error: error instanceof Error ? error.message : "Failed to fetch user"
                     });
                 }
+            },
+
+            validateSession: async () => {
+                const accessToken = localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN);
+                const refreshToken = localStorage.getItem(STORAGE_KEYS.REFRESH_TOKEN);
+
+                if (!accessToken && !refreshToken) {
+                    clearSessionData();
+                    set({ ...initialState });
+                    return;
+                }
+
+                set({ isLoading: true, error: null });
+
+                if (accessToken) {
+                    try {
+                        const user = await authApi.getMe();
+                        set({ user, isAuthenticated: true, isLoading: false });
+                        return;
+                    } catch {
+                        // Fall through to refresh token validation.
+                    }
+                }
+
+                if (refreshToken) {
+                    try {
+                        const result = await authApi.refreshToken(refreshToken);
+                        storeTokens(result.accessToken, result.refreshToken);
+                        const user = await authApi.getMe();
+                        set({ user, isAuthenticated: true, isLoading: false });
+                        return;
+                    } catch (error) {
+                        clearSessionData();
+                        set({
+                            user: null,
+                            isAuthenticated: false,
+                            isLoading: false,
+                            error: error instanceof Error ? error.message : "Session expired"
+                        });
+                        return;
+                    }
+                }
+
+                clearSessionData();
+                set({ ...initialState });
             },
 
             refreshAccessToken: async () => {
@@ -165,9 +220,10 @@ export const useAuthStore = create<AuthStore>()(
                 try {
                     const result = await authApi.refreshToken(refreshToken);
                     storeTokens(result.accessToken, result.refreshToken);
+                    set({ isAuthenticated: true });
                     return true;
                 } catch (error) {
-                    clearTokens();
+                    clearSessionData();
                     set({ user: null, isAuthenticated: false });
                     return false;
                 }
@@ -180,14 +236,38 @@ export const useAuthStore = create<AuthStore>()(
                     const user = await authApi.getMe();
                     set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
-                    clearTokens();
+                    clearSessionData();
                     set({
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
                         error: error instanceof Error ? error.message : "Authentication failed"
                     });
+                    throw error;
                 }
+            },
+
+            loginWithGoogleToken: async (auth0Token: string) => {
+                set({ isLoading: true, error: null });
+                try {
+                    const response = await authApi.loginWithGoogle(auth0Token);
+                    storeTokens(response.accessToken, response.refreshToken);
+                    const user = await authApi.getMe();
+                    set({ user, isAuthenticated: true, isLoading: false });
+                } catch (error) {
+                    clearSessionData();
+                    set({
+                        user: null,
+                        isAuthenticated: false,
+                        isLoading: false,
+                        error: error instanceof Error ? error.message : "Google authentication failed"
+                    });
+                    throw error;
+                }
+            },
+
+            updateProfile: (user) => {
+                set({ user });
             },
 
             clearError: () => set({ error: null })

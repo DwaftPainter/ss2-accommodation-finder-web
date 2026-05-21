@@ -1,9 +1,10 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SavedPage } from "../pages";
-import ListingDetail from "../components/ListingDetail";
-import ChatBox from "../components/ChatBox";
 import { useListingsStore } from "../stores";
+
+const ChatBox = lazy(() => import("../components/ChatBox"));
+const ListingDetail = lazy(() => import("../components/ListingDetail"));
 
 export default function SavedRoute() {
     const navigate = useNavigate();
@@ -16,24 +17,27 @@ export default function SavedRoute() {
 
     const handleSelectListing = useCallback(
         (id: string) => {
-            navigate("/");
             setSelectedListingId(id);
         },
-        [navigate]
+        []
     );
 
     return (
         <>
             <SavedPage onBack={handleBack} onSelectListing={handleSelectListing} />
             {selectedListingId && (
-                <ListingDetail
-                    listingId={selectedListingId}
-                    onClose={() => setSelectedListingId(null)}
-                    onEdit={() => {}}
-                    onDeleted={fetchListings}
-                />
+                <Suspense fallback={null}>
+                    <ListingDetail
+                        listingId={selectedListingId}
+                        onClose={() => setSelectedListingId(null)}
+                        onEdit={() => {}}
+                        onDeleted={fetchListings}
+                    />
+                </Suspense>
             )}
-            <ChatBox />
+            <Suspense fallback={null}>
+                <ChatBox />
+            </Suspense>
         </>
     );
 }
