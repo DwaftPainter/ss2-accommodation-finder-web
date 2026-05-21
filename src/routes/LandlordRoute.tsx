@@ -1,13 +1,12 @@
-import { useCallback, useState } from "react";
+import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LandlordPage } from "../pages";
-import ChatBox from "../components/ChatBox";
-import { useListingsStore } from "../stores";
+
+const ChatBox = lazy(() => import("../components/ChatBox"));
 
 export default function LandlordRoute() {
     const navigate = useNavigate();
     const [selectedListingId, setSelectedListingId] = useState<string | null>(null);
-    const { listings, fetchListings } = useListingsStore();
 
     const handleNavigate = useCallback(
         (page: string) => {
@@ -33,7 +32,9 @@ export default function LandlordRoute() {
     return (
         <>
             <LandlordPage onSelectListing={handleSelectListing} onNavigate={handleNavigate} />
-            <ChatBox />
+            <Suspense fallback={null}>
+                <ChatBox />
+            </Suspense>
         </>
     );
 }

@@ -29,6 +29,23 @@ export interface Message {
     sender: { id: string; name: string; avatarUrl: string | null };
 }
 
+export interface ChatMessagesResponse {
+    messages: Message[];
+    meta: { skip?: number; take?: number; total?: number; page?: number; limit?: number };
+}
+
+export interface AiHealthResponse {
+    status: string;
+    provider?: string;
+    model?: string;
+}
+
+export interface AiConnectionResponse {
+    connected: boolean;
+    provider?: string;
+    model?: string;
+}
+
 export const chatApi = {
     /**
      * AI Chat - Send a message to the AI chat service
@@ -43,11 +60,27 @@ export const chatApi = {
      */
     healthCheck: async (): Promise<boolean> => {
         try {
-            await apiClient.get('/api/ai-chat/health');
+            await chatApi.getAIHealth();
             return true;
         } catch {
             return false;
         }
+    },
+
+    /**
+     * AI Chat - Get provider/model health details
+     */
+    getAIHealth: async (): Promise<AiHealthResponse> => {
+        const { data } = await apiClient.get<AiHealthResponse>('/api/ai-chat/health');
+        return data;
+    },
+
+    /**
+     * AI Chat - Test provider connectivity
+     */
+    testAIConnection: async (): Promise<AiConnectionResponse> => {
+        const { data } = await apiClient.get<AiConnectionResponse>('/api/ai-chat/test-connection');
+        return data;
     },
 
     /**
@@ -61,8 +94,8 @@ export const chatApi = {
     /**
      * User Chat - Get messages for a specific chat
      */
-    getChatMessages: async (chatId: string, skip = 0, take = 20): Promise<{ messages: Message[], meta: any }> => {
-        const { data } = await apiClient.get<{ messages: Message[], meta: any }>(`/api/chats/${chatId}/messages`, {
+    getChatMessages: async (chatId: string, skip = 0, take = 20): Promise<ChatMessagesResponse> => {
+        const { data } = await apiClient.get<ChatMessagesResponse>(`/api/chats/${chatId}/messages`, {
             params: { skip, take }
         });
         return data;
@@ -81,6 +114,41 @@ export const chatApi = {
      */
     getUnreadCount: async (): Promise<{ count: number }> => {
         const { data } = await apiClient.get<{ count: number }>('/api/chats/unread/count');
+        return data;
+    },
+
+    /**
+     * User Chat - Send a message to a chat
+     */
+    sendMessage: async (chatId: string, content: string): Promise<Message> => {
+        const { data } = await apiClient.post<Message>(`/api/chats/${chatId}/messages`, { content });
+        return data;
+    },
+
+    /**
+     * User Chat - Search messages through backend OpenSearch fallback
+     */
+    searchMessages: async (
+        query: string,
+        params: { chatId?: string; page?: number; limit?: number } = {}
+    ): Promise<ChatMessagesResponse> => {
+        const { data } = await apiClient.get<ChatMessagesResponse>('/api/chats/search', {
+            params: { q: query, ...params }
+        });
+        return data;
+    },
+
+    /**
+     * User Chat - Get chat history through backend OpenSearch fallback
+     */
+    getChatHistory: async (
+        chatId: string,
+        page = 1,
+        limit = 50
+    ): Promise<ChatMessagesResponse> => {
+        const { data } = await apiClient.get<ChatMessagesResponse>(`/api/chats/${chatId}/history`, {
+            params: { page, limit }
+        });
         return data;
     }
 };

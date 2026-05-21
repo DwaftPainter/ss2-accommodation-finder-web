@@ -8,7 +8,7 @@ interface ExtendedAuthLayoutProps extends AuthLayoutProps {
 export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayoutProps) {
     return (
         <div
-            className="fixed inset-0 z-[2000] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
             style={{
                 background: "rgba(10, 11, 18, 0.75)",
                 backdropFilter: "blur(12px)",
@@ -19,15 +19,13 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
             }}
         >
             <div
-                className="relative w-full max-w-md animate-modal-in bg-white"
+                className="relative w-full sm:max-w-md max-h-[96dvh] overflow-y-auto animate-modal-in bg-white rounded-t-[20px] sm:rounded-[20px]"
                 style={{
                     border: "1px solid rgba(0,0,0,0.08)",
-                    borderRadius: "20px",
                     boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",
-                    overflow: "hidden",
                 }}
             >
-                {/* Gradient Orb Background */}
+                {/* Soft modal background accents */}
                 <div
                     className="absolute -top-24 -right-24 w-64 h-64 rounded-full opacity-20 pointer-events-none"
                     style={{
@@ -53,7 +51,7 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
                 </button>
 
                 {/* Content – animate on view change */}
-                <div key={view} className="relative p-8 animate-fade-in">
+                <div key={view} className="relative p-6 sm:p-8 animate-fade-in">
                     {children}
 
                     {/* Footer note - only for login/register */}

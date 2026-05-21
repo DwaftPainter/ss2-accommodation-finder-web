@@ -21,6 +21,8 @@ export type AuthResponse = {
     user: User;
     accessToken: string;
     refreshToken: string;
+    code?: string;
+    message?: string;
 };
 
 export type VerifyEmailResponse = {
@@ -28,9 +30,11 @@ export type VerifyEmailResponse = {
     accessToken: string;
     refreshToken: string;
     message: string;
+    code?: string;
 };
 
 export type RegisterResponse = {
     user: Pick<User, "id" | "email" | "name">;
     message: string;
+    code?: string;
 };

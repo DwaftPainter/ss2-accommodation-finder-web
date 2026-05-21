@@ -5,6 +5,28 @@ import axios, {
 } from "axios";
 import { STORAGE_KEYS, API_BASE_URL } from "./constants";
 
+type ApiErrorData = {
+    code?: string;
+    message?: string | string[];
+    error?: string;
+};
+
+export type ApiError = AxiosError & {
+    apiCode?: string;
+    statusCode?: number;
+};
+
+function normalizeErrorMessage(data: unknown, fallback: string): string {
+    if (!data || typeof data !== "object") return fallback;
+
+    const { message, error } = data as ApiErrorData;
+    if (Array.isArray(message)) return message.filter(Boolean).join(" ");
+    if (typeof message === "string" && message.trim()) return message;
+    if (typeof error === "string" && error.trim()) return error;
+
+    return fallback;
+}
+
 /**
  * Axios instance with default configuration
  */
@@ -39,13 +61,16 @@ apiClient.interceptors.response.use(
     (response) => response,
     (error: AxiosError) => {
         if (error.response) {
-            // Extract error message from response if available
-            const errorMessage = (error.response.data as { message?: string })?.message
-                || error.message
-                || "An error occurred";
+            const data = error.response.data as ApiErrorData | undefined;
+            const errorMessage = normalizeErrorMessage(
+                data,
+                error.message || "An error occurred"
+            );
 
-            // Enhance error with response message
+            const enhancedError = error as ApiError;
             error.message = errorMessage;
+            enhancedError.apiCode = data?.code;
+            enhancedError.statusCode = error.response.status;
 
             // Handle specific status codes
             switch (error.response.status) {
@@ -54,15 +79,6 @@ apiClient.interceptors.response.use(
                     // Let the auth store handle the redirect after setting error
                     localStorage.removeItem(STORAGE_KEYS.ACCESS_TOKEN);
                     localStorage.removeItem(STORAGE_KEYS.REFRESH_TOKEN);
-                    break;
-                case 403:
-                    console.error("Access forbidden");
-                    break;
-                case 404:
-                    console.error("Resource not found");
-                    break;
-                case 500:
-                    console.error("Server error");
                     break;
             }
         }
