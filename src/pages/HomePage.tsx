@@ -2,8 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import {
     Search,
     Heart,
-    ChevronLeft,
-    ChevronRight,
     Star,
     SwitchCamera,
     LogOut,
@@ -56,77 +54,85 @@ function SearchBar({ onShowMap }: { onShowMap: () => void }) {
     };
 
     return (
-        <div className="flex items-center justify-center py-2 w-full px-4 sm:px-0">
+        <div className="flex w-full items-center justify-center py-2">
             {/* Mobile: Simplified Search Bar */}
-            <div className="flex md:hidden items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow w-full max-w-md">
+            <div className="flex w-full max-w-md items-center rounded-full border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg md:hidden">
                 <div className="flex flex-col px-4 py-2 hover:bg-gray-100 rounded-full transition-colors text-left flex-1 min-w-0">
                     <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="Tìm kiếm địa điểm..."
-                        className="text-sm text-gray-700 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-700 outline-none"
+                        aria-label="Tìm kiếm địa điểm"
                     />
                 </div>
                 <div className="pr-1.5 pl-1">
                     <button
+                        type="button"
                         onClick={handleSearch}
-                        className="flex items-center justify-center w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-full hover:scale-105 transition-transform"
+                        aria-label="Mở bản đồ tìm kiếm"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                     >
-                        <Search size={16} className="text-white" />
+                        <Search size={16} className="text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>
 
             {/* Desktop: Full Search Bar */}
-            <div className="hidden md:flex items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow">
+            <div className="hidden w-full max-w-3xl items-center rounded-full border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg md:flex">
                 {/* 📍 Location */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[180px]">
+                <div className="flex min-w-0 flex-1 flex-col rounded-full px-5 py-2 text-left transition-colors hover:bg-gray-100">
                     <span className="text-xs font-semibold text-gray-900">Địa điểm</span>
                     <input
                         type="text"
                         value={location}
                         onChange={(e) => setLocation(e.target.value)}
                         placeholder="VD: Hà Nội, Cầu Giấy..."
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Địa điểm"
                     />
                 </div>
 
                 <div className="w-px h-6 bg-gray-300" />
 
                 {/* 💰 Price */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[140px]">
+                <div className="flex min-w-0 flex-1 flex-col rounded-full px-5 py-2 text-left transition-colors hover:bg-gray-100">
                     <span className="text-xs font-semibold text-gray-900">Giá</span>
                     <input
                         type="text"
                         value={price}
                         onChange={(e) => setPrice(e.target.value)}
                         placeholder="VD: ≤ 3 triệu"
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Giá thuê"
                     />
                 </div>
 
                 <div className="w-px h-6 bg-gray-300" />
 
                 {/* 🏠 Keyword / Type */}
-                <div className="flex flex-col px-6 py-2 hover:bg-gray-100 rounded-full transition-colors text-left min-w-[160px]">
+                <div className="flex min-w-0 flex-1 flex-col rounded-full px-5 py-2 text-left transition-colors hover:bg-gray-100">
                     <span className="text-xs font-semibold text-gray-900">Loại / Từ khóa</span>
                     <input
                         type="text"
                         value={keyword}
                         onChange={(e) => setKeyword(e.target.value)}
                         placeholder="Phòng trọ, căn hộ, gần trường..."
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Loại phòng hoặc từ khóa"
                     />
                 </div>
 
                 {/* 🔍 Search */}
                 <div className="pr-1.5 pl-1">
                     <button
+                        type="button"
                         onClick={handleSearch}
-                        className="flex items-center justify-center w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-full hover:scale-105 transition-transform"
+                        aria-label="Mở bản đồ tìm kiếm"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                     >
-                        <Search size={16} className="text-white" />
+                        <Search size={16} className="text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>
@@ -175,12 +181,15 @@ function ListingCard({
     const imageUrl = listing.images?.[0] || sampleImages[0];
 
     return (
-        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[280px]">
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 mb-3">
+        <article
+            onClick={() => onSelect(listing.id)}
+            className="group min-w-0 cursor-pointer rounded-3xl bg-white p-2 shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-xl"
+        >
+            <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-2xl bg-gray-200 sm:aspect-square">
                 <img
                     src={imageUrl}
                     alt={listing.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 {/* Guest favorite badge */}
                 {/* {listing.avgRating >= 4.8 && (
@@ -190,8 +199,10 @@ function ListingCard({
                 )} */}
                 {/* Heart button */}
                 <button
+                    type="button"
                     onClick={handleToggleSaved}
-                    className="absolute top-3 right-3 p-2 rounded-full hover:scale-110 transition-transform"
+                    aria-label={isSaved ? "Bỏ lưu tin" : "Lưu tin"}
+                    className="absolute right-3 top-3 rounded-full p-2 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
                 >
                     <Heart
                         size={24}
@@ -199,11 +210,11 @@ function ListingCard({
                     />
                 </button>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 px-1 pb-2">
                 <div className="flex items-start justify-between">
                     <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{listing.title}</h3>
                     <div className="flex items-center gap-1 text-sm">
-                        <Star size={14} className="fill-gray-900 text-gray-900" />
+                        <Star size={14} className="fill-gray-900 text-gray-900" aria-hidden="true" />
                         {/* <span>{listing.avgRating.toFixed(2)}</span> */}
                     </div>
                 </div>
@@ -213,7 +224,7 @@ function ListingCard({
                     <span className="text-sm font-semibold text-gray-900">₫{formatPrice(listing.price)}</span>
                 </div>
             </div>
-        </div>
+        </article>
     );
 }
 
@@ -228,63 +239,19 @@ function ListingRow({
     onSelectListing: (id: string) => void;
     onRequireAuth?: () => void;
 }) {
-    const scrollRef = useRef<HTMLDivElement>(null);
-    const [showLeftArrow, setShowLeftArrow] = useState(false);
-    const [showRightArrow, setShowRightArrow] = useState(true);
-
-    const checkScroll = () => {
-        if (scrollRef.current) {
-            const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-            setShowLeftArrow(scrollLeft > 0);
-            setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 10);
-        }
-    };
-
-    useEffect(() => {
-        checkScroll();
-        const scrollEl = scrollRef.current;
-        if (scrollEl) {
-            scrollEl.addEventListener("scroll", checkScroll);
-            return () => scrollEl.removeEventListener("scroll", checkScroll);
-        }
-    }, []);
-
-    const scroll = (direction: "left" | "right") => {
-        if (scrollRef.current) {
-            const scrollAmount = 300;
-            scrollRef.current.scrollBy({
-                left: direction === "left" ? -scrollAmount : scrollAmount,
-                behavior: "smooth"
-            });
-        }
-    };
-
     return (
-        <div className="py-8">
-            <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">{title}</h2>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={() => scroll("left")}
-                        className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showLeftArrow ? "opacity-30 cursor-not-allowed" : ""}`}
-                        disabled={!showLeftArrow}
-                    >
-                        <ChevronLeft size={20} />
-                    </button>
-                    <button
-                        onClick={() => scroll("right")}
-                        className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showRightArrow ? "opacity-30 cursor-not-allowed" : ""}`}
-                        disabled={!showRightArrow}
-                    >
-                        <ChevronRight size={20} />
-                    </button>
+        <section className="py-6 sm:py-8">
+            <div className="mb-5 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Gợi ý khu vực</p>
+                    <h2 className="mt-1 text-[clamp(1.35rem,4vw,2rem)] font-bold leading-tight text-gray-950">
+                        {title}
+                    </h2>
                 </div>
+                <p className="text-sm text-gray-500">{listings.length} lựa chọn phù hợp</p>
             </div>
-            <div
-                ref={scrollRef}
-                className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
+
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {listings.map((listing) => (
                     <ListingCard
                         key={listing.id}
@@ -294,7 +261,7 @@ function ListingRow({
                     />
                 ))}
             </div>
-        </div>
+        </section>
     );
 }
 
@@ -337,8 +304,12 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     };
 
     return (
-        <div ref={menuRef} className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <div ref={menuRef} className="flex items-center gap-2 border-l border-gray-200 pl-2 sm:gap-3 sm:pl-4">
+            <button
+                type="button"
+                aria-label="Mở menu tài khoản"
+                className="hidden rounded-full p-2 transition-colors hover:bg-gray-100 sm:block"
+            >
                 <svg
                     width="18"
                     height="18"
@@ -352,41 +323,52 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
             </button>
             <div className="relative">
                 <button
+                    type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 p-1 border border-gray-300 rounded-full hover:shadow-md transition-shadow cursor-pointer"
+                    aria-expanded={isOpen}
+                    aria-haspopup="menu"
+                    className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-300 p-1 transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-sm font-medium text-white">
                         {user?.name?.[0]?.toUpperCase() || "U"}
                     </div>
                 </button>
 
                 {isOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-200 bg-white py-2 shadow-lg" role="menu">
                         <button
+                            type="button"
                             onClick={handleSavedClick}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <List size={18} />
                             <span className="text-sm font-medium">Danh sách yêu thích</span>
                         </button>
                         <button
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            type="button"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
                             onClick={() => navigate("/finder/chat")}
+                            role="menuitem"
                         >
                             <MessageSquare size={18} />
                             <span className="text-sm font-medium">Tin nhắn</span>
                         </button>
                         <button
+                            type="button"
                             onClick={handleProfileClick}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <User size={18} />
                             <span className="text-sm font-medium">Hồ sơ</span>
                         </button>
                         <hr className="my-2 border-gray-200" />
                         <button
+                            type="button"
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <LogOut size={18} />
                             <span className="text-sm font-medium">Đăng xuất</span>
@@ -400,7 +382,7 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
 
 export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }: HomePageProps) {
     const { user } = useAuth();
-    const { userMode, toggleUserMode } = useUIStore();
+    const { userMode } = useUIStore();
     const { listings, fetchListings, fetchSavedListings } = useListingsStore();
     const [listingsByCity, setListingsByCity] = useState<Record<string, ListingSummary[]>>({});
     const [isLoading, setIsLoading] = useState(true);
@@ -422,6 +404,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     // Handle showing map view
     const handleShowMap = () => {
         setShowMap(true);
+        setShowFilters(window.innerWidth >= 1024);
         // Update URL with search param without navigation
         const url = new URL(window.location.href);
         url.searchParams.set("view", "map");
@@ -431,6 +414,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     // Handle closing map view
     const handleCloseMap = () => {
         setShowMap(false);
+        setShowFilters(false);
         const url = new URL(window.location.href);
         url.searchParams.delete("view");
         window.history.pushState({}, "", url);
@@ -441,6 +425,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
         const url = new URL(window.location.href);
         if (url.searchParams.get("view") === "map") {
             setShowMap(true);
+            setShowFilters(window.innerWidth >= 1024);
         }
     }, []);
 
@@ -543,10 +528,6 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
         setSelectedListingId(null);
     };
 
-    useEffect(() => {
-        console.log("listingsByCity:", listingsByCity);
-    }, [listingsByCity]);
-
     if (isLoading) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-white">
@@ -557,14 +538,14 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
 
     // Home Feed View
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50">
             {/* Header */}
-            <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6">
-                    <div className="flex items-center justify-between h-16 sm:h-20">
+            <header className="z-50 border-b border-gray-200 bg-white/95 backdrop-blur lg:sticky lg:top-0">
+                <div className="mx-auto max-w-7xl px-4 sm:px-6">
+                    <div className="flex min-h-16 flex-wrap items-center justify-between gap-3 py-3 sm:min-h-20 lg:flex-nowrap">
                         {/* Logo */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                            <div className="w-9 h-9 sm:w-10 sm:h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-xl flex items-center justify-center">
+                        <div className="flex flex-shrink-0 items-center gap-2">
+                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-linear-to-br from-emerald-500 to-teal-500 sm:h-10 sm:w-10">
                                 <img src="/logo.png" alt="Logo" className="size-5" />
                             </div>
                             <div className="landing-brand hidden sm:block">
@@ -573,22 +554,25 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         </div>
 
                         {/* Search Bar - Hidden on small mobile, shown on md+ */}
-                        <div className="flex-1 flex justify-center px-2 sm:px-4">
+                        <div className="order-3 flex w-full justify-center lg:order-2 lg:min-w-0 lg:flex-1 lg:px-4">
                             <SearchBar onShowMap={handleShowMap} />
                         </div>
 
                         {/* Right side - User menu */}
-                        <div className="flex items-center gap-2 sm:gap-3 flex-shrink-0">
+                        <div className="order-2 flex flex-shrink-0 items-center gap-2 sm:gap-3 lg:order-3">
                             <button
+                                type="button"
                                 onClick={handleToggleMode}
-                                className="hidden sm:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-4 rounded-full transition-colors whitespace-nowrap"
+                                className="hidden items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 py-2 text-center text-sm font-medium text-gray-900 transition-colors hover:bg-gray-100 sm:flex"
                             >
                                 {modeButtonText}
                             </button>
 
                             <button
+                                type="button"
                                 onClick={handleToggleMode}
-                                className="sm:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
+                                aria-label="Chuyển sang chế độ cho thuê"
+                                className="flex h-9 w-9 items-center justify-center rounded-full transition-colors hover:bg-gray-100 sm:hidden"
                             >
                                 <SwitchCamera size={20} className="text-gray-700" />
                             </button>
@@ -600,7 +584,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
             </header>
 
             {showMap ? (
-                <div className="flex-1 flex overflow-hidden relative">
+                <div className="relative flex min-h-[calc(100vh-8rem)] flex-1 overflow-hidden">
                     {userMode === "finder" && (
                         <FilterPanel
                             filters={filters}
@@ -610,21 +594,30 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         />
                     )}
 
-                    <div className="flex-1 p-4 overflow-hidden">
-                        <div className="h-full rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
+                    <button
+                        type="button"
+                        onClick={() => setShowFilters((current) => !current)}
+                        className="absolute left-4 top-4 z-[1200] inline-flex items-center gap-2 rounded-full bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-lg ring-1 ring-slate-200 transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 lg:hidden"
+                    >
+                        <Search size={15} aria-hidden="true" />
+                        Bộ lọc
+                    </button>
+
+                    <div className="min-w-0 flex-1 overflow-hidden p-3 sm:p-4">
+                        <div className="h-full overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-lg">
                             <MapView
                                 listings={listings}
                                 onSelectListing={(id) => handleSelectListingInternal(id)}
                                 onMapClick={null}
                                 pinLocation={null}
                                 flyTo={flyTo}
-                                onClose={() => setShowMap(false)}
+                                onClose={handleCloseMap}
                             />
                         </div>
                     </div>
                 </div>
             ) : (
-                <main className="max-w-7xl mx-auto px-6 pb-12">
+                <main className="mx-auto w-full max-w-7xl px-4 pb-12 sm:px-6">
                     {citySections.map(
                         (city) =>
                             listingsByCity[city.name]?.length > 0 && (

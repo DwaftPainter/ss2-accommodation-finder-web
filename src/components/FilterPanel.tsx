@@ -56,7 +56,7 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
     if (!visible) return null;
 
     return (
-        <div className="w-80 bg-white border-r border-slate-200 p-4 overflow-y-auto flex flex-col gap-4 animate-slide-left max-md:absolute max-md:top-0 max-md:left-0 max-md:h-full max-md:z-[1500] max-md:shadow-2xl" id="filter-panel">
+        <div className="w-full max-w-80 bg-white border-r border-slate-200 p-4 overflow-y-auto flex flex-col gap-4 animate-slide-left max-lg:absolute max-lg:top-0 max-lg:left-0 max-lg:h-full max-lg:z-[1500] max-lg:shadow-2xl" id="filter-panel">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-800">Tìm kiếm & Bộ lọc</h3>

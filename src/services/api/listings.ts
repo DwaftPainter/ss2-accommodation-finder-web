@@ -113,12 +113,7 @@ export const listingsApi = {
         
         const { data } = await apiClient.post<string[]>(
             "/api/listings/upload",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
+            formData
         );
         return data;
     },
