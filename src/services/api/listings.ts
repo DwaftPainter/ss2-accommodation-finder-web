@@ -6,16 +6,34 @@ import type {
     ListingFilters,
 } from "../../types";
 
-/**
- * Build query string from filters
- * Maps snake_case frontend filters to camelCase backend params
- */
-function buildQueryString(
-    params: ListingFilters
-): string {
+function toBackendFilters(params: ListingFilters): Record<string, unknown> {
+    const body: Record<string, unknown> = {};
+
+    const keyMapping: Record<string, string> = {
+        price_min: "minPrice",
+        price_max: "maxPrice",
+        area_min: "minArea",
+        area_max: "maxArea",
+    };
+
+    Object.entries(params).forEach(([key, val]) => {
+        if (val === undefined || val === null || val === "") return;
+
+        const backendKey = keyMapping[key] || key;
+        body[backendKey] = val;
+    });
+
+    return body;
+}
+
+function hasSearchFilters(filters: ListingFilters): boolean {
+    const backendFilters = toBackendFilters(filters);
+    return Object.keys(backendFilters).some((key) => !["page", "limit"].includes(key));
+}
+
+function buildQueryString(params: ListingFilters): string {
     const query = new URLSearchParams();
 
-    // Map snake_case to camelCase for backend
     const keyMapping: Record<string, string> = {
         price_min: "minPrice",
         price_max: "maxPrice",
@@ -28,11 +46,7 @@ function buildQueryString(
 
         const backendKey = keyMapping[key] || key;
 
-        if (key === "utilities" && Array.isArray(val)) {
-            if (val.length > 0) {
-                query.set(backendKey, val.join(","));
-            }
-        } else if (Array.isArray(val)) {
+        if (Array.isArray(val)) {
             val.forEach((v) => query.append(backendKey, String(v)));
         } else {
             query.set(backendKey, String(val));
@@ -53,6 +67,14 @@ export const listingsApi = {
         data: ListingSummary[];
         meta: { page: number; limit: number; total: number };
     }> => {
+        if (hasSearchFilters(filters)) {
+            const { data } = await apiClient.post<{
+                data: ListingSummary[];
+                meta: { page: number; limit: number; total: number };
+            }>("/api/listings/search", toBackendFilters(filters));
+            return data;
+        }
+
         const query = buildQueryString(filters);
         const { data } = await apiClient.get<{
             data: ListingSummary[];
@@ -126,12 +148,7 @@ export const listingsApi = {
         
         const { data } = await apiClient.post<string[]>(
             "/api/listings/upload",
-            formData,
-            {
-                headers: {
-                    "Content-Type": "multipart/form-data",
-                },
-            }
+            formData
         );
         return data;
     },
