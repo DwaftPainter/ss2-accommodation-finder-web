@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, MapPin } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { ListingFilters } from '../types';
 import { listingsApi } from '../services/api';
 

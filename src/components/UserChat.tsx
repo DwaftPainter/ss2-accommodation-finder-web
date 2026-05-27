@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react";
-import { Send, X, User, Phone, MapPin, Loader2 } from "lucide-react";
+import { Send, X, User, Phone, Loader2 } from "lucide-react";
 import { chatApi, type Message, type Chat } from "../services/api/chat";
 import { useAuth } from "../hooks/useAuth";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { formatAddress } from "../lib/utils";
+import { MapPinIcon } from "./ui";
 
 interface UserChatProps {
     chatId: string;
@@ -122,7 +123,7 @@ export default function UserChat({ chatId, onClose }: UserChatProps) {
                     <div className="flex-1 min-w-0">
                         <h4 className="text-xs font-bold text-emerald-900 truncate">{chat.listing.title}</h4>
                         <p className="text-[10px] text-emerald-700 flex items-center gap-0.5 truncate">
-                            <MapPin size={10} />
+                            <MapPinIcon size={10} className="text-emerald-700" />
                             Xem tin liên quan
                         </p>
                     </div>

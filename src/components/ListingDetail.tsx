@@ -1,7 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import {
     ArrowLeft,
-    MapPin,
     User,
     Phone,
     Bookmark,
@@ -31,6 +30,7 @@ import { formatAddress, formatPrice } from "../lib/utils";
 import ReviewSection from "./ReviewSection";
 import type { ListingDetail as ListingDetailType } from "../types";
 import Loader from "./ui/loading";
+import { MapPinIcon } from "./ui";
 
 // Constants defined outside component to prevent recreation
 const UTILITY_ICONS: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -516,7 +516,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                         <span className="underline cursor-pointer hover:text-slate-900">{listing.reviews?.length || 0} đánh giá</span>
                         <span className="text-slate-400">·</span>
                         <span className="flex items-center gap-1">
-                            <MapPin size={14} />
+                            <MapPinIcon size={14} />
                             {formatAddress(listing.address, { style: "full" })}
                         </span>
                     </div>

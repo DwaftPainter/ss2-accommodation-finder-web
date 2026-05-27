@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
+import { Search, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
 import { listingsApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { formatAddress } from '../lib/utils';
 import type { ListingSummary } from '../types';
+import { MapPinIcon } from '../components/ui';
 
 interface LandingPageProps {
     onNavigateToMap: () => void;
@@ -42,15 +43,6 @@ function LandingNavbar({ onNavigateToMap, onOpenAuth }: { onNavigateToMap: () =>
 
                 {/* Actions */}
                 <div className="landing-nav-actions">
-                    <button
-                        className="landing-nav-map-btn"
-                        onClick={onNavigateToMap}
-                        id="nav-map-view-btn"
-                    >
-                        <Map size={16} />
-                        Xem bản đồ
-                    </button>
-
                     {user ? (
                         <div className="landing-nav-user">
                             <div className="landing-nav-avatar">
@@ -281,7 +273,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                     <span>/tháng</span>
                                 </div>
                                 <p className="landing-listing-address">
-                                    <MapPin size={13} />
+                                    <MapPinIcon size={13} />
                                     {formatAddress((displayListings[0] as any)?.address) || 'Quận Hai Bà Trưng, Hà Nội'}
                                 </p>
                             </div>
@@ -304,7 +296,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                     <div className="landing-listing-info">
                                         <h3 className="landing-listing-name">{listing.title}</h3>
                                         <p className="landing-listing-address">
-                                            <MapPin size={12} />
+                                            <MapPinIcon size={12} />
                                             {formatAddress(listing.address)}
                                         </p>
                                         <div className="landing-listing-price">

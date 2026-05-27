@@ -2,15 +2,15 @@ import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import {
     Search,
     Heart,
-    ChevronLeft,
-    ChevronRight,
     Star,
     SlidersHorizontal,
     SwitchCamera,
     LogOut,
     User,
     List,
-    MessageSquare
+    MessageSquare,
+    ChevronLeftIcon,
+    ChevronRightIcon
 } from "lucide-react";
 import { listingsApi } from "../services/api";
 import { useAuth } from "../hooks/useAuth";
@@ -114,7 +114,7 @@ function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }
     return (
         <div className="flex items-center justify-center py-1.5 w-full px-0">
             {/* Mobile: Simplified Search Bar */}
-            <div className="flex md:hidden items-center bg-white rounded-full shadow-md border border-gray-200 hover:shadow-lg transition-shadow w-full max-w-md">
+            <div className="flex w-full max-w-md items-center rounded-full border border-gray-200 bg-white shadow-md transition-shadow hover:shadow-lg md:hidden">
                 <div className="flex flex-col px-4 py-2 hover:bg-gray-100 rounded-full transition-colors text-left flex-1 min-w-0">
                     <input
                         type="text"
@@ -122,15 +122,18 @@ function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }
                         onChange={(e) => setLocation(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Tìm kiếm địa điểm..."
-                        className="text-sm text-gray-700 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-700 outline-none"
+                        aria-label="Tìm kiếm địa điểm"
                     />
                 </div>
                 <div className="pr-1.5 pl-1">
                     <button
+                        type="button"
                         onClick={handleSearch}
-                        className="flex items-center justify-center w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-full hover:scale-105 transition-transform"
+                        aria-label="Mở bản đồ tìm kiếm"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                     >
-                        <Search size={16} className="text-white" />
+                        <Search size={16} className="text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>
@@ -146,7 +149,8 @@ function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }
                         onChange={(e) => setLocation(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="VD: Hà Nội, Cầu Giấy..."
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Địa điểm"
                     />
                 </div>
 
@@ -161,7 +165,8 @@ function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }
                         onChange={(e) => setPrice(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="VD: ≤ 3 triệu"
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Giá thuê"
                     />
                 </div>
 
@@ -176,17 +181,20 @@ function SearchBar({ onSearch }: { onSearch: (filters: ListingFilters) => void }
                         onChange={(e) => setKeyword(e.target.value)}
                         onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                         placeholder="Phòng trọ, căn hộ, gần trường..."
-                        className="text-sm text-gray-500 bg-transparent outline-none w-full"
+                        className="w-full bg-transparent text-sm text-gray-500 outline-none"
+                        aria-label="Loại phòng hoặc từ khóa"
                     />
                 </div>
 
                 {/* 🔍 Search */}
                 <div className="pr-1.5 pl-1">
                     <button
+                        type="button"
                         onClick={handleSearch}
-                        className="flex items-center justify-center w-10 h-10 bg-linear-to-br from-emerald-500 to-teal-500 rounded-full hover:scale-105 transition-transform"
+                        aria-label="Mở bản đồ tìm kiếm"
+                        className="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-emerald-500 to-teal-500 transition-transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                     >
-                        <Search size={16} className="text-white" />
+                        <Search size={16} className="text-white" aria-hidden="true" />
                     </button>
                 </div>
             </div>
@@ -236,7 +244,7 @@ function ListingCard({
                 <img
                     src={imageUrl}
                     alt={listing.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
                 />
                 {/* Guest favorite badge */}
                 {listing.avgRating >= 4.5 && (
@@ -246,8 +254,10 @@ function ListingCard({
                 )}
                 {/* Heart button */}
                 <button
+                    type="button"
                     onClick={handleToggleSaved}
-                    className="absolute top-3 right-3 p-2 rounded-full hover:scale-110 transition-transform"
+                    aria-label={isSaved ? "Bỏ lưu tin" : "Lưu tin"}
+                    className="absolute right-3 top-3 rounded-full p-2 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
                 >
                     <Heart
                         size={24}
@@ -255,7 +265,7 @@ function ListingCard({
                     />
                 </button>
             </div>
-            <div className="space-y-1">
+            <div className="space-y-1 px-1 pb-2">
                 <div className="flex items-start justify-between">
                     <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{listing.title}</h3>
                     <div className="flex items-center gap-1 text-sm">
@@ -307,9 +317,8 @@ function ListingRow({
 
     const scroll = (direction: "left" | "right") => {
         if (scrollRef.current) {
-            const scrollAmount = 300;
             scrollRef.current.scrollBy({
-                left: direction === "left" ? -scrollAmount : scrollAmount,
+                left: direction === "left" ? -300 : 300,
                 behavior: "smooth"
             });
         }
@@ -325,17 +334,19 @@ function ListingRow({
                         className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showLeftArrow ? "opacity-30 cursor-not-allowed" : ""}`}
                         disabled={!showLeftArrow}
                     >
-                        <ChevronLeft size={20} />
+                        <ChevronLeftIcon size={20} />
                     </button>
                     <button
                         onClick={() => scroll("right")}
                         className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showRightArrow ? "opacity-30 cursor-not-allowed" : ""}`}
                         disabled={!showRightArrow}
                     >
-                        <ChevronRight size={20} />
+                        <ChevronRightIcon size={20} />
                     </button>
                 </div>
+                <p className="text-sm text-gray-500">{listings.length} lựa chọn phù hợp</p>
             </div>
+
             <div
                 ref={scrollRef}
                 className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
@@ -393,8 +404,12 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     };
 
     return (
-        <div ref={menuRef} className="flex items-center gap-3 pl-4 border-l border-gray-200">
-            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+        <div ref={menuRef} className="flex items-center gap-2 border-l border-gray-200 pl-2 sm:gap-3 sm:pl-4">
+            <button
+                type="button"
+                aria-label="Mở menu tài khoản"
+                className="hidden rounded-full p-2 transition-colors hover:bg-gray-100 sm:block"
+            >
                 <svg
                     width="18"
                     height="18"
@@ -408,41 +423,52 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
             </button>
             <div className="relative">
                 <button
+                    type="button"
                     onClick={() => setIsOpen(!isOpen)}
-                    className="flex items-center gap-2 p-1 border border-gray-300 rounded-full hover:shadow-md transition-shadow cursor-pointer"
+                    aria-expanded={isOpen}
+                    aria-haspopup="menu"
+                    className="flex cursor-pointer items-center gap-2 rounded-full border border-gray-300 p-1 transition-shadow hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
                 >
-                    <div className="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 text-sm font-medium text-white">
                         {user?.name?.[0]?.toUpperCase() || "U"}
                     </div>
                 </button>
 
                 {isOpen && (
-                    <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-lg border border-gray-200 py-2 z-50">
+                    <div className="absolute right-0 top-full z-50 mt-2 w-56 rounded-xl border border-gray-200 bg-white py-2 shadow-lg" role="menu">
                         <button
+                            type="button"
                             onClick={handleSavedClick}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <List size={18} />
                             <span className="text-sm font-medium">Danh sách yêu thích</span>
                         </button>
                         <button
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            type="button"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
                             onClick={() => navigate("/finder/chat")}
+                            role="menuitem"
                         >
                             <MessageSquare size={18} />
                             <span className="text-sm font-medium">Tin nhắn</span>
                         </button>
                         <button
+                            type="button"
                             onClick={handleProfileClick}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <User size={18} />
                             <span className="text-sm font-medium">Hồ sơ</span>
                         </button>
                         <hr className="my-2 border-gray-200" />
                         <button
+                            type="button"
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-3 px-4 py-3 text-gray-700 hover:bg-gray-50 transition-colors"
+                            className="flex w-full items-center gap-3 px-4 py-3 text-gray-700 transition-colors hover:bg-gray-50"
+                            role="menuitem"
                         >
                             <LogOut size={18} />
                             <span className="text-sm font-medium">Đăng xuất</span>
@@ -483,6 +509,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     const handleShowMap = (searchFilters: ListingFilters = filters) => {
         setFilters(searchFilters);
         setShowMap(true);
+        setShowFilters(window.innerWidth >= 1024);
         // Update URL with search param without navigation
         const url = new URL(window.location.href);
         url.searchParams.set("view", "map");
@@ -512,6 +539,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
             const q = url.searchParams.get("q");
             if (q) setFilters({ search: q });
             setShowMap(true);
+            setShowFilters(window.innerWidth >= 1024);
         }
     }, []);
 
@@ -607,7 +635,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
 
     // Home Feed View
     return (
-        <div className="min-h-screen bg-white flex flex-col">
+        <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6">
@@ -630,6 +658,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         {/* Right side - User menu */}
                         <div className="order-2 lg:order-3 flex items-center gap-1 sm:gap-2 lg:gap-3 flex-shrink-0">
                             <button
+                                type="button"
                                 onClick={handleToggleMode}
                                 className="hidden lg:flex justify-center items-center gap-2 text-sm text-center font-medium text-gray-900 hover:bg-gray-100 py-2 px-3 xl:px-4 rounded-full transition-colors whitespace-nowrap"
                             >
@@ -637,7 +666,9 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                             </button>
 
                             <button
+                                type="button"
                                 onClick={handleToggleMode}
+                                aria-label="Chuyển sang chế độ cho thuê"
                                 className="lg:hidden flex items-center justify-center w-9 h-9 rounded-full hover:bg-gray-100 transition-colors"
                             >
                                 <SwitchCamera size={20} className="text-gray-700" />
