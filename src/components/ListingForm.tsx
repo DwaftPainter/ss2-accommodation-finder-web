@@ -209,13 +209,6 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                 contactPhone: data.contactPhone || undefined,
             };
 
-            if (isEdit && listing) {
-                await listingsApi.update(listing.id, payload);
-                toast.success(LISTING_MESSAGES.UPDATE_SUCCESS);
-            } else {
-                await listingsApi.create(payload);
-                toast.success(LISTING_MESSAGES.CREATE_SUCCESS);
-            }
             await onSaved(payload);
             onClose();
         } catch (err: unknown) {

@@ -8,7 +8,7 @@ interface ExtendedAuthLayoutProps extends AuthLayoutProps {
 export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayoutProps) {
     return (
         <div
-            className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-y-auto"
+            className="fixed inset-0 z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-4 overflow-x-hidden overflow-y-auto"
             style={{
                 background: "rgba(10, 11, 18, 0.75)",
                 backdropFilter: "blur(12px)",
@@ -19,7 +19,7 @@ export default function AuthLayout({ children, onClose, view }: ExtendedAuthLayo
             }}
         >
             <div
-                className="relative w-full sm:max-w-md max-h-[96dvh] overflow-y-auto animate-modal-in bg-white rounded-t-[20px] sm:rounded-[20px]"
+                className="relative w-full sm:max-w-md max-h-[96dvh] overflow-x-hidden overflow-y-auto animate-modal-in bg-white rounded-t-[20px] sm:rounded-[20px]"
                 style={{
                     border: "1px solid rgba(0,0,0,0.08)",
                     boxShadow: "0 25px 50px -12px rgba(0,0,0,0.25)",

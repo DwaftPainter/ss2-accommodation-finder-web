@@ -26,30 +26,16 @@ function toBackendFilters(params: ListingFilters): Record<string, unknown> {
     return body;
 }
 
-function hasSearchFilters(filters: ListingFilters): boolean {
-    const backendFilters = toBackendFilters(filters);
-    return Object.keys(backendFilters).some((key) => !["page", "limit"].includes(key));
-}
-
 function buildQueryString(params: ListingFilters): string {
     const query = new URLSearchParams();
 
-    const keyMapping: Record<string, string> = {
-        price_min: "minPrice",
-        price_max: "maxPrice",
-        area_min: "minArea",
-        area_max: "maxArea",
-    };
-
-    Object.entries(params).forEach(([key, val]) => {
+    Object.entries(toBackendFilters(params)).forEach(([key, val]) => {
         if (val === undefined || val === null || val === "") return;
 
-        const backendKey = keyMapping[key] || key;
-
         if (Array.isArray(val)) {
-            val.forEach((v) => query.append(backendKey, String(v)));
+            query.set(key, val.join(","));
         } else {
-            query.set(backendKey, String(val));
+            query.set(key, String(val));
         }
     });
 
@@ -67,14 +53,6 @@ export const listingsApi = {
         data: ListingSummary[];
         meta: { page: number; limit: number; total: number };
     }> => {
-        if (hasSearchFilters(filters)) {
-            const { data } = await apiClient.post<{
-                data: ListingSummary[];
-                meta: { page: number; limit: number; total: number };
-            }>("/api/listings/search", toBackendFilters(filters));
-            return data;
-        }
-
         const query = buildQueryString(filters);
         const { data } = await apiClient.get<{
             data: ListingSummary[];
