@@ -1,37 +1,49 @@
-import { authApi } from "@/services/api";
+import { STORAGE_KEYS } from "@/lib/constants";
 import { useAuthStore } from "@/stores";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useEffect, useRef } from "react";
 
+let syncedAuth0Sub: string | null = null;
+let auth0SyncPromise: Promise<void> | null = null;
+
 export function Auth0CallbackHandler() {
     const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
-    // Remove isStoreAuthenticated from here entirely
-    const { handleAuthCallback } = useAuthStore();
+    const loginWithGoogleToken = useAuthStore((state) => state.loginWithGoogleToken);
     const hasSyncedRef = useRef(false);
 
     useEffect(() => {
         const syncAuth0User = async () => {
-            if (hasSyncedRef.current) return; // only guard on ref, not store state
+            if (hasSyncedRef.current) return;
             if (!isAuthenticated || !user) return;
+            const hasBackendToken = Boolean(localStorage.getItem(STORAGE_KEYS.ACCESS_TOKEN));
+            if (syncedAuth0Sub === user.sub && hasBackendToken) return;
 
-            hasSyncedRef.current = true; // set BEFORE the async call to prevent races
+            hasSyncedRef.current = true;
             try {
-                const token = await getAccessTokenSilently();
-                const response = await authApi.loginWithGoogle(token);
-                // Use handleAuthCallback — it stores tokens AND fetches user
-                await handleAuthCallback(response.accessToken, response.refreshToken);
+                auth0SyncPromise ??= getAccessTokenSilently()
+                    .then((token) => loginWithGoogleToken(token))
+                    .then(() => {
+                        syncedAuth0Sub = user.sub ?? null;
+                    })
+                    .finally(() => {
+                        auth0SyncPromise = null;
+                    });
+
+                await auth0SyncPromise;
             } catch (error) {
-                hasSyncedRef.current = false; // allow retry on actual error
+                hasSyncedRef.current = false;
+                syncedAuth0Sub = null;
                 console.error("Failed to sync Auth0 user with backend:", error);
             }
         };
 
         syncAuth0User();
-    }, [isAuthenticated, user?.sub]); // removed getAccessTokenSilently, setUser, isStoreAuthenticated
+    }, [getAccessTokenSilently, isAuthenticated, loginWithGoogleToken, user]);
 
     useEffect(() => {
         if (!isAuthenticated) {
             hasSyncedRef.current = false;
+            syncedAuth0Sub = null;
         }
     }, [isAuthenticated]);
 

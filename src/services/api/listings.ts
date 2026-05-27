@@ -6,16 +6,9 @@ import type {
     ListingFilters,
 } from "../../types";
 
-/**
- * Build query string from filters
- * Maps snake_case frontend filters to camelCase backend params
- */
-function buildQueryString(
-    params: ListingFilters
-): string {
-    const query = new URLSearchParams();
+function toBackendFilters(params: ListingFilters): Record<string, unknown> {
+    const body: Record<string, unknown> = {};
 
-    // Map snake_case to camelCase for backend
     const keyMapping: Record<string, string> = {
         price_min: "minPrice",
         price_max: "maxPrice",
@@ -27,15 +20,22 @@ function buildQueryString(
         if (val === undefined || val === null || val === "") return;
 
         const backendKey = keyMapping[key] || key;
+        body[backendKey] = val;
+    });
 
-        if (key === "utilities" && Array.isArray(val)) {
-            if (val.length > 0) {
-                query.set(backendKey, val.join(","));
-            }
-        } else if (Array.isArray(val)) {
-            val.forEach((v) => query.append(backendKey, String(v)));
+    return body;
+}
+
+function buildQueryString(params: ListingFilters): string {
+    const query = new URLSearchParams();
+
+    Object.entries(toBackendFilters(params)).forEach(([key, val]) => {
+        if (val === undefined || val === null || val === "") return;
+
+        if (Array.isArray(val)) {
+            query.set(key, val.join(","));
         } else {
-            query.set(backendKey, String(val));
+            query.set(key, String(val));
         }
     });
 
@@ -45,17 +45,30 @@ function buildQueryString(
 
 export const listingsApi = {
     /**
+     * Get paginated listings with backend metadata
+     */
+    getPage: async (
+        filters: ListingFilters = {}
+    ): Promise<{
+        data: ListingSummary[];
+        meta: { page: number; limit: number; total: number };
+    }> => {
+        const query = buildQueryString(filters);
+        const { data } = await apiClient.get<{
+            data: ListingSummary[];
+            meta: { page: number; limit: number; total: number };
+        }>(`/api/listings${query}`);
+        return data;
+    },
+
+    /**
      * Get all listings with filters
      * Backend returns { data, meta } - we extract just the data array
      */
     getAll: async (
         filters: ListingFilters = {}
     ): Promise<ListingSummary[]> => {
-        const query = buildQueryString(filters);
-        const { data } = await apiClient.get<{
-            data: ListingSummary[];
-            meta: { page: number; limit: number; total: number };
-        }>(`/api/listings${query}`);
+        const data = await listingsApi.getPage(filters);
         return data.data;
     },
 
@@ -123,11 +136,25 @@ export const listingsApi = {
      * Returns { location, listings }
      */
     searchByAddress: async (address: string, radius: number = 5): Promise<ListingSummary[]> => {
+        const data = await listingsApi.searchByAddressWithLocation(address, radius);
+        return data.listings;
+    },
+
+    /**
+     * Search listings by address and keep geocoded location in response
+     */
+    searchByAddressWithLocation: async (
+        address: string,
+        radius: number = 5
+    ): Promise<{
+        location: { lat: number; lng: number; displayName?: string };
+        listings: ListingSummary[];
+    }> => {
         const response = await apiClient.get<{
             location: { lat: number; lng: number };
             listings: ListingSummary[];
         }>("/api/listings/search/by-address", { params: { address, radius } });
-        return response.data.listings;
+        return response.data;
     },
 
     /**
@@ -158,6 +185,16 @@ export const listingsApi = {
     getMyListings: async (): Promise<ListingSummary[]> => {
         const { data } = await apiClient.get<ListingSummary[]>(
             "/api/listings/me"
+        );
+        return data;
+    },
+
+    /**
+     * Get unique locations (cities, districts, wards) from all listings
+     */
+    getLocations: async (): Promise<Record<string, Record<string, string[]>>> => {
+        const { data } = await apiClient.get<Record<string, Record<string, string[]>>>(
+            "/api/listings/locations"
         );
         return data;
     },

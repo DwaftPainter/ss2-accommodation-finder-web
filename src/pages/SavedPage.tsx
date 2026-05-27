@@ -74,33 +74,32 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
         <div className="min-h-screen bg-white">
             {/* Header */}
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
-                <div className="w-full px-6 h-16 flex items-center justify-between">
+                <div className="w-full px-4 sm:px-6 h-16 flex items-center justify-between gap-2">
                     <button
                         onClick={onBack}
-                        className="flex items-center gap-2 text-gray-800 hover:bg-gray-100 px-3 py-2 rounded-full transition-colors"
+                        className="flex items-center gap-2 text-gray-800 hover:bg-gray-100 px-2 sm:px-3 py-2 rounded-full transition-colors"
                     >
                         <ArrowLeft size={20} />
-                        <span className="font-medium">Quay lại</span>
+                        <span className="font-medium hidden sm:inline">Quay lại</span>
                     </button>
                     <h1 className="text-xl font-semibold text-gray-900 hidden sm:block">Đã lưu</h1>
-                    <div className="w-20" /> {/* Spacer for centering */}
+                    <div className="w-10 sm:w-20" /> {/* Spacer for centering */}
                 </div>
             </header>
 
             {/* Main Content */}
-            <main className="w-full px-6 py-8">
+            <main className="w-full px-4 sm:px-6 py-6 sm:py-8">
                 {/* Title Section */}
-                <div className="flex items-start justify-between mb-8">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
                     <div>
-                        <h2 className="text-3xl font-semibold text-gray-900 mb-1">Đã lưu</h2>
+                        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-1">Đã lưu</h2>
                         <p className="text-gray-500">{totalLists} danh sách</p>
                     </div>
 
                     <button
-                        className="flex items-center gap-2 px-4 py-2.5 border border-emerald-600 rounded-lg text-sm font-medium text-emerald-600 hover:bg-emerald-50 transition-colors"
-                        onClick={() => {
-                            /* TODO: Create list functionality */
-                        }}
+                        className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed transition-colors"
+                        disabled
+                        title="Tính năng đang được phát triển"
                     >
                         <Plus size={18} />
                         Tạo danh sách

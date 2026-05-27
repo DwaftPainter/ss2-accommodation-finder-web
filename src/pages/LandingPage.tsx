@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Search, MapPin, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
+import { Search, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
 import { listingsApi } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
 import { formatAddress } from '../lib/utils';
 import type { ListingSummary } from '../types';
+import { MapPinIcon } from '../components/ui';
 
 interface LandingPageProps {
     onNavigateToMap: () => void;
@@ -42,15 +43,6 @@ function LandingNavbar({ onNavigateToMap, onOpenAuth }: { onNavigateToMap: () =>
 
                 {/* Actions */}
                 <div className="landing-nav-actions">
-                    <button
-                        className="landing-nav-map-btn"
-                        onClick={onNavigateToMap}
-                        id="nav-map-view-btn"
-                    >
-                        <Map size={16} />
-                        Xem bản đồ
-                    </button>
-
                     {user ? (
                         <div className="landing-nav-user">
                             <div className="landing-nav-avatar">
@@ -211,31 +203,6 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
     const ref = useRef<HTMLDivElement>(null);
     const [visible, setVisible] = useState(false);
 
-    // Fallback image data for when API is not available
-    const fallbackListings = [
-        {
-            id: '1',
-            title: 'Sunny Studio - Gần ĐH Bách Khoa',
-            address: 'Quận Hai Bà Trưng, Hà Nội',
-            price: 3500000,
-            images: ['/listing-studio.png'],
-        },
-        {
-            id: '2',
-            title: 'Phòng Trọ Khép Kín - Cầu Giấy',
-            address: 'Quận Cầu Giấy, Hà Nội',
-            price: 2800000,
-            images: ['/listing-room1.png'],
-        },
-        {
-            id: '3',
-            title: 'Chung Cư Mini - Gần ĐH Quốc Gia',
-            address: 'Quận Nam Từ Liêm, Hà Nội',
-            price: 4200000,
-            images: ['/listing-room2.png'],
-        },
-    ];
-
     useEffect(() => {
         const observer = new IntersectionObserver(
             ([entry]) => { if (entry.isIntersecting) setVisible(true); },
@@ -251,13 +218,12 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                 setListings(data.slice(0, 3));
             })
             .catch(() => {
-                // Use fallback data if API fails
-                setListings(fallbackListings as any);
+                setListings([]);
             })
             .finally(() => setLoading(false));
     }, []);
 
-    const displayListings = listings.length > 0 ? listings : fallbackListings;
+    const displayListings = listings;
 
     const formatPrice = (price: number) => {
         return new Intl.NumberFormat('vi-VN').format(price) + 'đ';
@@ -288,7 +254,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                             <div className="landing-listings-skeleton small" />
                         </div>
                     </div>
-                ) : (
+                ) : displayListings.length > 0 ? (
                     <div className={`landing-listings-grid ${visible ? 'visible' : ''}`}>
                         {/* Large card */}
                         <div className="landing-listing-card large" style={{ transitionDelay: '0ms' }}>
@@ -307,7 +273,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                     <span>/tháng</span>
                                 </div>
                                 <p className="landing-listing-address">
-                                    <MapPin size={13} />
+                                    <MapPinIcon size={13} />
                                     {formatAddress((displayListings[0] as any)?.address) || 'Quận Hai Bà Trưng, Hà Nội'}
                                 </p>
                             </div>
@@ -330,7 +296,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                     <div className="landing-listing-info">
                                         <h3 className="landing-listing-name">{listing.title}</h3>
                                         <p className="landing-listing-address">
-                                            <MapPin size={12} />
+                                            <MapPinIcon size={12} />
                                             {formatAddress(listing.address)}
                                         </p>
                                         <div className="landing-listing-price">
@@ -341,6 +307,10 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                                 </div>
                             ))}
                         </div>
+                    </div>
+                ) : (
+                    <div className="text-center py-12 text-slate-500">
+                        <p className="text-lg">Hiện tại chưa có phòng trọ nổi bật nào.</p>
                     </div>
                 )}
             </div>

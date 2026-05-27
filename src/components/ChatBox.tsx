@@ -73,7 +73,7 @@ export default function ChatBox() {
             {/* Chat Window */}
             {isOpen && (
                 <div
-                    className="fixed bottom-20 left-4 z-[9999] w-[340px] rounded-2xl overflow-hidden shadow-2xl animate-chat-open"
+                    className="fixed bottom-20 left-3 right-3 sm:left-4 sm:right-auto z-[9999] w-auto sm:w-[340px] max-h-[calc(100dvh-6rem)] rounded-2xl overflow-hidden shadow-2xl animate-chat-open"
                     style={{
                         background: "rgba(255, 255, 255, 0.97)",
                         boxShadow: "0 8px 40px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(99, 102, 241, 0.1)"
@@ -101,7 +101,7 @@ export default function ChatBox() {
                     <div
                         className="overflow-y-auto px-4 py-4 space-y-3"
                         style={{
-                            height: "340px",
+                            height: "min(340px, calc(100dvh - 14rem))",
                             background: "linear-gradient(180deg, #f8f7ff 0%, #ffffff 100%)"
                         }}
                         id="chatbox-messages"
