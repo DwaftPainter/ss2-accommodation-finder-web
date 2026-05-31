@@ -21,22 +21,22 @@ src/
 │   │   ├── dialog.tsx
 │   │   ├── badge.tsx
 │   │   └── index.ts
-│   ├── AuthModal.tsx
-│   ├── FilterPanel.tsx
-│   ├── ListingDetail.tsx
-│   ├── ListingForm.tsx
-│   ├── MapView.tsx
-│   ├── Navbar.tsx
-│   ├── ReviewSection.tsx
-│   ├── SavedListings.tsx
-│   └── StarRating.tsx
+│   ├── auth-modal.tsx
+│   ├── filter-panel.tsx
+│   ├── listing-detail.tsx
+│   ├── listing-form.tsx
+│   ├── map-view.tsx
+│   ├── navbar.tsx
+│   ├── review-section.tsx
+│   ├── saved-listings.tsx
+│   └── star-rating.tsx
 ├── hooks/               # Custom React hooks
-│   ├── useAuth.ts       # Auth operations with auto-fetch
-│   ├── useListings.ts   # Listings management hooks
+│   ├── use-auth.ts       # Auth operations with auto-fetch
+│   ├── use-listings.ts   # Listings management hooks
 │   └── index.ts
 ├── lib/                 # Utilities and configurations
 │   ├── utils.ts         # cn(), format helpers, debounce
-│   ├── constants.ts     # App constants
+│   ├── constants.ts     # app constants
 │   └── axios.ts         # Axios instance with interceptors
 ├── services/
 │   └── api/             # API modules organized by feature
@@ -46,13 +46,13 @@ src/
 │       ├── saved.ts
 │       └── index.ts
 ├── stores/              # Zustand stores
-│   ├── authStore.ts
-│   ├── listingsStore.ts
-│   ├── uiStore.ts
+│   ├── auth-store.ts
+│   ├── listings-store.ts
+│   ├── ui-store.ts
 │   └── index.ts
 ├── types/               # TypeScript types
 │   └── index.ts
-├── App.tsx
+├── app.tsx
 ├── main.tsx
 └── index.css
 ```
@@ -62,32 +62,32 @@ src/
 ### Using Stores
 
 ```tsx
-import { useAuthStore, useListingsStore, useUIStore } from "@/stores";
+import { use-auth-store, use-listings-store, useUIStore } from "@/stores";
 
 // Auth
-const { user, login, logout } = useAuthStore();
+const { user, login, logout } = use-auth-store();
 
 // Listings with selectors
-const listings = useListings((state) => state.listings);
-const { fetchListings, createListing } = useListingsStore();
+const listings = use-listings((state) => state.listings);
+const { fetchListings, createListing } = use-listings-store();
 
 // UI
-const { openAuthModal, closeAuthModal } = useUIStore();
+const { openauth-modal, closeauth-modal } = useUIStore();
 ```
 
 ### Using Hooks
 
 ```tsx
-import { useAuth, useListingsManager, useListingDetail } from "@/hooks";
+import { use-auth, use-listingsManager, uselisting-detail } from "@/hooks";
 
 // Auth with auto-fetch
-const { user, isAuthenticated, isLoading } = useAuth();
+const { user, isAuthenticated, isLoading } = use-auth();
 
 // Listings with automatic fetching
-const { listings, filters, isLoading } = useListingsManager();
+const { listings, filters, isLoading } = use-listingsManager();
 
 // Single listing
-const { listing, isLoading } = useListingDetail(listingId);
+const { listing, isLoading } = uselisting-detail(listingId);
 ```
 
 ### Using API Services

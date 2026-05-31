@@ -3,7 +3,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Mail, Lock, Eye, EyeOff, Home, Chrome, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { loginSchema, type LoginFormData } from "@/schemas";
 import { AUTH_MESSAGES, getErrorMessage } from "@/config/messages";
 import {

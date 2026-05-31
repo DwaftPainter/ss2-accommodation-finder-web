@@ -5,7 +5,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuth0 } from "@auth0/auth0-react";
 import { User, Mail, Lock, Eye, EyeOff, ArrowLeft, Chrome, AlertCircle } from "lucide-react";
 import { useState } from "react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { registerSchema, type RegisterFormData } from "@/schemas";
 import { AUTH_MESSAGES, getErrorMessage, getSuccessMessage } from "@/config/messages";
 import {

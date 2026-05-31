@@ -10,12 +10,12 @@ import {
     MessageSquare
 } from "lucide-react";
 import { listingsApi } from "../services/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { useListingsStore } from "../stores";
-import MapView from "../components/MapView";
-import NotificationBell from "../components/NotificationBell";
-import ListingDetail from "../components/ListingDetail";
-import ListingForm from "../components/ListingForm";
+import MapView from "../components/map-view";
+import NotificationBell from "../components/notification-bell";
+import ListingDetail from "../components/listing-detail";
+import ListingForm from "../components/listing-form";
 import { formatAddress } from "../lib/utils";
 import type { ListingSummary, ListingDetail as ListingDetailType } from "../types";
 import { toast } from "sonner";
