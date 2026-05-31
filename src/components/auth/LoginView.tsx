@@ -12,7 +12,7 @@ import {
     inputFocusStyle,
     gradientButtonStyle,
     dividerLineStyle,
-    outlinedButtonStyle,
+    outlinedButtonStyle
 } from "./constants";
 import type { LoginViewProps, FocusHandlers } from "./types";
 
@@ -24,7 +24,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
 
     const form = useForm<LoginFormData>({
         resolver: zodResolver(loginSchema),
-        defaultValues: { email: "", password: "" },
+        defaultValues: { email: "", password: "" }
     });
 
     const focusHandlers: FocusHandlers = {
@@ -35,7 +35,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
             e.currentTarget.style.border = inputStyle.border;
             e.currentTarget.style.background = inputStyle.background;
             e.currentTarget.style.boxShadow = "none";
-        },
+        }
     };
 
     const registerWithFocus = (name: keyof LoginFormData) => {
@@ -46,18 +46,17 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
             onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
                 field.onBlur(e);
                 focusHandlers.onBlur(e);
-            },
+            }
         };
     };
 
     const handleGoogleLogin = () => {
         loginWithRedirect({
-            appState: {
-                returnTo: `${window.location.pathname}${window.location.search}`,
-            },
             authorizationParams: {
-                connection: 'google-oauth2',
-            },
+                connection: "google-oauth2"
+            }
+        }).then((response) => {
+            console.log(response);
         });
     };
 
@@ -80,14 +79,12 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4"
                     style={{
                         background: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-                        boxShadow: "0 12px 30px rgba(16,185,129,0.4)",
+                        boxShadow: "0 12px 30px rgba(16,185,129,0.4)"
                     }}
                 >
                     <Home size={30} className="text-white" />
                 </div>
-                <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                    Chào mừng trở lại!
-                </h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-2">Chào mừng trở lại!</h2>
                 <p className="text-slate-600 text-sm leading-relaxed max-w-xs">
                     Đăng nhập để trải nghiệm đầy đủ tính năng của{" "}
                     <span className="text-emerald-600 font-semibold">AccomFinder</span>
@@ -95,10 +92,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
             </div>
 
             {/* Login Form */}
-            <form
-                onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-3.5 mb-4"
-            >
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-3.5 mb-4">
                 {/* Email */}
                 <div className="relative">
                     <Mail
@@ -115,9 +109,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     />
                 </div>
                 {form.formState.errors.email && (
-                    <p className="text-xs text-red-600 pl-1">
-                        {form.formState.errors.email.message}
-                    </p>
+                    <p className="text-xs text-red-600 pl-1">{form.formState.errors.email.message}</p>
                 )}
 
                 {/* Password */}
@@ -143,9 +135,7 @@ export default function LoginView({ onClose, onSwitchToRegister }: LoginViewProp
                     </button>
                 </div>
                 {form.formState.errors.password && (
-                    <p className="text-xs text-red-600 pl-1">
-                        {form.formState.errors.password.message}
-                    </p>
+                    <p className="text-xs text-red-600 pl-1">{form.formState.errors.password.message}</p>
                 )}
 
                 {/* Error Message */}
