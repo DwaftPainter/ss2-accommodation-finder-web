@@ -64,7 +64,7 @@ const ListingMarker = memo(
             >
                 <Popup>
                     <div className="map-popup min-w-50 p-1">
-                        <h4 className="font-bold text-sm mb-1">{listing.title ?? "Untitled"}</h4>
+                        <h4 className="font-bold text-sm mb-1">{listing.title ?? "Chỗ ở chưa có tiêu đề"}</h4>
                         <p className="text-xs text-gray-600 mb-2">{formatAddress(listing.address)}</p>
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-emerald-600 font-bold text-xs">
@@ -81,7 +81,7 @@ const ListingMarker = memo(
                         </div>
                         <button
                             onClick={() => onSelect(listing.id)}
-                            className="w-full py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors"
+                            className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
                         >
                             Xem chi tiết
                         </button>
@@ -166,7 +166,7 @@ export default function MapView({
                     <Marker position={[pinLocation.lat, pinLocation.lng]}>
                         <Popup>
                             <div className="text-center p-1">
-                                <h4 className="font-bold">📍 Vị trí mới</h4>
+                                <h4 className="font-bold">Vị trí mới</h4>
                                 <p className="text-xs">Nhấn "Đăng tin" để tiếp tục</p>
                             </div>
                         </Popup>

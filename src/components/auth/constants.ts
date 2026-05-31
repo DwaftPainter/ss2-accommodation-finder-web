@@ -1,17 +1,17 @@
 export const OTP_LENGTH = 6;
 
 export const inputClass =
-    "w-full pl-10 pr-4 py-3 rounded-xl text-sm text-slate-900 placeholder-slate-400 transition-all duration-200 focus:outline-none";
+    "w-full pl-10 pr-4 py-3 rounded-lg text-sm text-slate-900 placeholder-slate-400 shadow-sm transition-colors duration-200 focus:outline-none";
 
 export const inputStyle = {
-    background: "rgba(0,0,0,0.03)",
-    border: "1px solid rgba(0,0,0,0.08)",
+    background: "#fff",
+    border: "1px solid #e2e8f0",
 };
 
 export const inputFocusStyle = {
-    border: "1px solid rgba(16,185,129,0.5)",
+    border: "1px solid rgba(16,185,129,0.8)",
     background: "#fff",
-    boxShadow: "0 0 0 3px rgba(16,185,129,0.15)",
+    boxShadow: "0 0 0 3px rgba(16,185,129,0.16)",
 };
 
 export const gradientButtonStyle = {

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { Search, Settings, MessageSquare, ChevronDown } from "lucide-react";
-import { chatApi, type Chat } from "../services/api/chat";
-import { useAuth } from "../hooks/use-auth";
+import { chatApi, type Chat } from "../../services/api/chat";
+import { useAuth } from "../../hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import UserChat from "../components/user-chat";
+import UserChat from "../../components/user-chat";
+import { Button, EmptyState, LoadingState } from "@/components/ui";
 
 interface MessagesPageProps {
     mode: "landlord" | "finder";
@@ -44,56 +45,45 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
                         <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tin nhắn</h1>
                         <div className="flex gap-2">
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            <Button type="button" variant="ghost" size="icon" className="rounded-full">
                                 <Search size={20} className="text-gray-600" />
-                            </button>
-                            <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                            </Button>
+                            <Button type="button" variant="ghost" size="icon" className="rounded-full">
                                 <Settings size={20} className="text-gray-600" />
-                            </button>
+                            </Button>
                         </div>
                     </div>
 
-                    <div className="flex gap-2 overflow-x-auto pb-1">
-                        <button 
+                    <div className="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                        <Button 
+                            type="button"
                             onClick={() => setFilter("all")}
-                            className={`flex items-center gap-1 px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                                filter === "all" 
-                                ? "bg-gray-900 text-white" 
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
+                            variant={filter === "all" ? "secondary" : "ghost"}
+                            className="rounded-full"
                         >
                             Tất cả <ChevronDown size={14} />
-                        </button>
-                        <button 
+                        </Button>
+                        <Button 
+                            type="button"
                             onClick={() => setFilter("unread")}
-                            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-                                filter === "unread" 
-                                ? "bg-gray-900 text-white" 
-                                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
-                            }`}
+                            variant={filter === "unread" ? "secondary" : "ghost"}
+                            className="rounded-full"
                         >
                             Chưa đọc
-                        </button>
+                        </Button>
                     </div>
                 </div>
 
                 <div className="flex-1 overflow-y-auto">
                     {loading ? (
-                        <div className="flex justify-center py-10">
-                            <div className="w-6 h-6 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-                        </div>
+                        <LoadingState title="Đang tải tin nhắn" className="py-10" />
                     ) : filteredChats.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center p-8 text-center mt-10">
-                            <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mb-4">
-                                <MessageSquare size={32} className="text-gray-300" />
-                            </div>
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                                {filter === "unread" ? "Không có tin nhắn chưa đọc" : "Bạn không có tin nhắn nào"}
-                            </h3>
-                            <p className="text-sm text-gray-500">
-                                Khi bạn nhận được tin nhắn mới, tin nhắn đó sẽ xuất hiện ở đây.
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={MessageSquare}
+                            title={filter === "unread" ? "Không có tin nhắn chưa đọc" : "Bạn không có tin nhắn nào"}
+                            description="Khi bạn nhận được tin nhắn mới, tin nhắn đó sẽ xuất hiện ở đây."
+                            className="mt-10"
+                        />
                     ) : (
                         <div className="flex flex-col">
                             {filteredChats.map(chat => {

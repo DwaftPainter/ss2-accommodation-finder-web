@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { listingsApi } from '../services/api';
 import { LISTING_MESSAGES, getErrorMessage } from '../config/messages';
 import type { ListingDetail } from '../types';
+import { Button } from './ui';
 
 const UTILITY_OPTIONS = [
     { value: 'wifi', label: 'WiFi' },
@@ -222,35 +223,37 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
         }
     };
 
-    const inputCls = "w-full px-3 py-2.5 bg-white border border-gray-300 rounded-lg text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all";
-    const errorCls = "text-[11px] text-red-500 mt-0.5";
+    const inputCls = "w-full rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 transition-colors focus-visible:border-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/20";
+    const labelCls = "text-sm font-medium text-slate-700";
+    const errorCls = "text-xs leading-5 text-rose-600";
 
     return (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[2000] flex items-end sm:items-center justify-center p-0 sm:p-5 animate-fade-in" onClick={(e) => e.target === e.currentTarget && onClose()}>
             <div className="bg-white border border-gray-200 rounded-t-2xl sm:rounded-2xl max-h-[92dvh] sm:max-h-[90vh] overflow-y-auto shadow-2xl w-full sm:w-[650px] sm:max-w-full p-4 sm:p-6 relative animate-modal-in" id="listing-form-modal">
-                <button onClick={onClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100 text-gray-500 hover:bg-red-100 hover:text-red-500 flex items-center justify-center transition-all">
+                <Button type="button" variant="ghost" size="icon" onClick={onClose} className="absolute top-3 right-3 h-8 w-8 rounded-full text-slate-500 hover:bg-rose-50 hover:text-rose-600">
                     <X size={18} />
-                </button>
+                </Button>
 
-                <h2 className="text-lg font-bold mb-5 pr-10">{isEdit ? '✏️ Sửa tin đăng' : '📍 Đăng phòng trọ mới'}</h2>
+                <h2 className="mb-1 pr-10 text-xl font-semibold text-slate-950">{isEdit ? 'Sửa tin đăng' : 'Đăng phòng trọ mới'}</h2>
+                <p className="mb-5 text-sm text-slate-500">Điền thông tin chính xác để người thuê dễ đánh giá chỗ ở.</p>
 
                 <form onSubmit={handleSubmit(onSubmit)}>
                     <div className="grid grid-cols-2 gap-3 max-sm:grid-cols-1">
                         {/* Title */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tiêu đề *</label>
+                            <label htmlFor="form-title" className={labelCls}>Tiêu đề *</label>
                             <input {...register('title')} className={inputCls} placeholder="VD: Phòng trọ cao cấp gần ĐH Bách Khoa" id="form-title" />
                             {errors.title && <span className={errorCls}>{errors.title.message}</span>}
                         </div>
 
                         {/* Images */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Hình ảnh phòng trọ (Tối đa 10)</label>
+                            <label className={labelCls}>Hình ảnh phòng trọ (Tối đa 10)</label>
                             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2 mt-1">
                                 {/* Previews for existing images */}
                                 {existingImages.map((url, idx) => (
                                     <div key={`existing-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
-                                        <img src={url} alt="Room" className="w-full h-full object-cover" />
+                                        <img src={url} alt="Ảnh chỗ ở" className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                             <X size={14} />
                                         </button>
@@ -260,7 +263,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                                 {/* Previews for new images */}
                                 {previews.map((url, idx) => (
                                     <div key={`new-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
-                                        <img src={url} alt="New upload" className="w-full h-full object-cover" />
+                                        <img src={url} alt="Ảnh mới tải lên" className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeNewImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                             <X size={14} />
                                         </button>
@@ -272,7 +275,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                                     <button
                                         type="button"
                                         onClick={() => fileInputRef.current?.click()}
-                                        className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-400 hover:text-indigo-500 hover:border-indigo-500 hover:bg-indigo-50 transition-all"
+                                        className="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-slate-300 rounded-lg text-slate-400 hover:text-emerald-600 hover:border-emerald-500 hover:bg-emerald-50 transition-all"
                                     >
                                         <Plus size={20} />
                                         <span className="text-[10px] mt-1 font-medium">Thêm ảnh</span>
@@ -291,87 +294,87 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
 
                         {/* Street */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Đường/Phố *</label>
+                            <label htmlFor="form-street" className={labelCls}>Đường/Phố *</label>
                             <input {...register('street')} className={inputCls} placeholder="Số nhà, đường phố" id="form-street" />
                             {errors.street && <span className={errorCls}>{errors.street.message}</span>}
                         </div>
 
                         {/* Ward / District */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Phường/Xã</label>
+                            <label htmlFor="form-ward" className={labelCls}>Phường/Xã</label>
                             <input {...register('ward')} className={inputCls} placeholder="Phường/Xã" id="form-ward" />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Quận/Huyện *</label>
+                            <label htmlFor="form-district" className={labelCls}>Quận/Huyện *</label>
                             <input {...register('district')} className={inputCls} placeholder="Quận/Huyện" id="form-district" />
                             {errors.district && <span className={errorCls}>{errors.district.message}</span>}
                         </div>
 
                         {/* City / Province */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Thành phố *</label>
+                            <label htmlFor="form-city" className={labelCls}>Thành phố *</label>
                             <input {...register('city')} className={inputCls} placeholder="Thành phố" id="form-city" />
                             {errors.city && <span className={errorCls}>{errors.city.message}</span>}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tỉnh/Thành phố *</label>
+                            <label htmlFor="form-province" className={labelCls}>Tỉnh/Thành phố *</label>
                             <input {...register('province')} className={inputCls} placeholder="Tỉnh/Thành phố" id="form-province" />
                             {errors.province && <span className={errorCls}>{errors.province.message}</span>}
                         </div>
 
                         {/* Lat / Lng */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Vĩ độ (Lat) *</label>
+                            <label htmlFor="form-lat" className={labelCls}>Vĩ độ (Lat) *</label>
                             <input {...register('lat')} type="number" step="0.000001" className={inputCls} id="form-lat" />
                             {errors.lat && <span className={errorCls}>{errors.lat.message}</span>}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Kinh độ (Lng) *</label>
+                            <label htmlFor="form-lng" className={labelCls}>Kinh độ (Lng) *</label>
                             <input {...register('lng')} type="number" step="0.000001" className={inputCls} id="form-lng" />
                             {errors.lng && <span className={errorCls}>{errors.lng.message}</span>}
                         </div>
 
                         {/* Price / Area */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Giá thuê (VNĐ/tháng) *</label>
+                            <label htmlFor="form-price" className={labelCls}>Giá thuê (VNĐ/tháng) *</label>
                             <input {...register('price')} type="number" className={inputCls} placeholder="3000000" id="form-price" />
                             {errors.price && <span className={errorCls}>{errors.price.message}</span>}
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Diện tích (m²) *</label>
+                            <label htmlFor="form-area" className={labelCls}>Diện tích (m²) *</label>
                             <input {...register('area')} type="number" step="0.1" className={inputCls} placeholder="25" id="form-area" />
                             {errors.area && <span className={errorCls}>{errors.area.message}</span>}
                         </div>
 
                         {/* Fees */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tiền điện (VNĐ/kWh)</label>
+                            <label htmlFor="form-electricity" className={labelCls}>Tiền điện (VNĐ/kWh)</label>
                             <input {...register('electricityFee')} type="number" className={inputCls} placeholder="3500" id="form-electricity" />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tiền nước (VNĐ/m³)</label>
+                            <label htmlFor="form-water" className={labelCls}>Tiền nước (VNĐ/m³)</label>
                             <input {...register('waterFee')} type="number" className={inputCls} placeholder="30000" id="form-water" />
                         </div>
 
                         {/* Contact */}
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tên liên hệ</label>
+                            <label htmlFor="form-contact-name" className={labelCls}>Tên liên hệ</label>
                             <input {...register('contactName')} className={inputCls} placeholder="Tên người liên hệ" id="form-contact-name" />
                         </div>
                         <div className="flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Số điện thoại</label>
+                            <label htmlFor="form-contact-phone" className={labelCls}>Số điện thoại</label>
                             <input {...register('contactPhone')} type="tel" className={inputCls} placeholder="0912345678" id="form-contact-phone" />
                         </div>
 
                         {/* Description */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Mô tả</label>
+                            <label htmlFor="form-description" className={labelCls}>Mô tả</label>
                             <textarea {...register('description')} className={`${inputCls} resize-y min-h-[80px]`} placeholder="Mô tả chi tiết về phòng trọ..." rows={3} id="form-description" />
                         </div>
 
                         {/* Utilities */}
                         <div className="col-span-2 max-sm:col-span-1 flex flex-col gap-1">
-                            <label className="text-xs font-medium text-slate-400">Tiện ích</label>
+                            <label className={labelCls}>Tiện ích</label>
                             <div className="flex flex-wrap gap-1.5">
                                 {UTILITY_OPTIONS.map((opt) => {
                                     const active = (utilities || []).includes(opt.value);
@@ -387,11 +390,11 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                     </div>
 
                     <div className="flex flex-col-reverse sm:flex-row sm:justify-end gap-2 mt-5 pt-4 border-t border-gray-100">
-                        <button type="button" onClick={onClose} className="w-full sm:w-auto px-4 py-2 rounded-lg text-sm font-medium text-gray-500 hover:bg-gray-50 transition-all">Hủy</button>
-                        <button type="submit" disabled={isSubmitting || isUploading} className="w-full sm:w-auto justify-center px-5 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm hover:shadow-md disabled:opacity-50 transition-all flex items-center gap-2" id="submit-listing-btn">
+                        <Button type="button" variant="ghost" onClick={onClose} className="w-full sm:w-auto">Hủy</Button>
+                        <Button type="submit" disabled={isSubmitting || isUploading} variant="primary" className="w-full sm:w-auto" id="submit-listing-btn">
                             {(isSubmitting || isUploading) && <Loader2 size={16} className="animate-spin" />}
                             {isUploading ? 'Đang tải ảnh...' : isSubmitting ? 'Đang lưu...' : isEdit ? 'Cập nhật' : 'Đăng tin'}
-                        </button>
+                        </Button>
                     </div>
                 </form>
             </div>

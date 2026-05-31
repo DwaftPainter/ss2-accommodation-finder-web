@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/use-auth';
 import { StarRating, StarBreakdown } from './star-rating';
 import { REVIEW_MESSAGES, getErrorMessage } from '../config/messages';
 import type { Review } from '../types';
+import { Trash2 } from 'lucide-react';
 
 const reviewSchema = z.object({
     rating: z.number().min(1, 'Vui lòng chọn số sao').max(5),
@@ -160,10 +161,10 @@ export default function ReviewSection({ listingId }: ReviewSectionProps) {
                                                 {isOwnReview && (
                                                     <button
                                                         onClick={() => handleDeleteReview(r.id)}
-                                                        className="text-xs text-red-500 hover:text-red-600 transition-colors"
+                                                        className="text-xs text-rose-500 hover:text-rose-600 transition-colors"
                                                         title="Xóa đánh giá"
                                                     >
-                                                        🗑️
+                                                        <Trash2 size={14} />
                                                     </button>
                                                 )}
                                             </div>
