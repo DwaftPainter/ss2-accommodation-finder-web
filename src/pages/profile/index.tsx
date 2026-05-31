@@ -4,8 +4,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Camera, Save, ArrowLeft, Loader2, User as UserIcon, Phone, Mail } from "lucide-react";
 import { toast } from "sonner";
-import { userApi } from "../services/api/user";
-import { useAuth } from "../hooks/use-auth";
+import { userApi } from "../../services/api/user";
+import { useAuth } from "../../hooks/use-auth";
 import { useNavigate } from "react-router-dom";
 import { Button, Card, CardContent, FormField, Input, PageHeader, SectionContainer } from "@/components/ui";
 

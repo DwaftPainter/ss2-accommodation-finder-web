@@ -1,10 +1,10 @@
 import { useState, useEffect } from "react";
 import { Search, Settings, MessageSquare, ChevronDown } from "lucide-react";
-import { chatApi, type Chat } from "../services/api/chat";
-import { useAuth } from "../hooks/use-auth";
+import { chatApi, type Chat } from "../../services/api/chat";
+import { useAuth } from "../../hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
-import UserChat from "../components/user-chat";
+import UserChat from "../../components/user-chat";
 import { Button, EmptyState, LoadingState } from "@/components/ui";
 
 interface MessagesPageProps {
