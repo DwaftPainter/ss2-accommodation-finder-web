@@ -72,16 +72,11 @@ export const useAuthStore = create<AuthStore>()(
                     set({ user, isAuthenticated: true, isLoading: false });
                 } catch (error) {
                     // Extract error message from Axios error with response data
-                    let errorMessage = "Login failed";
-                    if (error instanceof Error) {
-                        errorMessage = error.message;
-                    }
-
                     set({
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: errorMessage
+                        error: "Đăng nhập thất bại."
                     });
                     throw error;
                 }
@@ -96,7 +91,7 @@ export const useAuthStore = create<AuthStore>()(
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Registration failed"
+                        error: "Đăng ký thất bại."
                     });
                     throw error;
                 }
@@ -111,7 +106,7 @@ export const useAuthStore = create<AuthStore>()(
                 } catch (error) {
                     set({
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Verification failed"
+                        error: "Xác thực thất bại."
                     });
                     throw error;
                 }
@@ -161,7 +156,7 @@ export const useAuthStore = create<AuthStore>()(
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Failed to fetch user"
+                        error: "Không thể tải thông tin người dùng."
                     });
                 }
             },
@@ -201,7 +196,7 @@ export const useAuthStore = create<AuthStore>()(
                             user: null,
                             isAuthenticated: false,
                             isLoading: false,
-                            error: error instanceof Error ? error.message : "Session expired"
+                            error: "Phiên đăng nhập đã hết hạn."
                         });
                         return;
                     }
@@ -241,7 +236,7 @@ export const useAuthStore = create<AuthStore>()(
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Authentication failed"
+                        error: "Xác thực thất bại."
                     });
                     throw error;
                 }
@@ -260,7 +255,7 @@ export const useAuthStore = create<AuthStore>()(
                         user: null,
                         isAuthenticated: false,
                         isLoading: false,
-                        error: error instanceof Error ? error.message : "Google authentication failed"
+                        error: "Đăng nhập Google thất bại."
                     });
                     throw error;
                 }

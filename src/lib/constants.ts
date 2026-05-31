@@ -2,7 +2,7 @@
  * App-wide constants
  */
 
-export const APP_NAME = "Accommodation Finder";
+export const APP_NAME = "AccomFinder";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
@@ -20,19 +20,19 @@ export const MAP_DEFAULTS = {
 } as const;
 
 export const PRICE_RANGES = [
-    { min: 0, max: 2000000, label: "Under 2M" },
-    { min: 2000000, max: 4000000, label: "2M - 4M" },
-    { min: 4000000, max: 6000000, label: "4M - 6M" },
-    { min: 6000000, max: 10000000, label: "6M - 10M" },
-    { min: 10000000, max: Infinity, label: "Above 10M" },
+    { min: 0, max: 2000000, label: "Dưới 2 triệu" },
+    { min: 2000000, max: 4000000, label: "2 - 4 triệu" },
+    { min: 4000000, max: 6000000, label: "4 - 6 triệu" },
+    { min: 6000000, max: 10000000, label: "6 - 10 triệu" },
+    { min: 10000000, max: Infinity, label: "Trên 10 triệu" },
 ] as const;
 
 export const AREA_RANGES = [
-    { min: 0, max: 20, label: "Under 20m²" },
+    { min: 0, max: 20, label: "Dưới 20m²" },
     { min: 20, max: 40, label: "20m² - 40m²" },
     { min: 40, max: 60, label: "40m² - 60m²" },
     { min: 60, max: 100, label: "60m² - 100m²" },
-    { min: 100, max: Infinity, label: "Above 100m²" },
+    { min: 100, max: Infinity, label: "Trên 100m²" },
 ] as const;
 
 export const COMMON_UTILITIES = [

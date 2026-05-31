@@ -8,8 +8,8 @@ import LazyRoute from "./lazy-route";
 
 const SavedRoute = lazy(() => import("./saved-route"));
 const LandlordRoute = lazy(() => import("./landlord-route"));
-const MessagesPage = lazy(() => import("@/pages/messages-page"));
-const ProfilePage = lazy(() => import("@/pages/profile-page"));
+const MessagesPage = lazy(() => import("@/pages/messages"));
+const ProfilePage = lazy(() => import("@/pages/profile"));
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
     const { isAuthenticated, isLoading, error } = useAuth();

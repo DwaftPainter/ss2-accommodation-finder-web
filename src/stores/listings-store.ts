@@ -86,7 +86,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoading: false,
-                error: error instanceof Error ? error.message : "Failed to fetch listings"
+                error: "Không thể tải danh sách chỗ ở."
             });
         }
     },
@@ -99,7 +99,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoadingDetail: false,
-                error: error instanceof Error ? error.message : "Failed to fetch listing details"
+                error: "Không thể tải thông tin tin đăng."
             });
         }
     },
@@ -118,7 +118,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
             set({
                 ...(statusCode === 401 ? { savedListings: [], savedListingIds: new Set<string>() } : {}),
                 isLoadingSaved: false,
-                error: error instanceof Error ? error.message : "Failed to fetch saved listings"
+                error: "Không thể tải danh sách tin đã lưu."
             });
         }
     },
@@ -131,7 +131,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoading: false,
-                error: error instanceof Error ? error.message : "Failed to fetch my listings"
+                error: "Không thể tải danh sách bài đăng của bạn."
             });
         }
     },
@@ -144,7 +144,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoading: false,
-                error: error instanceof Error ? error.message : "Failed to search listings"
+                error: "Không thể tìm kiếm chỗ ở."
             });
         }
     },
@@ -157,7 +157,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         } catch (error) {
             set({
                 isLoading: false,
-                error: error instanceof Error ? error.message : "Failed to search nearby listings"
+                error: "Không thể tìm chỗ ở gần vị trí này."
             });
         }
     },
@@ -229,7 +229,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
             return !isCurrentlySaved;
         } catch (error) {
             const statusCode = (error as { statusCode?: number })?.statusCode;
-            const message = error instanceof Error ? error.message : "Failed to toggle saved status";
+            const message = "Không thể cập nhật trạng thái lưu tin.";
             const isAlreadySaved = !isCurrentlySaved && statusCode === 409;
             const isAlreadyUnsaved = isCurrentlySaved && statusCode === 404;
 
