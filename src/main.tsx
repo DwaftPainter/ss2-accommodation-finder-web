@@ -1,30 +1,17 @@
-import React from 'react';
-import ReactDOM from 'react-dom/client';
-import { Auth0Provider } from '@auth0/auth0-react';
-import App from './App';
-import { Toaster } from 'sonner';
-import './index.css';
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { Auth0Provider } from "@auth0/auth0-react";
+import App from "./App";
+import { Toaster } from "sonner";
+import "./index.css";
+import env from "./config/env";
 
-// Auth0 configuration - replace with your actual credentials
-const AUTH0_DOMAIN = import.meta.env.VITE_AUTH0_DOMAIN || '';
-const AUTH0_CLIENT_ID = import.meta.env.VITE_AUTH0_CLIENT_ID || '';
-const AUTH0_REDIRECT_URI = window.location.origin;
-
-const handleAuth0Redirect = (appState?: { returnTo?: string }) => {
-    const returnTo = appState?.returnTo || window.location.pathname;
-    window.history.replaceState({}, document.title, returnTo);
-};
-
-ReactDOM.createRoot(document.getElementById('root')!).render(
+ReactDOM.createRoot(document.getElementById("root")!).render(
     <React.StrictMode>
         <Auth0Provider
-            domain={AUTH0_DOMAIN}
-            clientId={AUTH0_CLIENT_ID}
-            onRedirectCallback={handleAuth0Redirect}
-            authorizationParams={{
-                redirect_uri: AUTH0_REDIRECT_URI,
-                connection: 'google-oauth2',
-            }}
+            domain={env.AUTH0_DOMAIN}
+            clientId={env.AUTH0_CLIENT_ID}
+            authorizationParams={{ redirect_uri: window.location.origin }}
         >
             <App />
         </Auth0Provider>
@@ -34,10 +21,10 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
             theme="dark"
             toastOptions={{
                 style: {
-                    background: '#1a1d27',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    color: '#f1f5f9',
-                },
+                    background: "#1a1d27",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    color: "#f1f5f9"
+                }
             }}
         />
     </React.StrictMode>

@@ -14,7 +14,7 @@ import {
     inputFocusStyle,
     gradientButtonStyle,
     dividerLineStyle,
-    outlinedButtonStyle,
+    outlinedButtonStyle
 } from "./constants";
 import type { FocusHandlers, RegisterViewProps } from "./types";
 
@@ -45,7 +45,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
             e.currentTarget.style.border = inputStyle.border;
             e.currentTarget.style.background = inputStyle.background;
             e.currentTarget.style.boxShadow = "none";
-        },
+        }
     };
 
     const registerWithFocus = (name: keyof RegisterFormData) => {
@@ -56,18 +56,17 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
             onBlur: (e: React.FocusEvent<HTMLInputElement>) => {
                 field.onBlur(e);
                 focusHandlers.onBlur(e);
-            },
+            }
         };
     };
 
     const handleGoogleLogin = () => {
         loginWithRedirect({
-            appState: {
-                returnTo: `${window.location.pathname}${window.location.search}`,
-            },
             authorizationParams: {
-                connection: "google-oauth2",
-            },
+                connection: "google-oauth2"
+            }
+        }).then((response) => {
+            console.log(response);
         });
     };
 
@@ -75,10 +74,7 @@ export default function RegisterView({ onSwitchToLogin, onRegisterSuccess }: Reg
         try {
             setError(null);
             const result = await registerUser(data);
-            onRegisterSuccess(
-                data.email,
-                getSuccessMessage(result.code, AUTH_MESSAGES.REGISTER_SUCCESS)
-            );
+            onRegisterSuccess(data.email, getSuccessMessage(result.code, AUTH_MESSAGES.REGISTER_SUCCESS));
         } catch (err) {
             const errorMessage = getErrorMessage(err, AUTH_MESSAGES.REGISTER_GENERIC_ERROR);
             setError(errorMessage);
