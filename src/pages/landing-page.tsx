@@ -36,9 +36,9 @@ function LandingNavbar({ onNavigateToMap, onOpenAuth }: { onNavigateToMap: () =>
 
                 {/* Nav links */}
                 <div className="landing-nav-links">
-                    <a href="#" className="landing-nav-link active">Home</a>
-                    <a href="#features" className="landing-nav-link">Explore</a>
-                    <a href="#listings" className="landing-nav-link">Saved</a>
+                    <a href="#" className="landing-nav-link active">Trang chủ</a>
+                    <a href="#features" className="landing-nav-link">Khám phá</a>
+                    <a href="#listings" className="landing-nav-link">Tin nổi bật</a>
                 </div>
 
                 {/* Actions */}
@@ -266,7 +266,7 @@ function FeaturedListings({ onNavigateToMap }: { onNavigateToMap: () => void }) 
                             </div>
                             <div className="landing-listing-info">
                                 <h3 className="landing-listing-name">
-                                    {(displayListings[0] as any)?.title || 'Sunny Studio - Gần ĐH Bách Khoa'}
+                                    {(displayListings[0] as any)?.title || 'Căn hộ studio sáng sủa gần ĐH Bách Khoa'}
                                 </h3>
                                 <div className="landing-listing-price">
                                     {formatPrice((displayListings[0] as any)?.price || 3500000)}
@@ -331,14 +331,14 @@ function Footer() {
                 </div>
 
                 <div className="landing-footer-links">
-                    <a href="#">Privacy Policy</a>
-                    <a href="#">Terms of Service</a>
-                    <a href="#">Cookie Policy</a>
-                    <a href="#">Contact Us</a>
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản dịch vụ</a>
+                    <a href="#">Chính sách cookie</a>
+                    <a href="#">Liên hệ</a>
                 </div>
 
                 <div className="landing-footer-copyright">
-                    © 2026 Accommodation Finder. All rights reserved.
+                    © 2026 AccomFinder. Bảo lưu mọi quyền.
                 </div>
             </div>
         </footer>

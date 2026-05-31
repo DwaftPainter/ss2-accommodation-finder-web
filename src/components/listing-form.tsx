@@ -253,7 +253,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                                 {/* Previews for existing images */}
                                 {existingImages.map((url, idx) => (
                                     <div key={`existing-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
-                                        <img src={url} alt="Room" className="w-full h-full object-cover" />
+                                        <img src={url} alt="Ảnh chỗ ở" className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeExistingImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                             <X size={14} />
                                         </button>
@@ -263,7 +263,7 @@ export default function ListingForm({ listing, pinLocation, onClose, onSaved }: 
                                 {/* Previews for new images */}
                                 {previews.map((url, idx) => (
                                     <div key={`new-${idx}`} className="relative aspect-square rounded-lg overflow-hidden border border-gray-200 group">
-                                        <img src={url} alt="New upload" className="w-full h-full object-cover" />
+                                        <img src={url} alt="Ảnh mới tải lên" className="w-full h-full object-cover" />
                                         <button type="button" onClick={() => removeNewImage(idx)} className="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 hover:bg-red-500 transition-colors opacity-0 group-hover:opacity-100">
                                             <X size={14} />
                                         </button>

@@ -125,7 +125,7 @@ const DialogCloseButton: React.FC<DialogCloseButtonProps> = ({
         className="absolute right-4 top-4 rounded-full h-8 w-8"
     >
         <X className="h-4 w-4" />
-        <span className="sr-only">Close</span>
+        <span className="sr-only">Đóng</span>
     </Button>
 );
 

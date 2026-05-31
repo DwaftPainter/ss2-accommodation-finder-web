@@ -79,7 +79,7 @@ export function ListingCard({
                     </h3>
                     <span className="flex shrink-0 items-center gap-1 text-sm text-slate-700">
                         <Star size={14} className="fill-amber-400 text-amber-400" aria-hidden="true" />
-                        {listing.avgRating > 0 ? listing.avgRating.toFixed(1) : "N/A"}
+                        {listing.avgRating > 0 ? listing.avgRating.toFixed(1) : "Mới"}
                     </span>
                 </div>
                 <p className="text-sm text-slate-500 line-clamp-1">{formatAddress(listing.address)}</p>

@@ -64,7 +64,7 @@ const ListingMarker = memo(
             >
                 <Popup>
                     <div className="map-popup min-w-50 p-1">
-                        <h4 className="font-bold text-sm mb-1">{listing.title ?? "Untitled"}</h4>
+                        <h4 className="font-bold text-sm mb-1">{listing.title ?? "Chỗ ở chưa có tiêu đề"}</h4>
                         <p className="text-xs text-gray-600 mb-2">{formatAddress(listing.address)}</p>
                         <div className="flex justify-between items-center mb-2">
                             <span className="text-emerald-600 font-bold text-xs">

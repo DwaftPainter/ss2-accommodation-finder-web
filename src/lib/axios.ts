@@ -71,7 +71,7 @@ apiClient.interceptors.response.use(
             const data = error.response.data as ApiErrorData | undefined;
             const errorMessage = normalizeErrorMessage(
                 data,
-                error.message || "An error occurred"
+                "Đã xảy ra lỗi. Vui lòng thử lại."
             );
 
             const enhancedError = error as ApiError;

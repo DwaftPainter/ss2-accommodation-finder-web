@@ -30,6 +30,7 @@ import { formatAddress, formatPrice } from "../lib/utils";
 import ReviewSection from "./review-section";
 import type { ListingDetail as ListingDetailType } from "../types";
 import { Button, ErrorState, LoadingState, MapPinIcon, SectionContainer } from "./ui";
+import { LISTING_MESSAGES, getErrorMessage } from "../config/messages";
 
 // Constants defined outside component to prevent recreation
 const UTILITY_ICONS: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -436,9 +437,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                         onDeleted();
                         onClose();
                     } catch (err: unknown) {
-                        toast.error(
-                            "Lỗi khi xóa: " + (err instanceof Error ? err.message : "Không xác định")
-                        );
+                        toast.error(getErrorMessage(err, LISTING_MESSAGES.DELETE_ERROR));
                     }
                 },
             },

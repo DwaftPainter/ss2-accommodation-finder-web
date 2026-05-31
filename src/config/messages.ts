@@ -175,7 +175,7 @@ export function getErrorMessage(error: unknown, fallback = "Đã xảy ra lỗi.
             return AUTH_MESSAGES.SERVER_ERROR;
         }
 
-        return error.message;
+        return fallback;
     }
 
     return fallback;
