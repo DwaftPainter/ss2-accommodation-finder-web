@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Send, X, User, Phone, Loader2 } from "lucide-react";
 import { chatApi, type Message, type Chat } from "../services/api/chat";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
 import { vi } from "date-fns/locale";
 import { formatAddress } from "../lib/utils";

@@ -1,15 +1,15 @@
 import { lazy, type ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth0 } from "@auth0/auth0-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/use-auth";
 import { STORAGE_KEYS } from "@/lib/constants";
-import LoadingScreen from "./LoadingScreen";
-import LazyRoute from "./LazyRoute";
+import LoadingScreen from "./loading-screen";
+import LazyRoute from "./lazy-route";
 
-const SavedRoute = lazy(() => import("./SavedRoute"));
-const LandlordRoute = lazy(() => import("./LandlordRoute"));
-const MessagesPage = lazy(() => import("@/pages/MessagesPage"));
-const ProfilePage = lazy(() => import("@/pages/ProfilePage"));
+const SavedRoute = lazy(() => import("./saved-route"));
+const LandlordRoute = lazy(() => import("./landlord-route"));
+const MessagesPage = lazy(() => import("@/pages/messages-page"));
+const ProfilePage = lazy(() => import("@/pages/profile-page"));
 
 const PrivateRoute = ({ children }: { children: ReactNode }) => {
     const { isAuthenticated, isLoading, error } = useAuth();

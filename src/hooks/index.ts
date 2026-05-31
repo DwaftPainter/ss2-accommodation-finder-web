@@ -1,4 +1,4 @@
-export { useAuth, useIsOwner, useRequireAuth } from "./useAuth";
+export { useAuth, useIsOwner, useRequireAuth } from "./use-auth";
 export {
     useListingsManager,
     useListingDetail,
@@ -6,4 +6,4 @@ export {
     useAddressSearch,
     useNearbySearch,
     useMyListings,
-} from "./useListings";
+} from "./use-listings";

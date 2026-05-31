@@ -1,5 +1,5 @@
 import { Suspense, type ComponentType, type ReactElement } from "react";
-import LoadingScreen from "./LoadingScreen";
+import LoadingScreen from "./loading-screen";
 
 interface LazyRouteProps<TProps extends object = object> {
     component: ComponentType<TProps>;

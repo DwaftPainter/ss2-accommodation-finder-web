@@ -2,11 +2,11 @@ import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LandingPage, HomePage } from "../pages";
 import { AuthModal } from "../components/auth";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { useListingsStore } from "../stores";
 
-const ChatBox = lazy(() => import("../components/ChatBox"));
-const ListingDetail = lazy(() => import("../components/ListingDetail"));
+const ChatBox = lazy(() => import("../components/chat-box"));
+const ListingDetail = lazy(() => import("../components/listing-detail"));
 
 export default function HomeRoute() {
     const { user } = useAuth();

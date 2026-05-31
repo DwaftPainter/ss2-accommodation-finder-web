@@ -24,10 +24,10 @@ import {
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { listingsApi, chatApi } from "../services/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { useListingsStore } from "../stores";
 import { formatAddress, formatPrice } from "../lib/utils";
-import ReviewSection from "./ReviewSection";
+import ReviewSection from "./review-section";
 import type { ListingDetail as ListingDetailType } from "../types";
 import Loader from "./ui/loading";
 import { MapPinIcon } from "./ui";

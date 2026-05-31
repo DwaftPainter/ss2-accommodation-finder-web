@@ -2,7 +2,7 @@ import { lazy, Suspense, useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { LandlordPage } from "../pages";
 
-const ChatBox = lazy(() => import("../components/ChatBox"));
+const ChatBox = lazy(() => import("../components/chat-box"));
 
 export default function LandlordRoute() {
     const navigate = useNavigate();

@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Search, Compass, DollarSign, Clock, Headphones, ChevronRight, Map } from 'lucide-react';
 import { listingsApi } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
+import { useAuth } from '../hooks/use-auth';
 import { formatAddress } from '../lib/utils';
 import type { ListingSummary } from '../types';
 import { MapPinIcon } from '../components/ui';
