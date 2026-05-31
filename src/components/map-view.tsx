@@ -81,7 +81,7 @@ const ListingMarker = memo(
                         </div>
                         <button
                             onClick={() => onSelect(listing.id)}
-                            className="w-full py-1.5 rounded bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-700 transition-colors"
+                            className="w-full py-1.5 rounded bg-emerald-600 text-white text-xs font-semibold hover:bg-emerald-700 transition-colors"
                         >
                             Xem chi tiết
                         </button>
@@ -166,7 +166,7 @@ export default function MapView({
                     <Marker position={[pinLocation.lat, pinLocation.lng]}>
                         <Popup>
                             <div className="text-center p-1">
-                                <h4 className="font-bold">📍 Vị trí mới</h4>
+                                <h4 className="font-bold">Vị trí mới</h4>
                                 <p className="text-xs">Nhấn "Đăng tin" để tiếp tục</p>
                             </div>
                         </Popup>

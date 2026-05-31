@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tailwind-scrollbar-hide/v4";
 
 button {
     cursor: pointer;
@@ -60,14 +61,24 @@ svg {
     --color-warning: #f59e0b;
     --color-danger: #ef4444;
     --color-info: #3b82f6;
+
+    /* Product rhythm */
+    --radius-card: 0.75rem;
+    --radius-control: 0.5rem;
+    --shadow-card: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.08);
 }
 
 /* Base */
 body {
     font-family: var(--font-sans);
-    background: var(--color-bg-primary);
+    background: var(--color-bg-secondary);
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+    outline: 2px solid rgba(16, 185, 129, 0.7);
+    outline-offset: 2px;
 }
 
 /* Primary gradient button utility */
@@ -93,7 +104,7 @@ body {
 }
 
 .map-popup .popup-price {
-    @apply font-bold text-indigo-500 text-sm;
+    @apply font-bold text-emerald-600 text-sm;
 }
 
 .map-popup .popup-area {
@@ -1204,16 +1215,6 @@ body {
     .landing-footer {
         padding: 40px 16px 28px;
     }
-}
-
-/* Hide scrollbar utility for horizontal scrolling sections */
-.scrollbar-hide {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-.scrollbar-hide::-webkit-scrollbar {
-    display: none;
 }
 
 /* Line clamp utilities for text truncation */

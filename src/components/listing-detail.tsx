@@ -29,8 +29,7 @@ import { useListingsStore } from "../stores";
 import { formatAddress, formatPrice } from "../lib/utils";
 import ReviewSection from "./review-section";
 import type { ListingDetail as ListingDetailType } from "../types";
-import Loader from "./ui/loading";
-import { MapPinIcon } from "./ui";
+import { Button, ErrorState, LoadingState, MapPinIcon, SectionContainer } from "./ui";
 
 // Constants defined outside component to prevent recreation
 const UTILITY_ICONS: Record<string, { icon: React.ReactNode; label: string }> = {
@@ -341,14 +340,14 @@ function PriceCard({
                         className="flex-1 py-2.5 rounded-lg text-sm font-medium border border-slate-200 text-slate-700 hover:border-emerald-300 hover:text-emerald-600 transition-all"
                         id="edit-listing-btn"
                     >
-                        ✏️ Sửa tin
+                        Sửa tin
                     </button>
                     <button
                         onClick={onDelete}
                         className="flex-1 py-2.5 rounded-lg text-sm font-medium bg-red-50 border border-red-200 text-red-600 hover:bg-red-100 transition-all"
                         id="delete-listing-btn"
                     >
-                        🗑️ Xóa
+                        Xóa
                     </button>
                 </div>
             )}
@@ -456,51 +455,52 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
         <div className="fixed inset-0 z-[2000] bg-white overflow-y-auto animate-fade-in" id="listing-detail-page">
             {/* Loading */}
             {loading && (
-                <div className="h-screen flex items-center justify-center">
-                    <Loader />
-                </div>
+                <LoadingState className="h-screen" title="Đang tải thông tin phòng" />
             )}
 
             {/* Error */}
             {error && (
-                <div className="h-screen flex flex-col items-center justify-center text-slate-500 gap-3">
-                    <span className="text-4xl">😢</span>
-                    <p>{error}</p>
-                    <button onClick={onClose} className="mt-2 px-4 py-2 rounded-lg bg-slate-100 text-sm font-medium hover:bg-slate-200 transition-all">
+                <div className="mx-auto flex h-screen max-w-md flex-col items-center justify-center gap-4 px-4">
+                    <ErrorState description={error} />
+                    <Button type="button" onClick={onClose} variant="outline">
                         Quay lại
-                    </button>
+                    </Button>
                 </div>
             )}
 
             {/* Content */}
             {listing && !loading && !error && (
-                <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+                <SectionContainer size="lg" className="py-6">
                     {/* ─── Top Bar ─── */}
                     <div className="flex items-center justify-between mb-5">
-                        <button
+                        <Button
+                            type="button"
                             onClick={onClose}
-                            className="flex items-center gap-2 text-sm font-medium text-slate-700 hover:text-slate-900 transition-all group"
+                            variant="ghost"
+                            className="group"
                             id="back-btn"
                         >
                             <ArrowLeft size={18} className="group-hover:-translate-x-0.5 transition-transform" />
                             Quay lại
-                        </button>
+                        </Button>
                         <div className="flex items-center gap-2">
-                            <button
+                            <Button
+                                type="button"
                                 onClick={handleShare}
-                                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
+                                variant="ghost"
                             >
                                 <Share2 size={15} />
                                 <span className="hidden sm:inline">Chia sẻ</span>
-                            </button>
+                            </Button>
                             {user && (
-                                <button
+                                <Button
+                                    type="button"
                                     onClick={handleSave}
-                                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-100 transition-all"
+                                    variant="ghost"
                                 >
                                     <Bookmark size={15} fill={isSaved ? "currentColor" : "none"} className={isSaved ? "text-rose-500" : ""} />
                                     <span className="hidden sm:inline">{isSaved ? "Đã lưu" : "Lưu"}</span>
-                                </button>
+                                </Button>
                             )}
                         </div>
                     </div>
@@ -615,7 +615,7 @@ export default function ListingDetail({ listingId, onClose, onEdit, onDeleted }:
                     <div className="mt-8 pb-24 lg:pb-8">
                         <ReviewSection listingId={listingId} />
                     </div>
-                </div>
+                </SectionContainer>
             )}
         </div>
     );

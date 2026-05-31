@@ -1,8 +1,9 @@
 import { useEffect } from "react";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Heart, Plus } from "lucide-react";
 import { useListingsStore } from "../stores";
 import { formatAddress } from "../lib/utils";
 import type { SavedListing } from "../types";
+import { Button, EmptyState, LoadingState, PageHeader, SectionContainer } from "@/components/ui";
 
 interface SavedPageProps {
     onBack: () => void;
@@ -88,58 +89,33 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
             </header>
 
             {/* Main Content */}
-            <main className="w-full px-4 sm:px-6 py-6 sm:py-8">
+            <SectionContainer as="main" className="py-6 sm:py-8">
                 {/* Title Section */}
-                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-8">
-                    <div>
-                        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 mb-1">Đã lưu</h2>
-                        <p className="text-gray-500">{totalLists} danh sách</p>
-                    </div>
-
-                    <button
-                        className="w-full sm:w-auto justify-center flex items-center gap-2 px-4 py-2.5 border border-slate-200 rounded-lg text-sm font-medium text-slate-400 cursor-not-allowed transition-colors"
-                        disabled
-                        title="Tính năng đang được phát triển"
-                    >
-                        <Plus size={18} />
-                        Tạo danh sách
-                    </button>
-                </div>
+                <PageHeader
+                    className="mb-8"
+                    title="Đã lưu"
+                    description={`${totalLists} danh sách`}
+                    actions={
+                        <Button type="button" variant="outline" disabled title="Tính năng đang được phát triển">
+                            <Plus size={18} />
+                            Tạo danh sách
+                        </Button>
+                    }
+                />
 
                 {/* Loading State */}
                 {loading && (
-                    <div className="flex items-center justify-center py-20">
-                        <div className="w-8 h-8 border-3 border-slate-200 border-t-emerald-500 rounded-full animate-spin" />
-                    </div>
+                    <LoadingState title="Đang tải danh sách đã lưu" />
                 )}
 
                 {/* Empty State */}
                 {!loading && totalStays === 0 && (
-                    <div className="text-center py-20">
-                        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <svg
-                                width="28"
-                                height="28"
-                                viewBox="0 0 24 24"
-                                fill="none"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                className="text-gray-400"
-                            >
-                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-                            </svg>
-                        </div>
-                        <h3 className="text-xl font-medium text-gray-900 mb-2">Chưa có nơi nào được lưu</h3>
-                        <p className="text-gray-500 mb-6">
-                            Khi bạn tìm thấy nơi ở phù hợp, hãy nhấn vào biểu tượng trái tim để lưu lại.
-                        </p>
-                        <button
-                            onClick={onBack}
-                            className="px-6 py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium rounded-lg transition-all shadow-md hover:shadow-lg"
-                        >
-                            Bắt đầu tìm kiếm
-                        </button>
-                    </div>
+                    <EmptyState
+                        icon={Heart}
+                        title="Chưa có nơi nào được lưu"
+                        description="Khi bạn tìm thấy nơi ở phù hợp, hãy nhấn vào biểu tượng trái tim để lưu lại."
+                        action={{ label: "Bắt đầu tìm kiếm", onClick: onBack }}
+                    />
                 )}
 
                 {/* Wishlists Grid */}
@@ -160,7 +136,7 @@ export default function SavedPage({ onBack, onSelectListing }: SavedPageProps) {
                         ))}
                     </div>
                 )}
-            </main>
+            </SectionContainer>
         </div>
     );
 }

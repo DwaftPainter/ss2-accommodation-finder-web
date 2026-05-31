@@ -8,7 +8,8 @@ export interface BadgeProps
         | "secondary"
         | "destructive"
         | "outline"
-        | "success";
+        | "success"
+        | "warning";
 }
 
 function Badge({
@@ -18,21 +19,23 @@ function Badge({
 }: BadgeProps) {
     const variants = {
         default:
-            "border-transparent bg-indigo-500 text-white hover:bg-indigo-600",
+            "border-transparent bg-emerald-100 text-emerald-800",
         secondary:
-            "border-transparent bg-slate-700 text-slate-100 hover:bg-slate-600",
+            "border-transparent bg-slate-100 text-slate-700",
         destructive:
-            "border-transparent bg-red-500 text-white hover:bg-red-600",
+            "border-transparent bg-rose-100 text-rose-700",
         outline:
-            "border-slate-600 text-slate-100 hover:bg-slate-700",
+            "border-slate-200 bg-white text-slate-700",
         success:
-            "border-transparent bg-emerald-500 text-white hover:bg-emerald-600",
+            "border-transparent bg-emerald-100 text-emerald-800",
+        warning:
+            "border-transparent bg-amber-100 text-amber-800",
     };
 
     return (
         <div
             className={cn(
-                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors",
+                "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium transition-colors",
                 variants[variant],
                 className
             )}

@@ -16,25 +16,15 @@ import MapView from "../components/map-view";
 import NotificationBell from "../components/notification-bell";
 import ListingDetail from "../components/listing-detail";
 import ListingForm from "../components/listing-form";
-import { formatAddress } from "../lib/utils";
 import type { ListingSummary, ListingDetail as ListingDetailType } from "../types";
 import { toast } from "sonner";
 import type L from "leaflet";
-import Loader from "@/components/ui/loading";
+import { Button, EmptyState, ListingCard, ListingGrid, LoadingState, PageHeader, SectionContainer } from "@/components/ui";
 
 interface LandlordPageProps {
     onSelectListing?: (id: string) => void;
     onNavigate?: (page: string) => void;
 }
-
-const sampleImages = [
-    "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1502005229762-cf1b2da7c5d6?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1560448204-e02f11c3d0e2?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1493809842364-78817add7ffb?w=800&auto=format&fit=crop",
-    "https://images.unsplash.com/photo-1484154218962-a197022b5858?w=800&auto=format&fit=crop"
-];
 
 interface LandlordNavProps {
     activeTab: "listings" | "create";
@@ -179,37 +169,6 @@ function UserMenu({ user, onNavigate }: UserMenuProps) {
     );
 }
 
-function ListingCard({ listing, onSelect }: { listing: ListingSummary; onSelect: (id: string) => void }) {
-    const formatPrice = (price: number) => new Intl.NumberFormat("vi-VN").format(price);
-    const imageUrl = listing.images?.[0] || sampleImages[0];
-
-    return (
-        <article
-            onClick={() => onSelect(listing.id)}
-            className="group min-w-0 cursor-pointer rounded-3xl bg-white p-2 shadow-sm ring-1 ring-gray-200 transition hover:-translate-y-1 hover:shadow-xl"
-        >
-            <div className="relative mb-3 aspect-[4/3] overflow-hidden rounded-2xl bg-gray-200 sm:aspect-square">
-                <img
-                    src={imageUrl}
-                    alt={listing.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                <div className="absolute right-3 top-3 rounded-full bg-white/90 px-2 py-1 text-xs font-medium shadow-sm">
-                    Đang hiển thị
-                </div>
-            </div>
-            <div className="space-y-1 px-1 pb-2">
-                <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{listing.title}</h3>
-                <p className="text-sm text-gray-500 line-clamp-1">{formatAddress(listing.address)}</p>
-                <p className="text-sm text-gray-500">{listing.area} m²</p>
-                <div className="flex items-baseline gap-1 pt-1">
-                    <span className="text-sm font-semibold text-gray-900">₫{formatPrice(listing.price)}</span>
-                </div>
-            </div>
-        </article>
-    );
-}
-
 function ListingsRow({
     title,
     listings,
@@ -221,21 +180,24 @@ function ListingsRow({
 }) {
     return (
         <section className="py-6 sm:py-8">
-            <div className="mb-5 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-600">Quản lý tin</p>
-                    <h2 className="mt-1 text-[clamp(1.35rem,4vw,2rem)] font-bold leading-tight text-gray-950">
-                        {title}
-                    </h2>
-                </div>
-                <p className="text-sm text-gray-500">{listings.length} bài đăng</p>
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {listings.map((listing) => (
-                    <ListingCard key={listing.id} listing={listing} onSelect={onSelectListing} />
-                ))}
-            </div>
+            <PageHeader
+                className="mb-6"
+                eyebrow="Quản lý tin"
+                title={title}
+                description={`${listings.length} bài đăng`}
+            />
+            <ListingGrid
+                listings={listings}
+                onSelect={onSelectListing}
+                renderCard={(listing) => (
+                    <ListingCard
+                        key={listing.id}
+                        listing={listing}
+                        onSelect={onSelectListing}
+                        badge="Đang hiển thị"
+                    />
+                )}
+            />
         </section>
     );
 }
@@ -331,9 +293,7 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader />
-            </div>
+            <LoadingState className="min-h-screen bg-white" />
         );
     }
 
@@ -384,7 +344,7 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
             <main className="flex min-h-0 flex-1 flex-col">
                 {activeTab === "listings" ? (
                     <div className="flex-1 overflow-y-auto">
-                        <div className="w-full px-4 sm:px-6 pb-12">
+                        <SectionContainer as="div" className="pb-12">
                             {myListings.length > 0 ? (
                                 <ListingsRow
                                     title="Bài đăng của bạn"
@@ -392,26 +352,14 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                                     onSelectListing={handleSelectListingInternal}
                                 />
                             ) : (
-                                <div className="flex flex-col items-center justify-center px-4 py-20 text-center">
-                                    <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                                        <List size={32} className="text-gray-400" />
-                                    </div>
-                                    <h3 className="text-xl font-medium text-gray-900 mb-2">
-                                        Chưa có bài đăng nào
-                                    </h3>
-                                    <p className="text-gray-500 mb-6">
-                                        Bắt đầu đăng tin cho thuê nhà của bạn
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => handleTabChange("create")}
-                                        className="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-3 font-medium text-white shadow-md transition-all hover:-translate-y-0.5 hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2"
-                                    >
-                                        Đăng bài ngay
-                                    </button>
-                                </div>
+                                <EmptyState
+                                    icon={List}
+                                    title="Chưa có bài đăng nào"
+                                    description="Bắt đầu đăng tin cho thuê nhà của bạn."
+                                    action={{ label: "Đăng bài ngay", onClick: () => handleTabChange("create") }}
+                                />
                             )}
-                        </div>
+                        </SectionContainer>
                     </div>
                 ) : (
                     <div className="flex-1 p-2 sm:p-4 overflow-hidden">
@@ -430,22 +378,23 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
 
                             {/* Create listing button - top right */}
                             <div className="absolute top-3 right-3 sm:top-4 sm:right-4 z-[400]">
-                                <button
+                                <Button
                                     type="button"
                                     onClick={() => {
                                         setEditingListing(null);
                                         setShowForm(true);
                                     }}
                                     disabled={!pinLocation}
-                                    className={`flex items-center gap-2 px-4 sm:px-6 py-2.5 rounded-full shadow-lg text-sm font-medium transition-all ${
+                                    variant="primary"
+                                    className={`rounded-full ${
                                         pinLocation
-                                            ? "bg-gradient-to-r from-emerald-500 to-teal-600 text-white hover:shadow-xl hover:scale-105"
-                                            : "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                            ? "hover:scale-105"
+                                            : "bg-gray-300 text-gray-500 shadow-none"
                                     }`}
                                 >
                                     <Plus size={18} />
                                     <span>Đăng bài</span>
-                                </button>
+                                </Button>
                             </div>
 
                             {/* Hint text when no location selected */}

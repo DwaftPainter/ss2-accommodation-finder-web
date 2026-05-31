@@ -1,9 +1,5 @@
-import Loader from "@/components/ui/loading";
+import { LoadingState } from "@/components/ui";
 
 export default function LoadingScreen() {
-    return (
-        <div className="min-h-screen flex items-center justify-center bg-[#13161f]">
-            <Loader />
-        </div>
-    );
+    return <LoadingState className="min-h-screen bg-slate-50" title="Đang tải ứng dụng" />;
 }

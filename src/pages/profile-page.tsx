@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { userApi } from "../services/api/user";
 import { useAuth } from "../hooks/use-auth";
 import { useNavigate } from "react-router-dom";
+import { Button, Card, CardContent, FormField, Input, PageHeader, SectionContainer } from "@/components/ui";
 
 const profileSchema = z.object({
     name: z.string().min(2, "Tên phải có ít nhất 2 ký tự"),
@@ -76,8 +77,8 @@ export default function ProfilePage() {
                 </div>
             </header>
 
-            <main className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-                <div className="bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <SectionContainer as="main" size="sm" className="py-6 sm:py-10">
+                <Card className="overflow-hidden">
                     {/* Banner/Header */}
                     <div className="h-32 bg-gradient-to-r from-emerald-500 to-teal-600 relative">
                         <div className="absolute -bottom-10 sm:-bottom-12 left-4 sm:left-8 p-1 bg-white rounded-2xl shadow-md">
@@ -94,63 +95,73 @@ export default function ProfilePage() {
                         </div>
                     </div>
 
-                    <div className="pt-14 sm:pt-16 pb-6 sm:pb-8 px-4 sm:px-8">
-                        <div className="mb-8">
-                            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 break-words">{user?.name}</h2>
-                            <p className="text-slate-500 flex items-center gap-1.5 mt-1 min-w-0">
-                                <Mail size={14} />
-                                <span className="truncate">{user?.email}</span>
-                            </p>
-                        </div>
+                    <CardContent className="px-4 pb-6 pt-14 sm:px-8 sm:pb-8 sm:pt-16">
+                        <PageHeader
+                            className="mb-8"
+                            title={user?.name || "Thông tin cá nhân"}
+                            description={
+                                <span className="flex min-w-0 items-center gap-1.5">
+                                    <Mail size={14} />
+                                    <span className="truncate">{user?.email}</span>
+                                </span>
+                            }
+                        />
 
                         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">Họ và tên</label>
+                                <FormField
+                                    id="profile-name"
+                                    label="Họ và tên"
+                                    error={errors.name?.message}
+                                    required
+                                >
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                                             <UserIcon size={16} />
                                         </div>
-                                        <input
+                                        <Input
+                                            id="profile-name"
                                             {...register("name")}
-                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                                            className="pl-10"
                                             placeholder="Nhập tên của bạn"
                                         />
                                     </div>
-                                    {errors.name && <p className="text-xs text-red-500">{errors.name.message}</p>}
-                                </div>
+                                </FormField>
 
-                                <div className="space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">Số điện thoại</label>
+                                <FormField id="profile-phone" label="Số điện thoại" error={errors.phone?.message}>
                                     <div className="relative">
                                         <div className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
                                             <Phone size={16} />
                                         </div>
-                                        <input
+                                        <Input
+                                            id="profile-phone"
                                             {...register("phone")}
-                                            className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
+                                            className="pl-10"
                                             placeholder="Số điện thoại liên hệ"
                                         />
                                     </div>
-                                    {errors.phone && <p className="text-xs text-red-500">{errors.phone.message}</p>}
-                                </div>
+                                </FormField>
 
-                                <div className="md:col-span-2 space-y-2">
-                                    <label className="text-sm font-semibold text-slate-700">Link ảnh đại diện</label>
-                                    <input
+                                <FormField
+                                    id="profile-avatar"
+                                    label="Link ảnh đại diện"
+                                    error={errors.avatarUrl?.message}
+                                    className="md:col-span-2"
+                                >
+                                    <Input
+                                        id="profile-avatar"
                                         {...register("avatarUrl")}
-                                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/10 transition-all"
                                         placeholder="https://example.com/avatar.jpg"
                                     />
-                                    {errors.avatarUrl && <p className="text-xs text-red-500">{errors.avatarUrl.message}</p>}
-                                </div>
+                                </FormField>
                             </div>
 
                             <div className="pt-6 border-t border-slate-100 flex justify-end">
-                                <button
+                                <Button
                                     type="submit"
                                     disabled={!isDirty || isSubmitting || isLoading}
-                                    className="w-full sm:w-auto justify-center flex items-center gap-2 px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white font-semibold rounded-xl shadow-md hover:shadow-lg disabled:opacity-50 disabled:shadow-none transition-all"
+                                    variant="primary"
+                                    className="w-full sm:w-auto"
                                 >
                                     {(isSubmitting || isLoading) ? (
                                         <Loader2 size={18} className="animate-spin" />
@@ -158,14 +169,14 @@ export default function ProfilePage() {
                                         <Save size={18} />
                                     )}
                                     <span>Lưu thay đổi</span>
-                                </button>
+                                </Button>
                             </div>
                         </form>
-                    </div>
-                </div>
+                    </CardContent>
+                </Card>
 
                 {/* Account Security Section */}
-                <div className="mt-6 sm:mt-8 bg-white rounded-xl sm:rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-8">
+                <Card className="mt-6 p-4 sm:mt-8 sm:p-8">
                     <h3 className="text-lg font-bold text-slate-900 mb-6">Bảo mật tài khoản</h3>
                     <div className="space-y-4">
                         <div className="flex items-center justify-between gap-4 py-4 border-b border-slate-50">
@@ -173,9 +184,9 @@ export default function ProfilePage() {
                                 <p className="text-sm font-semibold text-slate-800">Mật khẩu</p>
                                 <p className="text-xs text-slate-500 mt-0.5">Thay đổi mật khẩu đăng nhập của bạn</p>
                             </div>
-                            <button className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors">
+                            <Button type="button" variant="link" className="h-auto p-0">
                                 Cập nhật
-                            </button>
+                            </Button>
                         </div>
                         <div className="flex items-center justify-between gap-4 py-4">
                             <div>
@@ -187,8 +198,8 @@ export default function ProfilePage() {
                             </div>
                         </div>
                     </div>
-                </div>
-            </main>
+                </Card>
+            </SectionContainer>
         </div>
     );
 }

@@ -1,8 +1,6 @@
 import { lazy, Suspense, useState, useEffect, useRef } from "react";
 import {
     Search,
-    Heart,
-    Star,
     SlidersHorizontal,
     SwitchCamera,
     LogOut,
@@ -20,6 +18,7 @@ import NotificationBell from "../components/notification-bell";
 import { formatAddress } from "../lib/utils";
 import type { ListingFilters, ListingSummary } from "../types";
 import Loader from "@/components/ui/loading";
+import { Button, EmptyState, ErrorState, ListingCard as AccommodationCard, LoadingState, SectionContainer } from "@/components/ui";
 import { useNavigate } from "react-router-dom";
 import {
     CITY_SECTIONS,
@@ -236,50 +235,15 @@ function ListingCard({
         }
     };
 
-    const imageUrl = listing.images?.[0] || LISTING_FALLBACK_IMAGES[0];
-
     return (
-        <div onClick={() => onSelect(listing.id)} className="group cursor-pointer flex-shrink-0 w-[72vw] max-w-[280px] sm:w-[280px]">
-            <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-200 mb-3">
-                <img
-                    src={imageUrl}
-                    alt={listing.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                {/* Guest favorite badge */}
-                {listing.avgRating >= 4.5 && (
-                    <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full">
-                        <span className="text-xs font-semibold text-gray-900">Được yêu thích</span>
-                    </div>
-                )}
-                {/* Heart button */}
-                <button
-                    type="button"
-                    onClick={handleToggleSaved}
-                    aria-label={isSaved ? "Bỏ lưu tin" : "Lưu tin"}
-                    className="absolute right-3 top-3 rounded-full p-2 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-white focus:ring-offset-2"
-                >
-                    <Heart
-                        size={24}
-                        className={`${isSaved ? "fill-rose-500 text-rose-500" : "fill-white/70 text-white"} drop-shadow-md`}
-                    />
-                </button>
-            </div>
-            <div className="space-y-1 px-1 pb-2">
-                <div className="flex items-start justify-between">
-                    <h3 className="text-sm font-semibold text-gray-900 line-clamp-1">{listing.title}</h3>
-                    <div className="flex items-center gap-1 text-sm">
-                        <Star size={14} className="fill-gray-900 text-gray-900" />
-                        <span>{listing.avgRating > 0 ? listing.avgRating.toFixed(1) : "N/A"}</span>
-                    </div>
-                </div>
-                <p className="text-sm text-gray-500 line-clamp-1">{formatAddress(listing.address)}</p>
-                <p className="text-sm text-gray-500">{listing.area} m²</p>
-                <div className="flex items-baseline gap-1 pt-1">
-                    <span className="text-sm font-semibold text-gray-900">₫{formatListingPrice(listing.price, "")}</span>
-                </div>
-            </div>
-        </div>
+        <AccommodationCard
+            listing={listing}
+            onSelect={onSelect}
+            isSaved={isSaved}
+            saveLoading={isLoading}
+            onToggleSaved={handleToggleSaved}
+            className="w-[72vw] max-w-[280px] flex-shrink-0 sm:w-[280px]"
+        />
     );
 }
 
@@ -329,20 +293,26 @@ function ListingRow({
             <div className="flex items-center justify-between gap-3 mb-6">
                 <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h2>
                 <div className="flex items-center gap-2">
-                    <button
+                    <Button
+                        type="button"
                         onClick={() => scroll("left")}
-                        className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showLeftArrow ? "opacity-30 cursor-not-allowed" : ""}`}
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full"
                         disabled={!showLeftArrow}
                     >
                         <ChevronLeftIcon size={20} />
-                    </button>
-                    <button
+                    </Button>
+                    <Button
+                        type="button"
                         onClick={() => scroll("right")}
-                        className={`p-2 rounded-full border border-gray-300 hover:border-gray-900 transition-colors ${!showRightArrow ? "opacity-30 cursor-not-allowed" : ""}`}
+                        variant="outline"
+                        size="icon"
+                        className="rounded-full"
                         disabled={!showRightArrow}
                     >
                         <ChevronRightIcon size={20} />
-                    </button>
+                    </Button>
                 </div>
                 <p className="text-sm text-gray-500">{listings.length} lựa chọn phù hợp</p>
             </div>
@@ -350,7 +320,6 @@ function ListingRow({
             <div
                 ref={scrollRef}
                 className="flex gap-6 overflow-x-auto scrollbar-hide pb-4"
-                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
             >
                 {listings.map((listing) => (
                     <ListingCard
@@ -627,9 +596,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
 
     if (isLoading) {
         return (
-            <div className="min-h-screen flex items-center justify-center bg-white">
-                <Loader />
-            </div>
+            <LoadingState className="min-h-screen bg-white" />
         );
     }
 
@@ -717,7 +684,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         </div>
 
                         {hasActiveFilters(filters) && (
-                            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 overflow-x-auto">
+                            <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-2 overflow-x-auto scrollbar-hide">
                                 {filters.search && (
                                     <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
                                         {filters.search}
@@ -744,18 +711,15 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
 
                         <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-3">
                             {isSearching ? (
-                                <div className="py-12 flex justify-center">
-                                    <Loader />
-                                </div>
+                                <LoadingState title="Đang tìm phòng phù hợp" className="py-12" />
                             ) : searchError ? (
-                                <div className="rounded-lg border border-rose-100 bg-rose-50 p-4 text-sm text-rose-700">
-                                    {searchError}
-                                </div>
+                                <ErrorState description={searchError} />
                             ) : listings.length === 0 ? (
-                                <div className="py-12 text-center">
-                                    <p className="font-medium text-slate-900">Không tìm thấy bài đăng</p>
-                                    <p className="mt-1 text-sm text-slate-500">Thử đổi khu vực, khoảng giá hoặc tiện ích.</p>
-                                </div>
+                                <EmptyState
+                                    title="Không tìm thấy bài đăng"
+                                    description="Thử đổi khu vực, khoảng giá hoặc tiện ích."
+                                    className="py-12"
+                                />
                             ) : (
                                 listings.map((listing) => (
                                     <button
@@ -798,7 +762,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                     </div>
                 </div>
             ) : (
-                <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 pb-12">
+                <SectionContainer as="main" className="pb-12">
                     {CITY_SECTIONS.map(
                         (city) =>
                             listingsByCity[city.name]?.length > 0 && (
@@ -811,7 +775,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                                 />
                             )
                     )}
-                </main>
+                </SectionContainer>
             )}
 
             {/* Listing Detail Modal */}

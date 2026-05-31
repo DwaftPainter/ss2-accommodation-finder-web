@@ -163,7 +163,7 @@ export default function LocationTracker() {
             <Marker position={[position.lat, position.lng]} icon={locationIcon}>
                 <Popup>
                     <div className="map-popup min-w-[200px]">
-                        <h4>📍 Vị trí của bạn</h4>
+                        <h4>Vị trí của bạn</h4>
                         <div
                             style={{
                                 fontSize: "0.75rem",
