@@ -3,7 +3,7 @@ import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from "re
 import L from "leaflet";
 import { formatAddress } from "../lib/utils";
 import type { ListingSummary } from "../types";
-import LocationTracker from "./LocationTracker";
+import LocationTracker from "./location-tracker";
 import { XIcon } from "lucide-react";
 
 interface MapViewProps {

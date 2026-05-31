@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Bell, Filter, Bookmark, LogIn, X, SwitchCamera, Map, Menu, MessageSquare } from "lucide-react";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { useUserMode } from "../stores";
 import { notificationsApi } from "../services/api";
 import type { Notification } from "../types";

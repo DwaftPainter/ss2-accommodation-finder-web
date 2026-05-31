@@ -1,2 +1,2 @@
-export { default as AppRoutes } from './AppRoutes';
-export { default as LoadingScreen } from './LoadingScreen';
+export { default as AppRoutes } from './app-routes';
+export { default as LoadingScreen } from './loading-screen';

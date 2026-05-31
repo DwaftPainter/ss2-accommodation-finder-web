@@ -13,10 +13,10 @@ import {
     ChevronRightIcon
 } from "lucide-react";
 import { listingsApi } from "../services/api";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "../hooks/use-auth";
 import { useListingsStore, useUIStore } from "../stores";
-import FilterPanel from "../components/FilterPanel";
-import NotificationBell from "../components/NotificationBell";
+import FilterPanel from "../components/filter-panel";
+import NotificationBell from "../components/notification-bell";
 import { formatAddress } from "../lib/utils";
 import type { ListingFilters, ListingSummary } from "../types";
 import Loader from "@/components/ui/loading";
@@ -27,8 +27,8 @@ import {
     formatListingPrice,
 } from "@/features/listings";
 
-const ListingDetail = lazy(() => import("../components/ListingDetail"));
-const MapView = lazy(() => import("../components/MapView"));
+const ListingDetail = lazy(() => import("../components/listing-detail"));
+const MapView = lazy(() => import("../components/map-view"));
 
 interface HomePageProps {
     onSelectListing?: (id: string) => void;

@@ -1,7 +1,7 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 import { Auth0Provider } from "@auth0/auth0-react";
-import App from "./App";
+import App from "./app";
 import { Toaster } from "sonner";
 import "./index.css";
 import env from "./config/env";

@@ -3,7 +3,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import type { RegisterPayload, User, LoginPayload } from "../types";
 import { STORAGE_KEYS } from "../lib/constants";
 import { authApi } from "../services/api";
-import { useListingsStore } from "./listingsStore";
+import { useListingsStore } from "./listings-store";
 
 interface AuthState {
     user: User | null;

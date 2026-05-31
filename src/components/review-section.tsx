@@ -4,8 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { toast } from 'sonner';
 import { reviewsApi } from '../services/api';
-import { useAuth } from '../hooks/useAuth';
-import { StarRating, StarBreakdown } from './StarRating';
+import { useAuth } from '../hooks/use-auth';
+import { StarRating, StarBreakdown } from './star-rating';
 import { REVIEW_MESSAGES, getErrorMessage } from '../config/messages';
 import type { Review } from '../types';
 

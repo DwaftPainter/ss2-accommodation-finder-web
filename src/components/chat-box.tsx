@@ -1,8 +1,8 @@
 import { useRef, useEffect } from "react";
 import { X, Send, MessageSquare, AlertCircle } from "lucide-react";
-import { useChatStore } from "@/stores/AIStore";
+import { useChatStore } from "@/stores/ai-store";
 import { formatAddress } from "@/lib/utils";
-import MarkdownMessage from "./MarkdownMessage";
+import MarkdownMessage from "./markdown-message";
 
 export default function ChatBox() {
     const {

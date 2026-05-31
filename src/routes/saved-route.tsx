@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { SavedPage } from "../pages";
 import { useListingsStore } from "../stores";
 
-const ChatBox = lazy(() => import("../components/ChatBox"));
-const ListingDetail = lazy(() => import("../components/ListingDetail"));
+const ChatBox = lazy(() => import("../components/chat-box"));
+const ListingDetail = lazy(() => import("../components/listing-detail"));
 
 export default function SavedRoute() {
     const navigate = useNavigate();
