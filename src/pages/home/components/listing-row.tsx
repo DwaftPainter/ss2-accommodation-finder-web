@@ -43,17 +43,24 @@ export function ListingRow({ title, listings, onSelectListing, onRequireAuth }: 
     };
 
     return (
-        <div className="py-8">
-            <div className="flex items-center justify-between gap-3 mb-6">
-                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">{title}</h2>
-                <div className="flex items-center gap-2">
+        <section className="py-8">
+            <div className="mb-5 flex flex-col gap-3 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
+                <div className="min-w-0">
+                    <h2 className="text-xl font-bold leading-tight text-gray-900 sm:text-2xl">
+                        {title}
+                    </h2>
+                    <p className="mt-1 text-sm text-gray-500">{listings.length} lựa chọn phù hợp</p>
+                </div>
+
+                <div className="flex shrink-0 items-center gap-2 self-start sm:self-auto">
                     <Button
                         type="button"
                         onClick={() => scroll("left")}
                         variant="outline"
                         size="icon"
-                        className="rounded-full"
+                        className="h-9 w-9 rounded-full"
                         disabled={!showLeftArrow}
+                        aria-label="Cuộn danh sách sang trái"
                     >
                         <ChevronLeftIcon size={20} />
                     </Button>
@@ -62,13 +69,13 @@ export function ListingRow({ title, listings, onSelectListing, onRequireAuth }: 
                         onClick={() => scroll("right")}
                         variant="outline"
                         size="icon"
-                        className="rounded-full"
+                        className="h-9 w-9 rounded-full"
                         disabled={!showRightArrow}
+                        aria-label="Cuộn danh sách sang phải"
                     >
                         <ChevronRightIcon size={20} />
                     </Button>
                 </div>
-                <p className="text-sm text-gray-500">{listings.length} lựa chọn phù hợp</p>
             </div>
 
             <div ref={scrollRef} className="flex gap-6 overflow-x-auto scrollbar-hide pb-4">
@@ -81,6 +88,6 @@ export function ListingRow({ title, listings, onSelectListing, onRequireAuth }: 
                     />
                 ))}
             </div>
-        </div>
+        </section>
     );
 }
