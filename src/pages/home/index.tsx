@@ -179,7 +179,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     }
 
     return (
-        <div className="flex min-h-screen flex-col overflow-x-hidden bg-slate-50">
+        <div className={`flex flex-col bg-slate-50 ${showMap ? "h-dvh overflow-hidden" : "min-h-screen overflow-x-hidden"}`}>
             <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6">
                     <div className="flex flex-wrap lg:flex-nowrap items-center justify-between min-h-16 lg:min-h-20 py-2 gap-2 lg:gap-3">
@@ -222,7 +222,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
             </header>
 
             {showMap ? (
-                <div className="flex-1 min-h-[calc(100dvh-4rem)] sm:min-h-[calc(100dvh-5rem)] flex flex-col md:flex-row overflow-hidden relative">
+                <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden md:flex-row">
                     {userMode === "finder" && (
                         <FilterPanel
                             filters={filters}
@@ -232,7 +232,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         />
                     )}
 
-                    <div className="w-full md:w-[360px] lg:w-[380px] md:max-w-[40vw] bg-white border-b md:border-b-0 md:border-r border-gray-200 flex flex-col max-h-[45dvh] md:max-h-none z-[900]">
+                    <div className="z-[900] flex max-h-[45dvh] w-full shrink-0 flex-col border-b border-gray-200 bg-white md:h-full md:max-h-none md:w-[360px] md:max-w-[40vw] md:border-b-0 md:border-r lg:w-[380px]">
                         <div className="p-4 border-b border-gray-100 flex items-start justify-between gap-3">
                             <div className="min-w-0">
                                 <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Kết quả tìm kiếm</p>
@@ -319,8 +319,8 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                         </div>
                     </div>
 
-                    <div className="flex-1 min-h-[55dvh] p-2 sm:p-4 overflow-hidden">
-                        <div className="h-full min-h-[55dvh] rounded-xl sm:rounded-2xl overflow-hidden border border-gray-200 shadow-lg bg-white">
+                    <div className="min-h-0 flex-1 overflow-hidden p-2 sm:p-4">
+                        <div className="h-full min-h-0 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg sm:rounded-2xl">
                             <Suspense fallback={<Loader />}>
                                 <MapView
                                     listings={listings}
