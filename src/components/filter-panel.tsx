@@ -1,24 +1,21 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Search } from 'lucide-react';
+import provinces from '../assets/provinces.json';
 import type { ListingFilters } from '../types';
-import { listingsApi } from '../services/api';
 
-const FALLBACK_LOCATION_DATA: Record<string, Record<string, string[]>> = {
-    'Hà Nội': {
-        'Cầu Giấy': ['Dịch Vọng', 'Dịch Vọng Hậu', 'Mai Dịch', 'Nghĩa Đô', 'Nghĩa Tân', 'Quan Hoa', 'Trung Hòa', 'Yên Hòa'],
-        'Đống Đa': ['Cát Linh', 'Hàng Bột', 'Khâm Thiên', 'Khương Thượng', 'Kim Liên', 'Láng Hạ', 'Láng Thượng', 'Nam Đồng', 'Ngã Tư Sở', 'Ô Chợ Dừa', 'Phương Liên', 'Phương Mai', 'Quang Trung', 'Quốc Tử Giám', 'Thịnh Quang', 'Thổ Quan', 'Trung Liệt', 'Trung Phụng', 'Trường Thi', 'Văn Chương', 'Văn Miếu'],
-        'Hai Bà Trưng': ['Bạch Đằng', 'Bách Khoa', 'Bạch Mai', 'Cầu Dền', 'Đống Mác', 'Đồng Nhân', 'Đồng Tâm', 'Lê Đại Hành', 'Minh Khai', 'Nguyễn Du', 'Phạm Đình Hổ', 'Phố Huế', 'Quỳnh Lôi', 'Quỳnh Mai', 'Thanh Lương', 'Thanh Nhàn', 'Trương Định', 'Vĩnh Tuy'],
-    },
-    'Hồ Chí Minh': {
-        'Quận 1': ['Bến Nghé', 'Bến Thành', 'Cô Giang', 'Đa Kao', 'Nguyễn Cư Trinh', 'Nguyễn Thái Bình', 'Phạm Ngũ Lão', 'Tân Định'],
-        'Quận 3': ['Võ Thị Sáu', 'Phường 1', 'Phường 2', 'Phường 3', 'Phường 4', 'Phường 5'],
-        'Quận 7': ['Tân Phong', 'Tân Kiểng', 'Tân Quy', 'Phú Mỹ', 'Bình Thuận'],
-    },
-    'Đà Nẵng': {
-        'Hải Châu': ['Hải Châu I', 'Hải Châu II', 'Thạch Thang', 'Thanh Bình', 'Thuận Phước'],
-        'Sơn Trà': ['An Hải Bắc', 'An Hải Đông', 'An Hải Tây', 'Mân Thái', 'Phước Mỹ'],
-    }
+type ProvinceWard = {
+    wardCode: string;
+    name: string;
 };
+
+type Province = {
+    provinceCode: string;
+    name: string;
+    wards: ProvinceWard[];
+};
+
+const PROVINCES = provinces as Province[];
+const DEFAULT_PROVINCE = PROVINCES[0]?.name ?? '';
 
 const FURNITURE_OPTIONS = [
     { value: 'full', label: 'Full đồ' },
@@ -45,31 +42,16 @@ interface FilterPanelProps {
 }
 
 export default function FilterPanel({ filters, onFilterChange, onSearch, visible }: FilterPanelProps) {
-    const [selectedCity, setSelectedCity] = useState<string>('Hà Nội');
-    const [locationData, setLocationData] = useState<Record<string, Record<string, string[]>>>(FALLBACK_LOCATION_DATA);
+    const [selectedProvince, setSelectedProvince] = useState<string>(filters.province || DEFAULT_PROVINCE);
 
-    useEffect(() => {
-        listingsApi.getLocations()
-            .then(data => {
-                if (Object.keys(data).length > 0) {
-                    setLocationData(data);
-                    // Set selected city to first available if current not found
-                    if (!data[selectedCity]) {
-                        setSelectedCity(Object.keys(data)[0]);
-                    }
-                }
-            })
-            .catch(err => console.error("Failed to fetch locations:", err));
-    }, []);
-
-    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const city = e.target.value;
-        setSelectedCity(city);
-        onFilterChange({ ...filters, district: '', ward: '' });
+    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const province = e.target.value;
+        setSelectedProvince(province);
+        onFilterChange({ ...filters, province, district: '', ward: '' });
     };
 
-    const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        onFilterChange({ ...filters, district: e.target.value, ward: '' });
+    const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onFilterChange({ ...filters, province: selectedProvince, district: '', ward: e.target.value });
     };
 
     const handleUtilityToggle = (utility: string) => {
@@ -81,13 +63,14 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
     };
 
     const handleClear = () => {
+        setSelectedProvince(DEFAULT_PROVINCE);
         onFilterChange({});
-        onSearch();
     };
 
     if (!visible) return null;
 
-    const districts = locationData[selectedCity] || {};
+    const selectedProvinceData = PROVINCES.find((province) => province.name === selectedProvince);
+    const wards = selectedProvinceData?.wards ?? [];
 
     return (
         <div className="flex h-full w-80 max-w-[85vw] shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-200 bg-white p-4 animate-slide-left max-md:absolute max-md:left-0 max-md:top-0 max-md:z-[1500] max-md:shadow-2xl" id="filter-panel">
@@ -105,34 +88,22 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
                 <div className="flex flex-col gap-2">
                     <select
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
-                        value={selectedCity}
-                        onChange={handleCityChange}
+                        value={selectedProvince}
+                        onChange={handleProvinceChange}
                     >
-                        {Object.keys(locationData).map(city => (
-                            <option key={city} value={city}>{city}</option>
+                        {PROVINCES.map(province => (
+                            <option key={province.provinceCode} value={province.name}>{province.name}</option>
                         ))}
                     </select>
 
                     <select
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
-                        value={filters.district || ''}
-                        onChange={handleDistrictChange}
-                    >
-                        <option value="">Tất cả Quận/Huyện</option>
-                        {Object.keys(districts).map(d => (
-                            <option key={d} value={d}>{d}</option>
-                        ))}
-                    </select>
-
-                    <select
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                         value={filters.ward || ''}
-                        onChange={(e) => onFilterChange({ ...filters, ward: e.target.value })}
-                        disabled={!filters.district}
+                        onChange={handleWardChange}
                     >
                         <option value="">Tất cả Phường/Xã</option>
-                        {filters.district && districts[filters.district]?.map(w => (
-                            <option key={w} value={w}>{w}</option>
+                        {wards.map(ward => (
+                            <option key={ward.wardCode} value={ward.name}>{ward.name}</option>
                         ))}
                     </select>
                 </div>

@@ -263,6 +263,16 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                                         {filters.search}
                                     </span>
                                 )}
+                                {filters.province && (
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        {filters.province}
+                                    </span>
+                                )}
+                                {filters.ward && (
+                                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
+                                        {filters.ward}
+                                    </span>
+                                )}
                                 {filters.price_min && (
                                     <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
                                         Từ ₫{formatListingPrice(Number(filters.price_min), "")}
