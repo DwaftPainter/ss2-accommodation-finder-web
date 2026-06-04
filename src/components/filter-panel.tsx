@@ -1,24 +1,22 @@
-import { useState, useEffect } from 'react';
-import { Search } from 'lucide-react';
+import { useState } from 'react';
+import { Crosshair, Search } from 'lucide-react';
+import provinces from '../assets/provinces.json';
 import type { ListingFilters } from '../types';
-import { listingsApi } from '../services/api';
+import { toast } from 'sonner';
 
-const FALLBACK_LOCATION_DATA: Record<string, Record<string, string[]>> = {
-    'Hà Nội': {
-        'Cầu Giấy': ['Dịch Vọng', 'Dịch Vọng Hậu', 'Mai Dịch', 'Nghĩa Đô', 'Nghĩa Tân', 'Quan Hoa', 'Trung Hòa', 'Yên Hòa'],
-        'Đống Đa': ['Cát Linh', 'Hàng Bột', 'Khâm Thiên', 'Khương Thượng', 'Kim Liên', 'Láng Hạ', 'Láng Thượng', 'Nam Đồng', 'Ngã Tư Sở', 'Ô Chợ Dừa', 'Phương Liên', 'Phương Mai', 'Quang Trung', 'Quốc Tử Giám', 'Thịnh Quang', 'Thổ Quan', 'Trung Liệt', 'Trung Phụng', 'Trường Thi', 'Văn Chương', 'Văn Miếu'],
-        'Hai Bà Trưng': ['Bạch Đằng', 'Bách Khoa', 'Bạch Mai', 'Cầu Dền', 'Đống Mác', 'Đồng Nhân', 'Đồng Tâm', 'Lê Đại Hành', 'Minh Khai', 'Nguyễn Du', 'Phạm Đình Hổ', 'Phố Huế', 'Quỳnh Lôi', 'Quỳnh Mai', 'Thanh Lương', 'Thanh Nhàn', 'Trương Định', 'Vĩnh Tuy'],
-    },
-    'Hồ Chí Minh': {
-        'Quận 1': ['Bến Nghé', 'Bến Thành', 'Cô Giang', 'Đa Kao', 'Nguyễn Cư Trinh', 'Nguyễn Thái Bình', 'Phạm Ngũ Lão', 'Tân Định'],
-        'Quận 3': ['Võ Thị Sáu', 'Phường 1', 'Phường 2', 'Phường 3', 'Phường 4', 'Phường 5'],
-        'Quận 7': ['Tân Phong', 'Tân Kiểng', 'Tân Quy', 'Phú Mỹ', 'Bình Thuận'],
-    },
-    'Đà Nẵng': {
-        'Hải Châu': ['Hải Châu I', 'Hải Châu II', 'Thạch Thang', 'Thanh Bình', 'Thuận Phước'],
-        'Sơn Trà': ['An Hải Bắc', 'An Hải Đông', 'An Hải Tây', 'Mân Thái', 'Phước Mỹ'],
-    }
+type ProvinceWard = {
+    wardCode: string;
+    name: string;
 };
+
+type Province = {
+    provinceCode: string;
+    name: string;
+    wards: ProvinceWard[];
+};
+
+const PROVINCES = provinces as Province[];
+const DEFAULT_PROVINCE = PROVINCES[0]?.name ?? '';
 
 const FURNITURE_OPTIONS = [
     { value: 'full', label: 'Full đồ' },
@@ -41,35 +39,30 @@ interface FilterPanelProps {
     filters: ListingFilters;
     onFilterChange: (filters: ListingFilters) => void;
     onSearch: () => void;
+    onNearbySearch: (position: { lat: number; lng: number }, radius: number) => void;
+    isSearching?: boolean;
     visible: boolean;
 }
 
-export default function FilterPanel({ filters, onFilterChange, onSearch, visible }: FilterPanelProps) {
-    const [selectedCity, setSelectedCity] = useState<string>('Hà Nội');
-    const [locationData, setLocationData] = useState<Record<string, Record<string, string[]>>>(FALLBACK_LOCATION_DATA);
+export default function FilterPanel({
+    filters,
+    onFilterChange,
+    onSearch,
+    onNearbySearch,
+    isSearching = false,
+    visible,
+}: FilterPanelProps) {
+    const [selectedProvince, setSelectedProvince] = useState<string>(filters.province || DEFAULT_PROVINCE);
+    const [isLocating, setIsLocating] = useState(false);
 
-    useEffect(() => {
-        listingsApi.getLocations()
-            .then(data => {
-                if (Object.keys(data).length > 0) {
-                    setLocationData(data);
-                    // Set selected city to first available if current not found
-                    if (!data[selectedCity]) {
-                        setSelectedCity(Object.keys(data)[0]);
-                    }
-                }
-            })
-            .catch(err => console.error("Failed to fetch locations:", err));
-    }, []);
-
-    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const city = e.target.value;
-        setSelectedCity(city);
-        onFilterChange({ ...filters, district: '', ward: '' });
+    const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const province = e.target.value;
+        setSelectedProvince(province);
+        onFilterChange({ ...filters, province, district: '', ward: '' });
     };
 
-    const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        onFilterChange({ ...filters, district: e.target.value, ward: '' });
+    const handleWardChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        onFilterChange({ ...filters, province: selectedProvince, district: '', ward: e.target.value });
     };
 
     const handleUtilityToggle = (utility: string) => {
@@ -81,16 +74,57 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
     };
 
     const handleClear = () => {
+        setSelectedProvince(DEFAULT_PROVINCE);
         onFilterChange({});
-        onSearch();
+    };
+
+    const handleNearbyClick = () => {
+        if (!navigator.geolocation) {
+            toast.error('Trình duyệt không hỗ trợ định vị');
+            return;
+        }
+
+        setIsLocating(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const radius = Number(filters.radius) > 0 ? Number(filters.radius) : 5;
+
+                onNearbySearch(
+                    {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    },
+                    radius,
+                );
+
+                setIsLocating(false);
+            },
+            (error) => {
+                const message =
+                    error.code === error.PERMISSION_DENIED
+                        ? 'Bạn đã từ chối quyền truy cập vị trí'
+                        : error.code === error.TIMEOUT
+                          ? 'Hết thời gian xác định vị trí'
+                          : 'Không thể xác định vị trí hiện tại';
+                toast.error(message);
+                setIsLocating(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0,
+            },
+        );
     };
 
     if (!visible) return null;
 
-    const districts = locationData[selectedCity] || {};
+    const selectedProvinceData = PROVINCES.find((province) => province.name === selectedProvince);
+    const wards = selectedProvinceData?.wards ?? [];
 
     return (
-        <div className="w-80 max-w-[85vw] bg-white border-r border-slate-200 p-4 overflow-y-auto flex flex-col gap-4 animate-slide-left max-md:absolute max-md:top-0 max-md:left-0 max-md:h-full max-md:z-[1500] max-md:shadow-2xl" id="filter-panel">
+        <div className="flex h-full w-80 max-w-[85vw] shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-200 bg-white p-4 animate-slide-left max-md:absolute max-md:left-0 max-md:top-0 max-md:z-[1500] max-md:shadow-2xl" id="filter-panel">
             {/* Header */}
             <div className="flex items-center justify-between">
                 <h3 className="text-base font-semibold text-slate-800">Tìm kiếm & Bộ lọc</h3>
@@ -105,36 +139,65 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
                 <div className="flex flex-col gap-2">
                     <select
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
-                        value={selectedCity}
-                        onChange={handleCityChange}
+                        value={selectedProvince}
+                        onChange={handleProvinceChange}
                     >
-                        {Object.keys(locationData).map(city => (
-                            <option key={city} value={city}>{city}</option>
+                        {PROVINCES.map(province => (
+                            <option key={province.provinceCode} value={province.name}>{province.name}</option>
                         ))}
                     </select>
 
                     <select
                         className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none cursor-pointer"
-                        value={filters.district || ''}
-                        onChange={handleDistrictChange}
-                    >
-                        <option value="">Tất cả Quận/Huyện</option>
-                        {Object.keys(districts).map(d => (
-                            <option key={d} value={d}>{d}</option>
-                        ))}
-                    </select>
-
-                    <select
-                        className="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all appearance-none disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
                         value={filters.ward || ''}
-                        onChange={(e) => onFilterChange({ ...filters, ward: e.target.value })}
-                        disabled={!filters.district}
+                        onChange={handleWardChange}
                     >
                         <option value="">Tất cả Phường/Xã</option>
-                        {filters.district && districts[filters.district]?.map(w => (
-                            <option key={w} value={w}>{w}</option>
+                        {wards.map(ward => (
+                            <option key={ward.wardCode} value={ward.name}>{ward.name}</option>
                         ))}
                     </select>
+                </div>
+
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-emerald-900">Tìm chỗ ở gần bạn</p>
+                            <p className="text-xs text-emerald-700">Dùng vị trí hiện tại để gọi nearby endpoint.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleNearbyClick}
+                            disabled={isLocating || isSearching}
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            aria-label="Tìm chỗ ở gần bạn"
+                        >
+                            <Crosshair size={16} />
+                        </button>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                        <label htmlFor="nearby-radius-input" className="text-xs font-medium text-emerald-800">
+                            Bán kính
+                        </label>
+                        <input
+                            id="nearby-radius-input"
+                            type="number"
+                            min="1"
+                            max="50"
+                            step="1"
+                            className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            placeholder="5"
+                            value={filters.radius || ''}
+                            onChange={(e) =>
+                                onFilterChange({
+                                    ...filters,
+                                    radius: e.target.value ? Number(e.target.value) : undefined,
+                                })
+                            }
+                        />
+                        <span className="text-xs text-emerald-700">km</span>
+                    </div>
                 </div>
             </div>
 
