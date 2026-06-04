@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Crosshair, Search } from 'lucide-react';
 import provinces from '../assets/provinces.json';
 import type { ListingFilters } from '../types';
+import { toast } from 'sonner';
 
 type ProvinceWard = {
     wardCode: string;
@@ -38,11 +39,21 @@ interface FilterPanelProps {
     filters: ListingFilters;
     onFilterChange: (filters: ListingFilters) => void;
     onSearch: () => void;
+    onNearbySearch: (position: { lat: number; lng: number }, radius: number) => void;
+    isSearching?: boolean;
     visible: boolean;
 }
 
-export default function FilterPanel({ filters, onFilterChange, onSearch, visible }: FilterPanelProps) {
+export default function FilterPanel({
+    filters,
+    onFilterChange,
+    onSearch,
+    onNearbySearch,
+    isSearching = false,
+    visible,
+}: FilterPanelProps) {
     const [selectedProvince, setSelectedProvince] = useState<string>(filters.province || DEFAULT_PROVINCE);
+    const [isLocating, setIsLocating] = useState(false);
 
     const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const province = e.target.value;
@@ -65,6 +76,46 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
     const handleClear = () => {
         setSelectedProvince(DEFAULT_PROVINCE);
         onFilterChange({});
+    };
+
+    const handleNearbyClick = () => {
+        if (!navigator.geolocation) {
+            toast.error('Trình duyệt không hỗ trợ định vị');
+            return;
+        }
+
+        setIsLocating(true);
+
+        navigator.geolocation.getCurrentPosition(
+            (position) => {
+                const radius = Number(filters.radius) > 0 ? Number(filters.radius) : 5;
+
+                onNearbySearch(
+                    {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    },
+                    radius,
+                );
+
+                setIsLocating(false);
+            },
+            (error) => {
+                const message =
+                    error.code === error.PERMISSION_DENIED
+                        ? 'Bạn đã từ chối quyền truy cập vị trí'
+                        : error.code === error.TIMEOUT
+                          ? 'Hết thời gian xác định vị trí'
+                          : 'Không thể xác định vị trí hiện tại';
+                toast.error(message);
+                setIsLocating(false);
+            },
+            {
+                enableHighAccuracy: true,
+                timeout: 15000,
+                maximumAge: 0,
+            },
+        );
     };
 
     if (!visible) return null;
@@ -106,6 +157,47 @@ export default function FilterPanel({ filters, onFilterChange, onSearch, visible
                             <option key={ward.wardCode} value={ward.name}>{ward.name}</option>
                         ))}
                     </select>
+                </div>
+
+                <div className="rounded-xl border border-emerald-100 bg-emerald-50/70 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                            <p className="text-sm font-semibold text-emerald-900">Tìm chỗ ở gần bạn</p>
+                            <p className="text-xs text-emerald-700">Dùng vị trí hiện tại để gọi nearby endpoint.</p>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleNearbyClick}
+                            disabled={isLocating || isSearching}
+                            className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-white text-emerald-600 shadow-sm transition hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            aria-label="Tìm chỗ ở gần bạn"
+                        >
+                            <Crosshair size={16} />
+                        </button>
+                    </div>
+
+                    <div className="mt-3 flex items-center gap-2">
+                        <label htmlFor="nearby-radius-input" className="text-xs font-medium text-emerald-800">
+                            Bán kính
+                        </label>
+                        <input
+                            id="nearby-radius-input"
+                            type="number"
+                            min="1"
+                            max="50"
+                            step="1"
+                            className="w-full rounded-lg border border-emerald-200 bg-white px-3 py-2 text-sm text-slate-800 focus:outline-none focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/20 transition-all"
+                            placeholder="5"
+                            value={filters.radius || ''}
+                            onChange={(e) =>
+                                onFilterChange({
+                                    ...filters,
+                                    radius: e.target.value ? Number(e.target.value) : undefined,
+                                })
+                            }
+                        />
+                        <span className="text-xs text-emerald-700">km</span>
+                    </div>
                 </div>
             </div>
 

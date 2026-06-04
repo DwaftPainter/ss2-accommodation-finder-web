@@ -2,6 +2,65 @@ import { create } from "zustand";
 import type { ListingSummary, ListingDetail, ListingFilters, SavedListing } from "../types";
 import { listingsApi, savedApi } from "../services/api";
 
+function matchesText(haystack: string | undefined, needle: string) {
+    return haystack?.toLowerCase().includes(needle) ?? false;
+}
+
+function applyClientSideFilters(
+    listings: ListingSummary[],
+    filters: Partial<ListingFilters> = {}
+) {
+    const search = filters.search?.trim().toLowerCase();
+    const priceMin = filters.price_min === undefined || filters.price_min === ""
+        ? undefined
+        : Number(filters.price_min);
+    const priceMax = filters.price_max === undefined || filters.price_max === ""
+        ? undefined
+        : Number(filters.price_max);
+    const areaMin = filters.area_min === undefined || filters.area_min === ""
+        ? undefined
+        : Number(filters.area_min);
+    const areaMax = filters.area_max === undefined || filters.area_max === ""
+        ? undefined
+        : Number(filters.area_max);
+    const utilities = filters.utilities?.filter(Boolean) ?? [];
+
+    return listings.filter((listing) => {
+        if (search) {
+            const addressText = [
+                listing.address.street,
+                listing.address.ward,
+                listing.address.district,
+                listing.address.city,
+                listing.address.province,
+            ]
+                .filter(Boolean)
+                .join(" ")
+                .toLowerCase();
+
+            const matchesSearch =
+                matchesText(listing.title, search) ||
+                matchesText(addressText, search) ||
+                listing.utilities.some((utility) => utility.toLowerCase().includes(search));
+
+            if (!matchesSearch) return false;
+        }
+
+        if (filters.province && listing.address.province !== filters.province) return false;
+        if (filters.district && listing.address.district !== filters.district) return false;
+        if (filters.ward && listing.address.ward !== filters.ward) return false;
+        if (priceMin !== undefined && listing.price < priceMin) return false;
+        if (priceMax !== undefined && listing.price > priceMax) return false;
+        if (areaMin !== undefined && listing.area < areaMin) return false;
+        if (areaMax !== undefined && listing.area > areaMax) return false;
+        if (utilities.length > 0 && !utilities.every((utility) => listing.utilities.includes(utility))) {
+            return false;
+        }
+
+        return true;
+    });
+}
+
 interface ListingsState {
     // Data
     listings: ListingSummary[];
@@ -35,7 +94,12 @@ interface ListingsActions {
 
     // Search operations
     searchByAddress: (address: string, radius?: number) => Promise<void>;
-    searchNearby: (lat: number, lng: number, radius?: number) => Promise<void>;
+    searchNearby: (
+        lat: number,
+        lng: number,
+        radius?: number,
+        filters?: Partial<ListingFilters>
+    ) => Promise<void>;
 
     // Saved operations
     toggleSaved: (listingId: string) => Promise<boolean>;
@@ -149,11 +213,16 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
         }
     },
 
-    searchNearby: async (lat, lng, radius = 5) => {
+    searchNearby: async (lat, lng, radius = 5, filters) => {
         set({ isLoading: true, error: null });
         try {
-            const listings = await listingsApi.searchNearby(lat, lng, radius);
-            set({ listings, isLoading: false });
+            const nearbyListings = await listingsApi.searchNearby(lat, lng, radius);
+            const listings = applyClientSideFilters(nearbyListings, filters);
+            set({
+                listings,
+                filters: filters ? { ...get().filters, ...filters } : get().filters,
+                isLoading: false,
+            });
         } catch (error) {
             set({
                 isLoading: false,

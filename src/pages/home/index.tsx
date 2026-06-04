@@ -40,6 +40,7 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     const userMode = useUIStore((state) => state.userMode);
     const listings = useListingsStore((state) => state.listings);
     const fetchListings = useListingsStore((state) => state.fetchListings);
+    const searchNearby = useListingsStore((state) => state.searchNearby);
     const fetchSavedListings = useListingsStore((state) => state.fetchSavedListings);
     const isSearching = useListingsStore((state) => state.isLoading);
     const searchError = useListingsStore((state) => state.error);
@@ -53,6 +54,23 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
     const [flyTo, setFlyTo] = useState<[number, number] | null>(null);
 
     const modeButtonText = "Cho thuê phòng";
+
+    const runSearch = async (searchFilters: ListingFilters) => {
+        if (
+            typeof searchFilters.lat === "number" &&
+            typeof searchFilters.lng === "number"
+        ) {
+            await searchNearby(
+                searchFilters.lat,
+                searchFilters.lng,
+                searchFilters.radius ?? 5,
+                searchFilters
+            );
+            return;
+        }
+
+        await fetchListings(searchFilters);
+    };
 
     const handleToggleMode = () => {
         onNavigate?.("landlord");
@@ -137,22 +155,32 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
 
     useEffect(() => {
         if (showMap) {
-            fetchListings(filters);
+            void runSearch(filters);
         }
-    }, [showMap, filters, fetchListings]);
+    }, [showMap, filters, fetchListings, searchNearby]);
 
     const updateFilters = (nextFilters: ListingFilters) => {
         setFilters(nextFilters);
     };
 
     const applyFilters = () => {
-        fetchListings(filters);
+        void runSearch(filters);
         setShowFilters(false);
     };
 
     const clearSearch = () => {
         setFilters({});
-        fetchListings({});
+        void fetchListings({});
+    };
+
+    const handleNearbySearch = (position: { lat: number; lng: number }, radius: number) => {
+        setFilters((currentFilters) => ({
+            ...currentFilters,
+            lat: position.lat,
+            lng: position.lng,
+            radius,
+        }));
+        setShowFilters(false);
     };
 
     const handleSelectListingInternal = (id: string) => {
@@ -228,6 +256,8 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                             filters={filters}
                             onFilterChange={updateFilters}
                             onSearch={applyFilters}
+                            onNearbySearch={handleNearbySearch}
+                            isSearching={isSearching}
                             visible={showFilters}
                         />
                     )}
@@ -271,6 +301,11 @@ export default function HomePage({ onSelectListing, onNavigate, onRequireAuth }:
                                 {filters.ward && (
                                     <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs text-slate-700">
                                         {filters.ward}
+                                    </span>
+                                )}
+                                {typeof filters.lat === "number" && typeof filters.lng === "number" && (
+                                    <span className="shrink-0 rounded-full bg-emerald-50 px-3 py-1 text-xs text-emerald-700">
+                                        Gần bạn {filters.radius ? `(${filters.radius} km)` : ""}
                                     </span>
                                 )}
                                 {filters.price_min && (
