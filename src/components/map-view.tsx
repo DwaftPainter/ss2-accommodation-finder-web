@@ -45,6 +45,13 @@ const createIcon = (avgRating: number) => {
     return icon;
 };
 
+const createListingPinIcon = L.icon({
+    iconUrl: "/location-pin-svgrepo-com.svg",
+    iconSize: [42, 42],
+    iconAnchor: [21, 42],
+    popupAnchor: [0, -42]
+});
+
 const formatPrice = (p: number) => new Intl.NumberFormat("vi-VN").format(p) + " đ";
 
 const ListingMarker = memo(
@@ -163,7 +170,7 @@ export default function MapView({
                 ))}
 
                 {pinLocation && (
-                    <Marker position={[pinLocation.lat, pinLocation.lng]}>
+                    <Marker position={[pinLocation.lat, pinLocation.lng]} icon={createListingPinIcon}>
                         <Popup>
                             <div className="text-center p-1">
                                 <h4 className="font-bold">Vị trí mới</h4>
