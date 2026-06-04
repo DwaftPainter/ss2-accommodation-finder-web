@@ -1,4 +1,3 @@
-# .github/workflows/auto-pr-fix-to-dev.yml
 name: Auto PR fix to dev
 
 on:
@@ -16,17 +15,19 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Create PR to dev
+      - name: Create PR to dev and enable auto-merge
         run: |
-          gh pr create \
+          PR_URL=$(gh pr create \
             --base dev \
             --head "${{ github.ref_name }}" \
             --title "Auto PR: ${{ github.ref_name }} → dev" \
             --body "Auto-created from fix branch to dev." \
-          || echo "PR already exists"
+            || gh pr view "${{ github.ref_name }}" --json url -q .url)
 
-          gh pr merge "${{ github.ref_name }}" \
+          gh pr merge "$PR_URL" \
             --squash \
             --auto \
             --delete-branch
