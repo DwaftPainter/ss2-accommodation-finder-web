@@ -1,0 +1,34 @@
+# .github/workflows/auto-pr-fix-to-dev.yml
+name: Auto PR fix to dev
+
+on:
+  push:
+    branches:
+      - "fix/**"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  pr-to-dev:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create PR to dev
+        run: |
+          gh pr create \
+            --base dev \
+            --head "${{ github.ref_name }}" \
+            --title "Auto PR: ${{ github.ref_name }} → dev" \
+            --body "Auto-created from fix branch to dev." \
+          || echo "PR already exists"
+
+          gh pr merge "${{ github.ref_name }}" \
+            --squash \
+            --auto \
+            --delete-branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
