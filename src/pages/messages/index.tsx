@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
-import { Search, Settings, MessageSquare, ChevronDown } from "lucide-react";
+import { ArrowLeft, Home, MessageSquare, ChevronDown, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { chatApi, type Chat } from "../../services/api/chat";
 import { useAuth } from "../../hooks/use-auth";
 import { formatDistanceToNow } from "date-fns";
@@ -13,6 +14,7 @@ interface MessagesPageProps {
 
 export default function MessagesPage({ mode }: MessagesPageProps) {
     const { user } = useAuth();
+    const navigate = useNavigate();
     const [chats, setChats] = useState<Chat[]>([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState<"all" | "unread">("all");
@@ -37,19 +39,65 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
         return true;
     });
 
+    const handleSelectChat = (chatId: string) => {
+        setSelectedChatId(chatId);
+        setChats((currentChats) =>
+            currentChats.map((chat) =>
+                chat.id === chatId
+                    ? {
+                        ...chat,
+                        messages: chat.messages.map((message) =>
+                            message.senderId !== user?.id
+                                ? { ...message, isRead: true }
+                                : message
+                        ),
+                    }
+                    : chat
+            )
+        );
+    };
+
+    const homePath = mode === "landlord" ? "/landlord" : "/";
+
     return (
         <div className="flex h-[100dvh] bg-white overflow-hidden">
             {/* Sidebar */}
             <div className={`${selectedChatId ? "hidden md:flex" : "flex"} w-full md:w-80 lg:w-96 border-r border-gray-200 flex-col min-w-0`}>
                 <div className="p-4 sm:p-6 border-b border-gray-100">
                     <div className="flex items-center justify-between mb-4 sm:mb-6">
-                        <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Tin nhắn</h1>
-                        <div className="flex gap-2">
-                            <Button type="button" variant="ghost" size="icon" className="rounded-full">
-                                <Search size={20} className="text-gray-600" />
+                        <div className="flex items-center gap-2 min-w-0">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full"
+                                onClick={() => navigate(homePath)}
+                                aria-label="Quay lại"
+                            >
+                                <ArrowLeft size={20} className="text-gray-600" />
                             </Button>
-                            <Button type="button" variant="ghost" size="icon" className="rounded-full">
-                                <Settings size={20} className="text-gray-600" />
+                            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Tin nhắn</h1>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full"
+                                onClick={() => navigate(homePath)}
+                                aria-label={mode === "landlord" ? "Về trang chủ nhà" : "Về trang tìm phòng"}
+                            >
+                                <Home size={20} className="text-gray-600" />
+                            </Button>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="rounded-full"
+                                onClick={() => navigate("/profile")}
+                                aria-label="Hồ sơ"
+                            >
+                                <User size={20} className="text-gray-600" />
                             </Button>
                         </div>
                     </div>
@@ -94,7 +142,7 @@ export default function MessagesPage({ mode }: MessagesPageProps) {
                                 return (
                                     <button
                                         key={chat.id}
-                                        onClick={() => setSelectedChatId(chat.id)}
+                                        onClick={() => handleSelectChat(chat.id)}
                                         className={`w-full flex items-start gap-3 p-4 hover:bg-gray-50 transition-colors text-left border-b border-gray-50 ${
                                             isSelected ? "bg-gray-50" : ""
                                         }`}

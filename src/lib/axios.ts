@@ -17,6 +17,18 @@ export type ApiError = AxiosError & {
 };
 
 function normalizeErrorMessage(data: unknown, fallback: string): string {
+    if (typeof data === "string") {
+        const normalized = data.toLowerCase();
+        if (
+            normalized.includes("<html") ||
+            normalized.includes("bad gateway") ||
+            normalized.includes("nginx")
+        ) {
+            return "Máy chủ đang bảo trì. Vui lòng thử lại sau.";
+        }
+        return data.trim() || fallback;
+    }
+
     if (!data || typeof data !== "object") return fallback;
 
     const { message, error } = data as ApiErrorData;

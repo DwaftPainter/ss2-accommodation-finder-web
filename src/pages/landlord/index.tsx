@@ -247,7 +247,14 @@ export default function LandlordPage({ onSelectListing, onNavigate }: LandlordPa
                         setEditingListing(null);
                         setPinLocation(null);
                     }}
-                    onSaved={async () => {
+                    onSaved={async (data) => {
+                        if (editingListing) {
+                            await listingsApi.update(editingListing.id, data);
+                            toast.success("Cập nhật bài đăng thành công");
+                        } else {
+                            await listingsApi.create(data);
+                            toast.success("Tạo bài đăng thành công");
+                        }
                         await refreshListings();
                         // If we were creating (no editingListing), switch to listings tab
                         if (!editingListing) {
