@@ -160,10 +160,15 @@ export const listingsApi = {
     /**
      * Search listings near coordinates
      */
-    searchNearby: async (lat: number, lng: number, radius: number = 5): Promise<ListingSummary[]> => {
+    searchNearby: async (
+        lat: number,
+        lng: number,
+        radius: number = 5,
+        filters: Pick<ListingFilters, "province" | "city" | "district" | "ward"> = {}
+    ): Promise<ListingSummary[]> => {
         const response = await apiClient.get<ListingSummary[]>(
             "/api/listings/search/nearby",
-            { params: { lat, lng, radius } }
+            { params: toBackendFilters({ ...filters, lat, lng, radius }) }
         );
         return response.data;
     },
