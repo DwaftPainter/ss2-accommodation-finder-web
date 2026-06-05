@@ -6,6 +6,15 @@ function matchesText(haystack: string | undefined, needle: string) {
     return haystack?.toLowerCase().includes(needle) ?? false;
 }
 
+function utilityMatches(listingUtilities: string[], selectedUtility: string) {
+    const normalizedSelected = selectedUtility.toLowerCase();
+    const normalizedListingUtilities = listingUtilities.map((utility) =>
+        utility.toLowerCase().replace(/\s+/g, "_")
+    );
+
+    return normalizedListingUtilities.includes(normalizedSelected);
+}
+
 function applyClientSideFilters(
     listings: ListingSummary[],
     filters: Partial<ListingFilters> = {}
@@ -53,7 +62,7 @@ function applyClientSideFilters(
         if (priceMax !== undefined && listing.price > priceMax) return false;
         if (areaMin !== undefined && listing.area < areaMin) return false;
         if (areaMax !== undefined && listing.area > areaMax) return false;
-        if (utilities.length > 0 && !utilities.every((utility) => listing.utilities.includes(utility))) {
+        if (utilities.length > 0 && !utilities.every((utility) => utilityMatches(listing.utilities, utility))) {
             return false;
         }
 
