@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Crosshair, Search } from 'lucide-react';
 import provinces from '../assets/provinces.json';
 import type { ListingFilters } from '../types';
@@ -16,7 +16,13 @@ type Province = {
 };
 
 const PROVINCES = provinces as Province[];
-const DEFAULT_PROVINCE = PROVINCES[0]?.name ?? '';
+
+function normalizeAdministrativeName(value: string) {
+    const trimmed = value.trim();
+    if (!trimmed) return '';
+
+    return trimmed.replace(/^(Thành phố|Tỉnh|TP\.|Phường|Xã|Thị trấn)\s+/i, '');
+}
 
 const FURNITURE_OPTIONS = [
     { value: 'full', label: 'Full đồ' },
@@ -52,8 +58,12 @@ export default function FilterPanel({
     isSearching = false,
     visible,
 }: FilterPanelProps) {
-    const [selectedProvince, setSelectedProvince] = useState<string>(filters.province || DEFAULT_PROVINCE);
+    const [selectedProvince, setSelectedProvince] = useState<string>(filters.province || '');
     const [isLocating, setIsLocating] = useState(false);
+
+    useEffect(() => {
+        setSelectedProvince(filters.province || '');
+    }, [filters.province]);
 
     const handleProvinceChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const province = e.target.value;
@@ -74,7 +84,7 @@ export default function FilterPanel({
     };
 
     const handleClear = () => {
-        setSelectedProvince(DEFAULT_PROVINCE);
+        setSelectedProvince('');
         onFilterChange({});
     };
 
@@ -120,7 +130,9 @@ export default function FilterPanel({
 
     if (!visible) return null;
 
-    const selectedProvinceData = PROVINCES.find((province) => province.name === selectedProvince);
+    const selectedProvinceData = PROVINCES.find(
+        (province) => normalizeAdministrativeName(province.name) === selectedProvince
+    );
     const wards = selectedProvinceData?.wards ?? [];
 
     return (
@@ -142,8 +154,11 @@ export default function FilterPanel({
                         value={selectedProvince}
                         onChange={handleProvinceChange}
                     >
+                        <option value="">Tất cả Tỉnh/Thành phố</option>
                         {PROVINCES.map(province => (
-                            <option key={province.provinceCode} value={province.name}>{province.name}</option>
+                            <option key={province.provinceCode} value={normalizeAdministrativeName(province.name)}>
+                                {province.name}
+                            </option>
                         ))}
                     </select>
 
@@ -154,7 +169,9 @@ export default function FilterPanel({
                     >
                         <option value="">Tất cả Phường/Xã</option>
                         {wards.map(ward => (
-                            <option key={ward.wardCode} value={ward.name}>{ward.name}</option>
+                            <option key={ward.wardCode} value={ward.name}>
+                                {ward.name}
+                            </option>
                         ))}
                     </select>
                 </div>

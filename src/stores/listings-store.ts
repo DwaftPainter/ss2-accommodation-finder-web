@@ -216,7 +216,7 @@ export const useListingsStore = create<ListingsStore>()((set, get) => ({
     searchNearby: async (lat, lng, radius = 5, filters) => {
         set({ isLoading: true, error: null });
         try {
-            const nearbyListings = await listingsApi.searchNearby(lat, lng, radius);
+            const nearbyListings = await listingsApi.searchNearby(lat, lng, radius, filters);
             const listings = applyClientSideFilters(nearbyListings, filters);
             set({
                 listings,
