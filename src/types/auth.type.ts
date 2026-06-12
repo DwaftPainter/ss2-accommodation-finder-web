@@ -17,6 +17,18 @@ export type VerifyEmailPayload = {
     otp: string;
 };
 
+export type GoogleLoginPayload = {
+    sub?: string;
+    email?: string;
+    name?: string;
+    given_name?: string;
+    family_name?: string;
+    nickname?: string;
+    picture?: string;
+    email_verified?: boolean;
+    authProvider?: "google";
+};
+
 export type AuthResponse = {
     user: User;
     accessToken: string;
