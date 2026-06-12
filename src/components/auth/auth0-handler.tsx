@@ -7,8 +7,8 @@ let syncedAuth0Sub: string | null = null;
 let auth0SyncPromise: Promise<void> | null = null;
 
 export function Auth0CallbackHandler() {
-    const { isAuthenticated, user, getAccessTokenSilently } = useAuth0();
-    const loginWithGoogleToken = useAuthStore((state) => state.loginWithGoogleToken);
+    const { isAuthenticated, user } = useAuth0();
+    const loginWithGoogleProfile = useAuthStore((state) => state.loginWithGoogleProfile);
     const hasSyncedRef = useRef(false);
 
     useEffect(() => {
@@ -20,8 +20,10 @@ export function Auth0CallbackHandler() {
 
             hasSyncedRef.current = true;
             try {
-                auth0SyncPromise ??= getAccessTokenSilently()
-                    .then((token) => loginWithGoogleToken(token))
+                auth0SyncPromise ??= loginWithGoogleProfile({
+                    ...user,
+                    authProvider: "google"
+                })
                     .then(() => {
                         syncedAuth0Sub = user.sub ?? null;
                     })
@@ -38,7 +40,7 @@ export function Auth0CallbackHandler() {
         };
 
         syncAuth0User();
-    }, [getAccessTokenSilently, isAuthenticated, loginWithGoogleToken, user]);
+    }, [isAuthenticated, loginWithGoogleProfile, user]);
 
     useEffect(() => {
         if (!isAuthenticated) {

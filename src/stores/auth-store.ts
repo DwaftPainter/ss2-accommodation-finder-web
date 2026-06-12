@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import type { RegisterPayload, User, LoginPayload } from "../types";
+import type { RegisterPayload, User, LoginPayload, GoogleLoginPayload } from "../types";
 import { STORAGE_KEYS } from "../lib/constants";
 import { authApi } from "../services/api";
 import { useListingsStore } from "./listings-store";
@@ -24,7 +24,7 @@ interface AuthActions {
     validateSession: () => Promise<void>;
     refreshAccessToken: () => Promise<boolean>;
     handleAuthCallback: (accessToken: string, refreshToken: string) => Promise<void>;
-    loginWithGoogleToken: (auth0Token: string) => Promise<void>;
+    loginWithGoogleProfile: (payload: GoogleLoginPayload) => Promise<void>;
     updateProfile: (user: User) => void;
     clearError: () => void;
 }
@@ -242,10 +242,10 @@ export const useAuthStore = create<AuthStore>()(
                 }
             },
 
-            loginWithGoogleToken: async (auth0Token: string) => {
+            loginWithGoogleProfile: async (payload: GoogleLoginPayload) => {
                 set({ isLoading: true, error: null });
                 try {
-                    const response = await authApi.loginWithGoogle(auth0Token);
+                    const response = await authApi.loginWithGoogle(payload);
                     storeTokens(response.accessToken, response.refreshToken);
                     const user = await authApi.getMe();
                     set({ user, isAuthenticated: true, isLoading: false });

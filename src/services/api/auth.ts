@@ -6,7 +6,8 @@ import type {
     VerifyEmailPayload,
     VerifyEmailResponse,
     AuthResponse,
-    RegisterResponse
+    RegisterResponse,
+    GoogleLoginPayload
 } from "../../types";
 
 export const authApi = {
@@ -79,13 +80,10 @@ export const authApi = {
     },
 
     /**
-     * Exchange Auth0 token for backend session
-     * Sends the Auth0 access token to your backend for verification
+     * Create or load a backend session from the Auth0 Google profile.
      */
-    loginWithGoogle: async (auth0Token: string): Promise<AuthResponse> => {
-        const { data } = await apiClient.post<AuthResponse>("/api/auth/google", {
-            token: auth0Token
-        });
+    loginWithGoogle: async (payload: GoogleLoginPayload): Promise<AuthResponse> => {
+        const { data } = await apiClient.post<AuthResponse>("/api/auth/google", payload);
         return data;
     }
 };
